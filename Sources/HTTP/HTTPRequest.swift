@@ -12,7 +12,7 @@ import Dispatch
 /// HTTP Request NOT INCLUDING THE BODY. This allows for streaming
 public struct HTTPRequest {
     public var method: HTTPMethod
-    public var target: String /* e.g. "/foo/bar?buz=qux" */
+    public var target: URL
     public var httpVersion: HTTPVersion
     public var headers: HTTPHeaders
 }

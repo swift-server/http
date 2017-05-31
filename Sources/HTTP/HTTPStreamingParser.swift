@@ -71,7 +71,7 @@ public class StreamingParser: HTTPResponseWriter {
     var parsedHeaders = HTTPHeaders()
     var parsedHTTPMethod: HTTPMethod?
     var parsedHTTPVersion: HTTPVersion?
-    var parsedURL: String?
+    var parsedURL: URL?
 
     /// Is the currently parsed request an upgrade request?
     public private(set) var upgradeRequested = false
@@ -201,7 +201,9 @@ public class StreamingParser: HTTPResponseWriter {
             if let parserBuffer = self.parserBuffer {
                 //Under heaptrack, this may appear to leak via _CFGetTSDCreateIfNeeded, 
                 //  apparently, that's because it triggers thread metadata to be created
-                self.parsedURL = String(data:parserBuffer, encoding: .utf8)
+                if let parsedString = String(data: parserBuffer, encoding: .utf8) {
+                    self.parsedURL = URL(string: parsedString)
+                }
                 self.parserBuffer=nil
             } else {
                 print("Missing parserBuffer after \(lastCallBack)")
