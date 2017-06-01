@@ -256,13 +256,11 @@ public enum HTTPResponseStatus: RawRepresentable, Equatable {
 extension HTTPResponseStatus {
     public var reasonPhrase: String {
         switch(self) {
-//       Can't do custom if we want rawRepresentable. TODO: Consider making these constants
-//        case .custom(_, let reasonPhrase):
-//            return reasonPhrase
-        case .`continue`:
-            return "CONTINUE"
-        default:
-            return String(describing: self)
+            case .other(_, let reasonPhrase): return reasonPhrase
+            case .`continue`:
+                return "CONTINUE"
+            default:
+                return String(describing: self)
         }
     }
     
