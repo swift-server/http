@@ -162,10 +162,10 @@ extension HTTPResponseStatus {
 }
 
 /// HTTP Methods handled by http_parser.[ch] supports
-public enum HTTPMethod: String {
-    // case custom(method: String)
-    case UNKNOWN
-    
+public enum HTTPMethod : RawRepresentable {
+    /* be future-proof, http_parser can be upgraded */
+    case other(String)
+        
     /* everything that http_parser.[ch] supports */
     case DELETE
     case GET
