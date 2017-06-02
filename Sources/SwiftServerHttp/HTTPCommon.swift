@@ -22,13 +22,15 @@ public protocol WebAppContaining: class {
 
 /// Headers structure.
 public struct HTTPHeaders {
-    var storage: [String:[String]]     /* lower cased keys */
+
+    /* storing an array of index to reference original string */
+    var storage: [String: [Int]]     /* lower cased keys */
     var original: [(String, String)]   /* original casing */
     let description: String
     
     public subscript(key: String) -> [String] {
         get {
-            return storage[key.lowercased()] ?? []
+            return storage[key.lowercased()]?.map {original[$0].1} ?? []
         }
         mutating set {
             original = original.filter { $0.0 != key.lowercased() }
@@ -46,25 +48,26 @@ public struct HTTPHeaders {
     public mutating func append(newHeader: (String, String)) {
         original.append(newHeader)
         let key = newHeader.0.lowercased()
-        let val = newHeader.1
-        
-        var existing = storage[key] ?? []
-        existing.append(val)
-        storage[key] = existing
+
+        if storage.keys.contains(key) {
+            storage[key]!.append(original.count - 1)
+        } else {
+            storage[key] = [original.count - 1]
+        }
     }
 
     /// Create Header structure from an array of string pairs
     public init(_ headers: [(String, String)] = []) {
         original = headers
         description=""
-        storage = [String:[String]]()
+        storage = [String:[Int]]()
         makeIterator().forEach { (element: (String, String)) in
             let key = element.0.lowercased()
-            let val = element.1
-            
-            var existing = storage[key] ?? []
-            existing.append(val)
-            storage[key] = existing
+            if storage.keys.contains(key) {
+                storage[key]!.append(original.count - 1)
+            } else {
+                storage[key] = [original.count - 1]
+            }
         }
     }
 }
