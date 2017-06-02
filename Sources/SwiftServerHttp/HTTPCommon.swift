@@ -23,6 +23,7 @@ public protocol WebAppContaining: class {
 /// Headers structure.
 public struct HTTPHeaders {
 
+    /* storing an array of index to reference original string */
     var storage: [String: [Int]]     /* lower cased keys */
     var original: [(String, String)]   /* original casing */
     let description: String
