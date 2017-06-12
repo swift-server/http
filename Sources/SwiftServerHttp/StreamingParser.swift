@@ -27,7 +27,7 @@ public class StreamingParser: HTTPResponseWriter {
     /// Tracks when socket should be closed. Needs to have a lock, since it's updated often
     private let _keepAliveUntilLock = DispatchSemaphore(value: 1)
     private var _keepAliveUntil: TimeInterval?
-    var keepAliveUntil: TimeInterval? {
+    public var keepAliveUntil: TimeInterval? {
         get {
             _keepAliveUntilLock.wait()
             defer {
