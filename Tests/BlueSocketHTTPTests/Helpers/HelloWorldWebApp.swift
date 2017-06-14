@@ -11,12 +11,12 @@ import HTTP
 
 /// Simple `WebApp` that prints "Hello, World" as per K&R
 class HelloWorldWebApp: WebAppContaining {
-    func serve(req: HTTP.Request, res: HTTP.ResponseWriter ) -> HTTP.BodyProcessing {
+    func serve(req: HTTPRequest, res: HTTPResponseWriter ) -> HTTPBodyProcessing {
         //Assume the router gave us the right request - at least for now
-        res.writeResponse(HTTP.Response(httpVersion: req.httpVersion,
+        res.writeResponse(HTTPResponse(httpVersion: req.httpVersion,
                                        status: .ok,
                                        transferEncoding: .chunked,
-                                       headers: HTTP.Headers([("X-foo", "bar")])))
+                                       headers: HTTPHeaders([("X-foo", "bar")])))
         return .processBody { (chunk, stop) in
             switch chunk {
             case .chunk(_, let finishedProcessing):

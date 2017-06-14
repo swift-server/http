@@ -9,19 +9,19 @@
 import Foundation
 
 /// Version number of the HTTP Protocol
-public typealias Version = (Int, Int)
+public typealias HTTPVersion = (Int, Int)
 
 /// Takes in a Request and an object to write to, and returns a function that handles reading the request body
-public typealias WebApp = (Request, ResponseWriter) -> BodyProcessing
+public typealias WebApp = (HTTPRequest, HTTPResponseWriter) -> HTTPBodyProcessing
 
 /// Class protocol containing the WebApp func. Using a class protocol to allow weak references for ARC
 public protocol WebAppContaining: class {
     /// WebApp method
-    func serve(req: Request, res: ResponseWriter ) -> BodyProcessing
+    func serve(req: HTTPRequest, res: HTTPResponseWriter ) -> HTTPBodyProcessing
 }
 
 /// Headers structure.
-public struct Headers {
+public struct HTTPHeaders {
     var storage: [String:[String]]     /* lower cased keys */
     var original: [(String, String)]   /* original casing */
     let description: String

@@ -13,50 +13,50 @@ import XCTest
 
 class ServerTests: XCTestCase {
     func testResponseOK() {
-        let request = HTTP.Request(method: .GET, target:"/echo", httpVersion: (1, 1), headers: HTTP.Headers([("X-foo", "bar")]))
+        let request = HTTPRequest(method: .GET, target:"/echo", httpVersion: (1, 1), headers: HTTPHeaders([("X-foo", "bar")]))
         let resolver = TestResponseResolver(request: request, requestBody: Data())
         resolver.resolveHandler(EchoWebApp().serve)
         XCTAssertNotNil(resolver.response)
         XCTAssertNotNil(resolver.responseBody)
-        XCTAssertEqual(HTTP.ResponseStatus.ok.code, resolver.response?.status.code ?? 0)
+        XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
     }
 
     func testEcho() {
         let testString="This is a test"
-        let request = HTTP.Request(method: .POST, target:"/echo", httpVersion: (1, 1), headers: HTTP.Headers([("X-foo", "bar")]))
+        let request = HTTPRequest(method: .POST, target:"/echo", httpVersion: (1, 1), headers: HTTPHeaders([("X-foo", "bar")]))
         let resolver = TestResponseResolver(request: request, requestBody: testString.data(using: .utf8)!)
         resolver.resolveHandler(EchoWebApp().serve)
         XCTAssertNotNil(resolver.response)
         XCTAssertNotNil(resolver.responseBody)
-        XCTAssertEqual(HTTP.ResponseStatus.ok.code, resolver.response?.status.code ?? 0)
+        XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
         XCTAssertEqual(testString, String(data: resolver.responseBody ?? Data(), encoding: .utf8) ?? "Nil")
     }
     
     func testHello() {
-        let request = HTTP.Request(method: .GET, target:"/helloworld", httpVersion: (1, 1), headers: HTTP.Headers([("X-foo", "bar")]))
+        let request = HTTPRequest(method: .GET, target:"/helloworld", httpVersion: (1, 1), headers: HTTPHeaders([("X-foo", "bar")]))
         let resolver = TestResponseResolver(request: request, requestBody: Data())
         resolver.resolveHandler(HelloWorldWebApp().serve)
         XCTAssertNotNil(resolver.response)
         XCTAssertNotNil(resolver.responseBody)
-        XCTAssertEqual(HTTP.ResponseStatus.ok.code, resolver.response?.status.code ?? 0)
+        XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
         XCTAssertEqual("Hello, World!", String(data: resolver.responseBody ?? Data(), encoding: .utf8) ?? "Nil")
     }
     
     func testSimpleHello() {
-        let request = HTTP.Request(method: .GET, target:"/helloworld", httpVersion: (1, 1), headers: HTTP.Headers([("X-foo", "bar")]))
+        let request = HTTPRequest(method: .GET, target:"/helloworld", httpVersion: (1, 1), headers: HTTPHeaders([("X-foo", "bar")]))
         let resolver = TestResponseResolver(request: request, requestBody: Data())
-        let simpleHelloWebApp = SimpleResponseCreator { (request, body) -> (reponse: HTTP.Response, responseBody: Data) in
-            return (HTTP.Response(httpVersion: request.httpVersion,
+        let simpleHelloWebApp = SimpleResponseCreator { (request, body) -> (reponse: HTTPResponse, responseBody: Data) in
+            return (HTTPResponse(httpVersion: request.httpVersion,
                                  status: .ok,
                                  transferEncoding: .chunked,
-                                 headers: HTTP.Headers([("X-foo", "bar")])),
+                                 headers: HTTPHeaders([("X-foo", "bar")])),
                     "Hello, World!".data(using: .utf8)!)
             
         }
         resolver.resolveHandler(simpleHelloWebApp.serve)
         XCTAssertNotNil(resolver.response)
         XCTAssertNotNil(resolver.responseBody)
-        XCTAssertEqual(HTTP.ResponseStatus.ok.code, resolver.response?.status.code ?? 0)
+        XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
         XCTAssertEqual("Hello, World!", String(data: resolver.responseBody ?? Data(), encoding: .utf8) ?? "Nil")
     }
 
@@ -74,7 +74,7 @@ class ServerTests: XCTestCase {
                 XCTAssertNil(error, "\(error!.localizedDescription)")
                 XCTAssertNotNil(response)
                 XCTAssertNotNil(responseBody)
-                XCTAssertEqual(Int(HTTP.ResponseStatus.ok.code), response?.statusCode ?? 0)
+                XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
                 XCTAssertEqual("Hello, World!", String(data: responseBody ?? Data(), encoding: .utf8) ?? "Nil")
                 receivedExpectation.fulfill()
             }
@@ -92,11 +92,11 @@ class ServerTests: XCTestCase {
     
     func testSimpleHelloEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
-        let simpleHelloWebApp = SimpleResponseCreator { (request, body) -> (reponse: HTTP.Response, responseBody: Data) in
-            return (HTTP.Response(httpVersion: request.httpVersion,
+        let simpleHelloWebApp = SimpleResponseCreator { (request, body) -> (reponse: HTTPResponse, responseBody: Data) in
+            return (HTTPResponse(httpVersion: request.httpVersion,
                                  status: .ok,
                                  transferEncoding: .chunked,
-                                 headers: HTTP.Headers([("X-foo", "bar")])),
+                                 headers: HTTPHeaders([("X-foo", "bar")])),
                     "Hello, World!".data(using: .utf8)!)
             
         }
@@ -117,7 +117,7 @@ class ServerTests: XCTestCase {
             XCTAssertNil(error, "\(error!.localizedDescription)")
             XCTAssertNotNil(response)
             XCTAssertNotNil(responseBody)
-            XCTAssertEqual(Int(HTTP.ResponseStatus.ok.code), response?.statusCode ?? 0)
+            XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
             let responseString = String(data: responseBody ?? Data(), encoding: .utf8) ?? "Nil"
             XCTAssertEqual("Hello, World!", responseString)
             print("\(#function) fulfilling expectation")
@@ -154,7 +154,7 @@ class ServerTests: XCTestCase {
                 XCTAssertNil(error, "\(error!.localizedDescription)")
                 XCTAssertNotNil(response)
                 XCTAssertNotNil(responseBody)
-                XCTAssertEqual(Int(HTTP.ResponseStatus.ok.code), response?.statusCode ?? 0)
+                XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
                 XCTAssertEqual(testString, String(data: responseBody ?? Data(), encoding: .utf8) ?? "Nil")
                 receivedExpectation.fulfill()
             }
@@ -200,7 +200,7 @@ class ServerTests: XCTestCase {
                 XCTAssertNotNil(keepAliveHeader)
                 XCTAssertNotNil(responseBody,"No Keep-Alive Header")
                 XCTAssertEqual(server.connectionCount, 1)
-                XCTAssertEqual(Int(HTTP.ResponseStatus.ok.code), response?.statusCode ?? 0)
+                XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
                 XCTAssertEqual(testString1, String(data: responseBody ?? Data(), encoding: .utf8) ?? "Nil")
                 var request2 = URLRequest(url: url)
                 request2.httpMethod = "POST"
@@ -217,7 +217,7 @@ class ServerTests: XCTestCase {
                     XCTAssertNotNil(keepAliveHeader,"No Keep-Alive Header")
                     XCTAssertEqual(server.connectionCount, 1)
                     XCTAssertNotNil(responseBody2)
-                    XCTAssertEqual(Int(HTTP.ResponseStatus.ok.code), response2?.statusCode ?? 0)
+                    XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response2?.statusCode ?? 0)
                     XCTAssertEqual(testString2, String(data: responseBody2 ?? Data(), encoding: .utf8) ?? "Nil")
                     var request3 = URLRequest(url: url)
                     request3.httpMethod = "POST"
@@ -234,7 +234,7 @@ class ServerTests: XCTestCase {
                         XCTAssertNotNil(keepAliveHeader,"No Keep-Alive Header")
                         XCTAssertEqual(server.connectionCount, 1)
                         XCTAssertNotNil(responseBody)
-                        XCTAssertEqual(Int(HTTP.ResponseStatus.ok.code), response?.statusCode ?? 0)
+                        XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
                         XCTAssertEqual(testString3, String(data: responseBody ?? Data(), encoding: .utf8) ?? "Nil")
                         receivedExpectation3.fulfill()
                     }
@@ -290,7 +290,7 @@ class ServerTests: XCTestCase {
                 XCTAssertNil(error, "\(error!.localizedDescription)")
                 XCTAssertNotNil(response)
                 XCTAssertNotNil(responseBody)
-                XCTAssertEqual(Int(HTTP.ResponseStatus.ok.code), response?.statusCode ?? 0)
+                XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
                 XCTAssertEqual(testData, responseBody ?? Data())
                 receivedExpectation.fulfill()
             }

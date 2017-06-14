@@ -12,7 +12,7 @@ import XCTest
 
 class HeadersTests: XCTestCase {
     func testHeaders() {
-        var headers = HTTP.Headers()
+        var headers = HTTPHeaders()
         let initialCount = headers.makeIterator().reduce(0) { (last, element) -> Int in return last + 1 }
         XCTAssertEqual(0, initialCount)
 
