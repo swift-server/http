@@ -8,18 +8,18 @@
 
 import Foundation
 import Dispatch
-import SwiftServerHttp
+import HTTP
 
 /// Acts as a fake/mock `HTTPServer` so we can write XCTests without having to worry about Sockets and such
-class TestResponseResolver: HTTPResponseWriter {
-    let request: HTTPRequest
+class TestResponseResolver: HTTP.ResponseWriter {
+    let request: HTTP.Request
     let requestBody: DispatchData
     
-    var response: HTTPResponse?
+    var response: HTTP.Response?
     var responseBody: Data?
     
     
-    init(request: HTTPRequest, requestBody: Data) {
+    init(request: HTTP.Request, requestBody: Data) {
         self.request = request
         self.requestBody = requestBody.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) -> DispatchData in
             DispatchData(bytes: UnsafeBufferPointer<UInt8>(start: ptr, count: requestBody.count))
@@ -43,11 +43,11 @@ class TestResponseResolver: HTTPResponseWriter {
         }
     }
     
-    func writeContinue(headers: HTTPHeaders?) /* to send an HTTP `100 Continue` */ {
+    func writeContinue(headers: HTTP.Headers?) /* to send an HTTP `100 Continue` */ {
         fatalError("Not implemented")
     }
     
-    func writeResponse(_ response: HTTPResponse) {
+    func writeResponse(_ response: HTTP.Response) {
         self.response=response
     }
     

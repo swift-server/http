@@ -10,16 +10,13 @@ import Foundation
 import Dispatch
 
 /// HTTP Response NOT INCLUDING THE BODY
-public struct HTTPResponse {
-    public var httpVersion : HTTPVersion
-    public var status: HTTPResponseStatus
-    public var transferEncoding: HTTPTransferEncoding
-    public var headers: HTTPHeaders
+public struct Response {
+    public var httpVersion: Version
+    public var status: ResponseStatus
+    public var transferEncoding: TransferEncoding
+    public var headers: Headers
     
-    public init (httpVersion: HTTPVersion,
-                 status: HTTPResponseStatus,
-        transferEncoding: HTTPTransferEncoding,
-        headers: HTTPHeaders) {
+    public init (httpVersion: Version, status: ResponseStatus, transferEncoding: TransferEncoding, headers: Headers) {
         self.httpVersion = httpVersion
         self.status = status
         self.transferEncoding = transferEncoding
@@ -28,10 +25,10 @@ public struct HTTPResponse {
 }
 
 /// Object that code writes the response and response body to. 
-public protocol HTTPResponseWriter : class {
-    func writeContinue(headers: HTTPHeaders?) /* to send an HTTP `100 Continue` */
+public protocol ResponseWriter : class {
+    func writeContinue(headers: Headers?) /* to send an HTTP `100 Continue` */
     
-    func writeResponse(_ response: HTTPResponse)
+    func writeResponse(_ response: Response)
     
     func writeTrailer(key: String, value: String)
     
@@ -46,13 +43,13 @@ public protocol HTTPResponseWriter : class {
     func abort()
 }
 
-public enum HTTPTransferEncoding {
+public enum TransferEncoding {
     case identity(contentLength: UInt)
     case chunked
 }
 
 /// Response status (200 ok, 404 not found, etc)
-public enum HTTPResponseStatus: RawRepresentable, Equatable {
+public enum ResponseStatus: RawRepresentable, Equatable {
     /* be future-proof, new status codes can appear */
     case other(statusCode: UInt16, reasonPhrase: String)
     
@@ -246,14 +243,12 @@ public enum HTTPResponseStatus: RawRepresentable, Equatable {
         }
     }
   
-    public static func ==(lhs: HTTPResponseStatus, rhs: HTTPResponseStatus)
-                       -> Bool
-    {
+    public static func ==(lhs: ResponseStatus, rhs: ResponseStatus) -> Bool {
         return lhs.rawValue == rhs.rawValue
     }
 }
 
-extension HTTPResponseStatus {
+extension ResponseStatus {
     public var reasonPhrase: String {
         switch(self) {
             case .other(_, let reasonPhrase): return reasonPhrase
@@ -268,8 +263,8 @@ extension HTTPResponseStatus {
         return self.rawValue
     }
     
-    public static func from(code: UInt16) -> HTTPResponseStatus? {
-        return HTTPResponseStatus(rawValue: code)
+    public static func from(code: UInt16) -> ResponseStatus? {
+        return ResponseStatus(rawValue: code)
     }
 
 }

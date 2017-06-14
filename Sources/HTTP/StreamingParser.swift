@@ -9,13 +9,13 @@
 import Foundation
 import Dispatch
 
-import CHttpParser
+import CHTTPParser
 
 
 /// Class that wraps the CHTTPParser and calls the `WebApp` to get the response
-public class StreamingParser: HTTPResponseWriter {
+public class StreamingParser: ResponseWriter {
 
-    let webapp : WebApp
+    let webapp: WebApp
     
     /// Time to leave socket open waiting for next request to start
     public static let keepAliveTimeout: TimeInterval = 5
@@ -55,12 +55,12 @@ public class StreamingParser: HTTPResponseWriter {
     /// Holds the bytes that come from the CHTTPParser until we have enough of them to do something with it
     var parserBuffer: Data?
 
-    ///HTTP Parser
+    /// HTTP Parser
     var httpParser = http_parser()
     var httpParserSettings = http_parser_settings()
     
     /// Block that takes a chunk from the HTTPParser as input and writes to a Response as a result
-    var httpBodyProcessingCallback: HTTPBodyProcessing?
+    var httpBodyProcessingCallback: BodyProcessing?
     
     //Note: we want this to be strong so it holds onto the connector until it's explicitly cleared
     /// Protocol that we use to send data (and status info) back to the Network layer
@@ -68,9 +68,9 @@ public class StreamingParser: HTTPResponseWriter {
     
     var lastCallBack = CallbackRecord.idle
     var lastHeaderName: String?
-    var parsedHeaders = HTTPHeaders()
-    var parsedHTTPMethod: HTTPMethod?
-    var parsedHTTPVersion: HTTPVersion?
+    var parsedHeaders = Headers()
+    var parsedHTTPMethod: Method?
+    var parsedHTTPVersion: Version?
     var parsedURL: String?
 
     /// Is the currently parsed request an upgrade request?
@@ -188,7 +188,7 @@ public class StreamingParser: HTTPResponseWriter {
         case .headersCompleted:
             let methodId = self.httpParser.method
             if let methodName = http_method_str(http_method(rawValue: methodId)) {
-                self.parsedHTTPMethod = HTTPMethod(rawValue: String(validatingUTF8: methodName) ?? "GET")
+                self.parsedHTTPMethod = Method(rawValue: String(validatingUTF8: methodName) ?? "GET")
             }
             self.parsedHTTPVersion = (Int(self.httpParser.http_major), Int(self.httpParser.http_minor))
             
@@ -307,13 +307,13 @@ public class StreamingParser: HTTPResponseWriter {
     var headersWritten = false
     var isChunked = false
     
-    /// Create a `HTTPRequest` struct from the parsed information 
-    public func createRequest() -> HTTPRequest {
-        return HTTPRequest(method: parsedHTTPMethod!, target: parsedURL!, httpVersion: parsedHTTPVersion!, headers: parsedHeaders)
+    /// Create a `Request` struct from the parsed information 
+    public func createRequest() -> Request {
+        return Request(method: parsedHTTPMethod!, target: parsedURL!, httpVersion: parsedHTTPVersion!, headers: parsedHeaders)
     }
     
-    public func writeContinue(headers: HTTPHeaders?) /* to send an HTTP `100 Continue` */ {
-        var status = "HTTP/1.1 \(HTTPResponseStatus.continue.code) \(HTTPResponseStatus.continue.reasonPhrase)\r\n"
+    public func writeContinue(headers: Headers?) /* to send an HTTP `100 Continue` */ {
+        var status = "HTTP/1.1 \(ResponseStatus.continue.code) \(ResponseStatus.continue.reasonPhrase)\r\n"
         if let headers = headers {
             for (key, value) in headers.makeIterator() {
                 status += "\(key): \(value)\r\n"
@@ -329,7 +329,7 @@ public class StreamingParser: HTTPResponseWriter {
         }
     }
     
-    public func writeResponse(_ response: HTTPResponse) {
+    public func writeResponse(_ response: Response) {
         guard !headersWritten else {
             return
         }
@@ -425,7 +425,7 @@ public class StreamingParser: HTTPResponseWriter {
         
         self.parsedHTTPMethod = nil
         self.parsedURL=nil
-        self.parsedHeaders = HTTPHeaders()
+        self.parsedHeaders = Headers()
         self.lastHeaderName = nil
         self.parserBuffer = nil
         self.parsedHTTPMethod = nil

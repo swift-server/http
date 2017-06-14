@@ -10,24 +10,24 @@ import Foundation
 import Dispatch
 
 /// HTTP Request NOT INCLUDING THE BODY. This allows for streaming
-public struct HTTPRequest {
-    public var method : HTTPMethod
+public struct Request {
+    public var method : Method
     public var target : String /* e.g. "/foo/bar?buz=qux" */
-    public var httpVersion : HTTPVersion
-    public var headers : HTTPHeaders
+    public var httpVersion : Version
+    public var headers : Headers
 }
 
 /// Method that takes a chunk of request body and is expected to write to the ResponseWriter
-public typealias HTTPBodyHandler = (HTTPBodyChunk, inout Bool) -> Void /* the Bool can be set to true when we don't want to process anything further */
+public typealias BodyHandler = (BodyChunk, inout Bool) -> Void /* the Bool can be set to true when we don't want to process anything further */
 
 /// Indicates whether the body is going to be processed or ignored
-public enum HTTPBodyProcessing {
+public enum BodyProcessing {
     case discardBody /* if you're not interested in the body */
-    case processBody(handler: HTTPBodyHandler)
+    case processBody(handler: BodyHandler)
 }
 
 /// Part (or maybe all) of the incoming request body
-public enum HTTPBodyChunk {
+public enum BodyChunk {
     case chunk(data: DispatchData, finishedProcessing: () -> Void) /* a new bit of the HTTP request body has arrived, finishedProcessing() must be called when done with that chunk */
     case failed(error: /*HTTPParser*/ Error) /* error while streaming the HTTP request body, eg. connection closed */
     case trailer(key: String, value: String) /* trailer has arrived (this we actually haven't implemented yet) */
@@ -35,7 +35,7 @@ public enum HTTPBodyChunk {
 }
 
 /// HTTP Methods handled by http_parser.[ch] supports
-public enum HTTPMethod : RawRepresentable {
+public enum Method : RawRepresentable {
     /* be future-proof, http_parser can be upgraded */
     case other(String)
     

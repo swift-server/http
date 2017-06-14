@@ -8,101 +8,55 @@
 
 import XCTest
 
-@testable import SwiftServerHttp
+@testable import HTTP
+@testable import BlueSocketHTTP
 
-class SwiftServerHttpTests: XCTestCase {
+class ServerTests: XCTestCase {
     func testResponseOK() {
-        let request = HTTPRequest(method: .GET, target:"/echo", httpVersion: (1, 1), headers: HTTPHeaders([("X-foo", "bar")]))
+        let request = HTTP.Request(method: .GET, target:"/echo", httpVersion: (1, 1), headers: HTTP.Headers([("X-foo", "bar")]))
         let resolver = TestResponseResolver(request: request, requestBody: Data())
         resolver.resolveHandler(EchoWebApp().serve)
         XCTAssertNotNil(resolver.response)
         XCTAssertNotNil(resolver.responseBody)
-        XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
+        XCTAssertEqual(HTTP.ResponseStatus.ok.code, resolver.response?.status.code ?? 0)
     }
 
     func testEcho() {
         let testString="This is a test"
-        let request = HTTPRequest(method: .POST, target:"/echo", httpVersion: (1, 1), headers: HTTPHeaders([("X-foo", "bar")]))
+        let request = HTTP.Request(method: .POST, target:"/echo", httpVersion: (1, 1), headers: HTTP.Headers([("X-foo", "bar")]))
         let resolver = TestResponseResolver(request: request, requestBody: testString.data(using: .utf8)!)
         resolver.resolveHandler(EchoWebApp().serve)
         XCTAssertNotNil(resolver.response)
         XCTAssertNotNil(resolver.responseBody)
-        XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
+        XCTAssertEqual(HTTP.ResponseStatus.ok.code, resolver.response?.status.code ?? 0)
         XCTAssertEqual(testString, String(data: resolver.responseBody ?? Data(), encoding: .utf8) ?? "Nil")
     }
     
     func testHello() {
-        let request = HTTPRequest(method: .GET, target:"/helloworld", httpVersion: (1, 1), headers: HTTPHeaders([("X-foo", "bar")]))
+        let request = HTTP.Request(method: .GET, target:"/helloworld", httpVersion: (1, 1), headers: HTTP.Headers([("X-foo", "bar")]))
         let resolver = TestResponseResolver(request: request, requestBody: Data())
         resolver.resolveHandler(HelloWorldWebApp().serve)
         XCTAssertNotNil(resolver.response)
         XCTAssertNotNil(resolver.responseBody)
-        XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
+        XCTAssertEqual(HTTP.ResponseStatus.ok.code, resolver.response?.status.code ?? 0)
         XCTAssertEqual("Hello, World!", String(data: resolver.responseBody ?? Data(), encoding: .utf8) ?? "Nil")
     }
     
-    func testHeaders() {
-        var headers = HTTPHeaders()
-        let initialCount = headers.makeIterator().reduce(0) { (last, element) -> Int in return last + 1 }
-        XCTAssertEqual(0, initialCount)
-        
-        headers.append(newHeader: ("Test-Header","Test Value"))
-        let nextCount = headers.makeIterator().reduce(0) { (last, element) -> Int in return last + 1 }
-        XCTAssertEqual(1, nextCount)
-        
-        let testHeaderValueArray = headers["test-header"]
-        XCTAssertNotNil(testHeaderValueArray)
-        XCTAssertEqual(1,testHeaderValueArray.count)
-        XCTAssertEqual("Test Value",testHeaderValueArray.first ?? "Not Found")
-        
-        headers.append(newHeader: ("Test-header","Test Value 2"))
-        let testHeaderValueArray2 = headers["test-header"]
-        XCTAssertNotNil(testHeaderValueArray2)
-        XCTAssertEqual(2,testHeaderValueArray2.count)
-        XCTAssertEqual("Test Value",testHeaderValueArray2.first ?? "Not Found")
-        let testHeaderValueArray2Remainder = testHeaderValueArray2.dropFirst()
-        XCTAssertEqual("Test Value 2",testHeaderValueArray2Remainder.first ?? "Not Found")
-
-        //This should overwrites, since the subscript is documented to use lowercase keys
-        headers["TEST-HEADER"]=["Test Value 3"]
-        let testHeaderValueArray3 = headers["test-header"]
-        XCTAssertNotNil(testHeaderValueArray3)
-        XCTAssertEqual(1,testHeaderValueArray3.count)
-        
-        //Overwrite
-        headers["TEST-HEADER"]=["Test Value 4a","Test Value 4b"]
-        let testHeaderValueArray4 = headers["test-header"]
-        XCTAssertNotNil(testHeaderValueArray4)
-        XCTAssertEqual(2,testHeaderValueArray4.count)
-        XCTAssertEqual("Test Value 4a",testHeaderValueArray4.first ?? "Not Found")
-        let testHeaderValueArray4Remainder = testHeaderValueArray4.dropFirst()
-        XCTAssertEqual("Test Value 4b",testHeaderValueArray4Remainder.first ?? "Not Found")
-
-    }
-    
-    func testResponseCodes() {
-        let okay = HTTPResponseStatus.ok
-        XCTAssertEqual(200,okay.code)
-        XCTAssertEqual("ok",okay.reasonPhrase)
-        XCTAssertEqual("CONTINUE",HTTPResponseStatus.continue.reasonPhrase)
-        XCTAssertEqual(HTTPResponseStatus.notFound, HTTPResponseStatus.from(code: 404))
-    }
-    
     func testSimpleHello() {
-        let request = HTTPRequest(method: .GET, target:"/helloworld", httpVersion: (1, 1), headers: HTTPHeaders([("X-foo", "bar")]))
+        let request = HTTP.Request(method: .GET, target:"/helloworld", httpVersion: (1, 1), headers: HTTP.Headers([("X-foo", "bar")]))
         let resolver = TestResponseResolver(request: request, requestBody: Data())
-        let simpleHelloWebApp = SimpleResponseCreator { (request, body) -> (reponse: HTTPResponse, responseBody: Data) in
-            return (HTTPResponse(httpVersion: request.httpVersion,
+        let simpleHelloWebApp = SimpleResponseCreator { (request, body) -> (reponse: HTTP.Response, responseBody: Data) in
+            return (HTTP.Response(httpVersion: request.httpVersion,
                                  status: .ok,
                                  transferEncoding: .chunked,
-                                 headers: HTTPHeaders([("X-foo", "bar")])),
+                                 headers: HTTP.Headers([("X-foo", "bar")])),
                     "Hello, World!".data(using: .utf8)!)
             
         }
         resolver.resolveHandler(simpleHelloWebApp.serve)
         XCTAssertNotNil(resolver.response)
         XCTAssertNotNil(resolver.responseBody)
-        XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
+        XCTAssertEqual(HTTP.ResponseStatus.ok.code, resolver.response?.status.code ?? 0)
         XCTAssertEqual("Hello, World!", String(data: resolver.responseBody ?? Data(), encoding: .utf8) ?? "Nil")
     }
 
@@ -120,7 +74,7 @@ class SwiftServerHttpTests: XCTestCase {
                 XCTAssertNil(error, "\(error!.localizedDescription)")
                 XCTAssertNotNil(response)
                 XCTAssertNotNil(responseBody)
-                XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
+                XCTAssertEqual(Int(HTTP.ResponseStatus.ok.code), response?.statusCode ?? 0)
                 XCTAssertEqual("Hello, World!", String(data: responseBody ?? Data(), encoding: .utf8) ?? "Nil")
                 receivedExpectation.fulfill()
             }
@@ -138,11 +92,11 @@ class SwiftServerHttpTests: XCTestCase {
     
     func testSimpleHelloEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
-        let simpleHelloWebApp = SimpleResponseCreator { (request, body) -> (reponse: HTTPResponse, responseBody: Data) in
-            return (HTTPResponse(httpVersion: request.httpVersion,
+        let simpleHelloWebApp = SimpleResponseCreator { (request, body) -> (reponse: HTTP.Response, responseBody: Data) in
+            return (HTTP.Response(httpVersion: request.httpVersion,
                                  status: .ok,
                                  transferEncoding: .chunked,
-                                 headers: HTTPHeaders([("X-foo", "bar")])),
+                                 headers: HTTP.Headers([("X-foo", "bar")])),
                     "Hello, World!".data(using: .utf8)!)
             
         }
@@ -163,7 +117,7 @@ class SwiftServerHttpTests: XCTestCase {
             XCTAssertNil(error, "\(error!.localizedDescription)")
             XCTAssertNotNil(response)
             XCTAssertNotNil(responseBody)
-            XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
+            XCTAssertEqual(Int(HTTP.ResponseStatus.ok.code), response?.statusCode ?? 0)
             let responseString = String(data: responseBody ?? Data(), encoding: .utf8) ?? "Nil"
             XCTAssertEqual("Hello, World!", responseString)
             print("\(#function) fulfilling expectation")
@@ -200,7 +154,7 @@ class SwiftServerHttpTests: XCTestCase {
                 XCTAssertNil(error, "\(error!.localizedDescription)")
                 XCTAssertNotNil(response)
                 XCTAssertNotNil(responseBody)
-                XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
+                XCTAssertEqual(Int(HTTP.ResponseStatus.ok.code), response?.statusCode ?? 0)
                 XCTAssertEqual(testString, String(data: responseBody ?? Data(), encoding: .utf8) ?? "Nil")
                 receivedExpectation.fulfill()
             }
@@ -246,7 +200,7 @@ class SwiftServerHttpTests: XCTestCase {
                 XCTAssertNotNil(keepAliveHeader)
                 XCTAssertNotNil(responseBody,"No Keep-Alive Header")
                 XCTAssertEqual(server.connectionCount, 1)
-                XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
+                XCTAssertEqual(Int(HTTP.ResponseStatus.ok.code), response?.statusCode ?? 0)
                 XCTAssertEqual(testString1, String(data: responseBody ?? Data(), encoding: .utf8) ?? "Nil")
                 var request2 = URLRequest(url: url)
                 request2.httpMethod = "POST"
@@ -263,7 +217,7 @@ class SwiftServerHttpTests: XCTestCase {
                     XCTAssertNotNil(keepAliveHeader,"No Keep-Alive Header")
                     XCTAssertEqual(server.connectionCount, 1)
                     XCTAssertNotNil(responseBody2)
-                    XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response2?.statusCode ?? 0)
+                    XCTAssertEqual(Int(HTTP.ResponseStatus.ok.code), response2?.statusCode ?? 0)
                     XCTAssertEqual(testString2, String(data: responseBody2 ?? Data(), encoding: .utf8) ?? "Nil")
                     var request3 = URLRequest(url: url)
                     request3.httpMethod = "POST"
@@ -280,7 +234,7 @@ class SwiftServerHttpTests: XCTestCase {
                         XCTAssertNotNil(keepAliveHeader,"No Keep-Alive Header")
                         XCTAssertEqual(server.connectionCount, 1)
                         XCTAssertNotNil(responseBody)
-                        XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
+                        XCTAssertEqual(Int(HTTP.ResponseStatus.ok.code), response?.statusCode ?? 0)
                         XCTAssertEqual(testString3, String(data: responseBody ?? Data(), encoding: .utf8) ?? "Nil")
                         receivedExpectation3.fulfill()
                     }
@@ -336,7 +290,7 @@ class SwiftServerHttpTests: XCTestCase {
                 XCTAssertNil(error, "\(error!.localizedDescription)")
                 XCTAssertNotNil(response)
                 XCTAssertNotNil(responseBody)
-                XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
+                XCTAssertEqual(Int(HTTP.ResponseStatus.ok.code), response?.statusCode ?? 0)
                 XCTAssertEqual(testData, responseBody ?? Data())
                 receivedExpectation.fulfill()
             }
@@ -355,14 +309,12 @@ class SwiftServerHttpTests: XCTestCase {
     static var allTests = [
         ("testEcho", testEcho),
         ("testHello", testHello),
-        ("testHeaders", testHeaders),
         ("testSimpleHello", testSimpleHello),
         ("testResponseOK", testResponseOK),
-        ("testResponseCodes", testResponseCodes),
         ("testHelloEndToEnd", testHelloEndToEnd),
         ("testSimpleHelloEndToEnd", testSimpleHelloEndToEnd),
         ("testRequestEchoEndToEnd", testRequestEchoEndToEnd),
         ("testRequestKeepAliveEchoEndToEnd", testRequestKeepAliveEchoEndToEnd),
         ("testRequestLargeEchoEndToEnd", testRequestLargeEchoEndToEnd),
-        ]
+    ]
 }
