@@ -64,7 +64,14 @@ public struct HTTPHeaders {
 }
 
 /// Version number of the HTTP Protocol
-public typealias HTTPVersion = (Int, Int)
+public struct HTTPVersion {
+    /// Major version component.
+    public var major: Int
+    /// Minor version component.
+    public var minor: Int
+    
+    public init(major: Int, minor: Int)
+}
 
 public enum HTTPTransferEncoding {
     case identity(contentLength: UInt)

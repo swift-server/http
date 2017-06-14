@@ -190,7 +190,7 @@ public class StreamingParser: HTTPResponseWriter {
             if let methodName = http_method_str(http_method(rawValue: methodId)) {
                 self.parsedHTTPMethod = HTTPMethod(rawValue: String(validatingUTF8: methodName) ?? "GET")
             }
-            self.parsedHTTPVersion = (Int(self.httpParser.http_major), Int(self.httpParser.http_minor))
+            self.parsedHTTPVersion = HTTPVersion(major: Int(self.httpParser.http_major), minor: Int(self.httpParser.http_minor))
             
             self.parserBuffer=nil
             
