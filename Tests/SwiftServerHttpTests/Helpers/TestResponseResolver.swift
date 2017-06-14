@@ -26,7 +26,7 @@ class TestResponseResolver: HTTPResponseWriter {
         }
     }
     
-    func resolveHandler(_ handler:WebApp) {
+    func resolveHandler(_ handler: Responder) {
         let chunkHandler = handler(request, self)
         var stop=false
         var finished=false

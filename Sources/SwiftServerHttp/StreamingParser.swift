@@ -15,7 +15,7 @@ import CHttpParser
 /// Class that wraps the CHTTPParser and calls the `WebApp` to get the response
 public class StreamingParser: HTTPResponseWriter {
 
-    let webapp : WebApp
+    let responder: Responder
     
     /// Time to leave socket open waiting for next request to start
     public static let keepAliveTimeout: TimeInterval = 5
@@ -79,8 +79,8 @@ public class StreamingParser: HTTPResponseWriter {
     /// Class that wraps the CHTTPParser and calls the `WebApp` to get the response
     ///
     /// - Parameter webapp: function that is used to create the response
-    public init(webapp: @escaping WebApp, connectionCounter: CurrentConnectionCounting? = nil) {
-        self.webapp = webapp
+    public init(responder: @escaping Responder, connectionCounter: CurrentConnectionCounting? = nil) {
+        self.responder = responder
         self.connectionCounter = connectionCounter
         
         //Set up all the callbacks for the CHTTPParser library
@@ -173,7 +173,7 @@ public class StreamingParser: HTTPResponseWriter {
         case .headerFieldReceived:
             if let parserBuffer = self.parserBuffer {
                 self.lastHeaderName = String(data: parserBuffer, encoding: .utf8)
-                self.parserBuffer=nil
+                self.parserBuffer = nil
             } else {
                 print("Missing parserBuffer after \(lastCallBack)")
             }
@@ -195,7 +195,7 @@ public class StreamingParser: HTTPResponseWriter {
             self.parserBuffer=nil
             
             if !upgradeRequested {
-                self.httpBodyProcessingCallback = self.webapp(self.createRequest(), self)
+                httpBodyProcessingCallback = responder(self.createRequest(), self)
             }
         case .urlReceived:
             if let parserBuffer = self.parserBuffer {

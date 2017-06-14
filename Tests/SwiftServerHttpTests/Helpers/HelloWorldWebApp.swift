@@ -10,8 +10,8 @@ import Foundation
 import SwiftServerHttp
 
 /// Simple `WebApp` that prints "Hello, World" as per K&R
-class HelloWorldWebApp: WebAppContaining {
-    func serve(req: HTTPRequest, res: HTTPResponseWriter ) -> HTTPBodyProcessing {
+class HelloWorldWebApp: ResponderContaining {
+    func serve(_ req: HTTPRequest, _ res: HTTPResponseWriter) -> HTTPBodyProcessing {
         //Assume the router gave us the right request - at least for now
         res.writeResponse(HTTPResponse(httpVersion: req.httpVersion,
                                        status: .ok,

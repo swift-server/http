@@ -10,8 +10,8 @@ import Foundation
 import SwiftServerHttp
 
 /// `HelloWorldWebApp` that sets the keep alive header for XCTest purposes
-class HelloWorldKeepAliveWebApp: WebAppContaining {
-    func serve(req: HTTPRequest, res: HTTPResponseWriter ) -> HTTPBodyProcessing {
+class HelloWorldKeepAliveWebApp: ResponderContaining {
+    func serve(_ req: HTTPRequest, _ res: HTTPResponseWriter ) -> HTTPBodyProcessing {
         //Assume the router gave us the right request - at least for now
         res.writeResponse(HTTPResponse(httpVersion: req.httpVersion,
                                        status: .ok,

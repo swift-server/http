@@ -65,7 +65,7 @@ public class BlueSocketSimpleServer : CurrentConnectionCounting {
     ///   - port: TCP port. See listen(2)
     ///   - webapp: Function that creates the HTTP Response from the HTTP Request
     /// - Throws: Error (usually a socket error) generated
-    public func start(port: Int = 0, queueCount: Int = 0, acceptCount: Int = 0, webapp: @escaping WebApp) throws {
+    public func start(port: Int = 0, queueCount: Int = 0, acceptCount: Int = 0, responder: @escaping Responder) throws {
         if queueCount > 0 {
             queueMax = queueCount
         }
@@ -98,7 +98,7 @@ public class BlueSocketSimpleServer : CurrentConnectionCounting {
             repeat {
                 do {
                     let clientSocket = try self.serverSocket.acceptClientConnection()
-                    let streamingParser = StreamingParser(webapp: webapp, connectionCounter: self)
+                    let streamingParser = StreamingParser(responder: responder, connectionCounter: self)
                     let readQueue = readQueues[listenerCount % self.queueMax]
                     let writeQueue = writeQueues[listenerCount % self.queueMax]
                     let listener = BlueSocketConnectionListener(socket:clientSocket, parser: streamingParser, readQueue:readQueue, writeQueue: writeQueue)
