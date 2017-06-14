@@ -8,9 +8,6 @@
 
 import Foundation
 
-/// Version number of the HTTP Protocol
-public typealias HTTPVersion = (Int, Int)
-
 /// Takes in a Request and an object to write to, and returns a function that handles reading the request body
 public typealias WebApp = (HTTPRequest, HTTPResponseWriter) -> HTTPBodyProcessing
 
