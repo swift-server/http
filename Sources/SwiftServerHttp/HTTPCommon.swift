@@ -9,12 +9,12 @@
 import Foundation
 
 /// Takes in a Request and an object to write to, and returns a function that handles reading the request body
-public typealias WebApp = (HTTPRequest, HTTPResponseWriter) -> HTTPBodyProcessing
+public typealias Responder = (HTTPRequest, HTTPResponseWriter) -> HTTPBodyProcessing
 
 /// Class protocol containing the WebApp func. Using a class protocol to allow weak references for ARC
-public protocol WebAppContaining: class {
+public protocol ResponderContaining: class {
     /// WebApp method
-    func serve(req: HTTPRequest, res: HTTPResponseWriter ) -> HTTPBodyProcessing
+    func serve(_ request: HTTPRequest, _ writer: HTTPResponseWriter) -> HTTPBodyProcessing
 }
 
 /// Headers structure.

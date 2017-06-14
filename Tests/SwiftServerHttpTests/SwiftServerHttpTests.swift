@@ -111,7 +111,7 @@ class SwiftServerHttpTests: XCTestCase {
         
         let server = BlueSocketSimpleServer()
         do {
-            try server.start(port: 0, webapp: HelloWorldWebApp().serve)
+            try server.start(port: 0, responder: HelloWorldWebApp().serve)
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let url = URL(string: "http://localhost:\(server.port)/helloworld")!
             print("Test \(#function) on port \(server.port)")
@@ -149,7 +149,7 @@ class SwiftServerHttpTests: XCTestCase {
 
         let server = BlueSocketSimpleServer()
         do {
-            try server.start(port: 0, webapp: simpleHelloWebApp.serve)
+            try server.start(port: 0, responder: simpleHelloWebApp.serve)
         } catch {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
@@ -186,7 +186,7 @@ class SwiftServerHttpTests: XCTestCase {
 
         let server = BlueSocketSimpleServer()
         do {
-            try server.start(port: 0, webapp: EchoWebApp().serve)
+            try server.start(port: 0, responder: EchoWebApp().serve)
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
@@ -226,7 +226,7 @@ class SwiftServerHttpTests: XCTestCase {
         
         let server = BlueSocketSimpleServer()
         do {
-            try server.start(port: 0, webapp: EchoWebApp().serve)
+            try server.start(port: 0, responder: EchoWebApp().serve)
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
@@ -324,7 +324,7 @@ class SwiftServerHttpTests: XCTestCase {
         
         let server = BlueSocketSimpleServer()
         do {
-            try server.start(port: 0, webapp: EchoWebApp().serve)
+            try server.start(port: 0, responder: EchoWebApp().serve)
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")

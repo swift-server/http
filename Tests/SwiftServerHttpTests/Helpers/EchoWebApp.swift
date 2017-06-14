@@ -11,8 +11,8 @@ import SwiftServerHttp
 
 
 /// Simple `WebApp` that just echoes back whatever input it gets
-class EchoWebApp: WebAppContaining {
-    func serve(req: HTTPRequest, res: HTTPResponseWriter ) -> HTTPBodyProcessing {
+class EchoWebApp: ResponderContaining {
+    func serve(_ req: HTTPRequest, _ res: HTTPResponseWriter ) -> HTTPBodyProcessing {
         //Assume the router gave us the right request - at least for now
         res.writeResponse(HTTPResponse(httpVersion: req.httpVersion,
                                        status: .ok,

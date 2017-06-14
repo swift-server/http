@@ -17,7 +17,7 @@ import Foundation
 import SwiftServerHttp
 
 /// Simple block-based wrapper to create a `WebApp`. Normally used during XCTests
-public class SimpleResponseCreator: WebAppContaining {
+public class SimpleResponseCreator: ResponderContaining {
     
     typealias SimpleHandlerBlock = (_ req: HTTPRequest, _ body: Data) -> (reponse: HTTPResponse, responseBody: Data)
     let completionHandler: SimpleHandlerBlock
@@ -28,7 +28,7 @@ public class SimpleResponseCreator: WebAppContaining {
     
     var buffer = Data()
     
-    public func serve(req: HTTPRequest, res: HTTPResponseWriter ) -> HTTPBodyProcessing {
+    public func serve(_ req: HTTPRequest, _ res: HTTPResponseWriter) -> HTTPBodyProcessing {
         return .processBody { (chunk, stop) in
             switch chunk {
             case .chunk(let data, let finishedProcessing):
