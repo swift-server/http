@@ -40,4 +40,3 @@ extension HTTPVersion : CustomStringConvertible {
         return "HTTP/" + major.description + "." + minor.description
     }
 }
-

@@ -149,7 +149,7 @@ public class StreamingParser: HTTPResponseWriter {
     ///
     /// - Parameter data: data coming from network
     /// - Returns: number of bytes that we sent to the parser
-    public func readStream(data:Data) -> Int {
+    public func readStream(data: Data) -> Int {
         return data.withUnsafeBytes { (ptr) -> Int in
             return http_parser_execute(&self.httpParser, &self.httpParserSettings, ptr, data.count)
         }
