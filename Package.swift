@@ -3,9 +3,13 @@
 import PackageDescription
 
 let package = Package(
-    name: "SwiftServerHttp",
+    name: "SwiftServerHTTP",
+    targets: [
+    	Target(name: "HTTP"),
+    	Target(name: "BlueSocketHTTP", dependencies: ["HTTP"]),
+    ],
     dependencies: [
-        .Package(url: "https://github.com/IBM-Swift/CHTTPParser.git", majorVersion: 0, minor: 1),
+        .Package(url: "https://github.com/IBM-Swift/CHTTPParser.git", majorVersion: 0, minor: 4),
         .Package(url: "https://github.com/IBM-Swift/BlueSocket.git", majorVersion: 0, minor: 12),
     ]
 )

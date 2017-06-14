@@ -8,6 +8,7 @@
 
 import Dispatch
 import Foundation
+import HTTP
 
 import Socket
 
@@ -18,7 +19,7 @@ import Socket
 #endif
 
 
-// MARK: HTTPServer
+// MARK: Server
 
 /// An HTTP server that listens for connections on a TCP socket and spawns Listeners to handle them.
 public class BlueSocketSimpleServer : CurrentConnectionCounting {

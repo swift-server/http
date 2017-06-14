@@ -7,16 +7,16 @@
 //
 
 import Foundation
-import SwiftServerHttp
+import HTTP
 
 /// Simple `WebApp` that prints "Hello, World" as per K&R
 class HelloWorldWebApp: WebAppContaining {
-    func serve(req: HTTPRequest, res: HTTPResponseWriter ) -> HTTPBodyProcessing {
+    func serve(req: HTTP.Request, res: HTTP.ResponseWriter ) -> HTTP.BodyProcessing {
         //Assume the router gave us the right request - at least for now
-        res.writeResponse(HTTPResponse(httpVersion: req.httpVersion,
+        res.writeResponse(HTTP.Response(httpVersion: req.httpVersion,
                                        status: .ok,
                                        transferEncoding: .chunked,
-                                       headers: HTTPHeaders([("X-foo", "bar")])))
+                                       headers: HTTP.Headers([("X-foo", "bar")])))
         return .processBody { (chunk, stop) in
             switch chunk {
             case .chunk(_, let finishedProcessing):
