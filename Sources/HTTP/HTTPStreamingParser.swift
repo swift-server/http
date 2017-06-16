@@ -307,7 +307,7 @@ public class StreamingParser: HTTPResponseWriter {
     var headersWritten = false
     var isChunked = false
     
-    /// Create a `Request` struct from the parsed information 
+    /// Create a `HTTPRequest` struct from the parsed information 
     public func createRequest() -> HTTPRequest {
         return HTTPRequest(method: parsedHTTPMethod!, target: parsedURL!, httpVersion: parsedHTTPVersion!, headers: parsedHeaders)
     }
