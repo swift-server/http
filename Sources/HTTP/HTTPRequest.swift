@@ -11,10 +11,10 @@ import Dispatch
 
 /// HTTP Request NOT INCLUDING THE BODY. This allows for streaming
 public struct HTTPRequest {
-    public var method : HTTPMethod
-    public var target : String /* e.g. "/foo/bar?buz=qux" */
-    public var httpVersion : HTTPVersion
-    public var headers : HTTPHeaders
+    public var method: HTTPMethod
+    public var target: String /* e.g. "/foo/bar?buz=qux" */
+    public var httpVersion: HTTPVersion
+    public var headers: HTTPHeaders
 }
 
 /// Method that takes a chunk of request body and is expected to write to the ResponseWriter
@@ -35,7 +35,7 @@ public enum HTTPBodyChunk {
 }
 
 /// HTTP Methods handled by http_parser.[ch] supports
-public enum HTTPMethod : RawRepresentable {
+public enum HTTPMethod: RawRepresentable {
     /* be future-proof, http_parser can be upgraded */
     case other(String)
     

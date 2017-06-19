@@ -11,15 +11,12 @@ import Dispatch
 
 /// HTTP Response NOT INCLUDING THE BODY
 public struct HTTPResponse {
-    public var httpVersion : HTTPVersion
+    public var httpVersion: HTTPVersion
     public var status: HTTPResponseStatus
     public var transferEncoding: HTTPTransferEncoding
     public var headers: HTTPHeaders
     
-    public init (httpVersion: HTTPVersion,
-                 status: HTTPResponseStatus,
-        transferEncoding: HTTPTransferEncoding,
-        headers: HTTPHeaders) {
+    public init (httpVersion: HTTPVersion, status: HTTPResponseStatus, transferEncoding: HTTPTransferEncoding, headers: HTTPHeaders) {
         self.httpVersion = httpVersion
         self.status = status
         self.transferEncoding = transferEncoding
@@ -246,9 +243,7 @@ public enum HTTPResponseStatus: RawRepresentable, Equatable {
         }
     }
   
-    public static func ==(lhs: HTTPResponseStatus, rhs: HTTPResponseStatus)
-                       -> Bool
-    {
+    public static func ==(lhs: HTTPResponseStatus, rhs: HTTPResponseStatus) -> Bool {
         return lhs.rawValue == rhs.rawValue
     }
 }

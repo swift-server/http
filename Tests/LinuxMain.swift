@@ -7,8 +7,14 @@
 //
 
 import XCTest
-@testable import SwiftServerHttpTests
+@testable import HTTPTests
+@testable import BlueSocketHTTPTests
 
 XCTMain([
-    testCase(SwiftServerHttpTests.allTests),
+    // HTTPTests
+    testCase(HeadersTests.allTests),
+    testCase(ResponseTests.allTests),
+
+	// BlueSocketHTTPTests
+    testCase(ServerTests.allTests),
 ])

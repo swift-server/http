@@ -19,7 +19,7 @@ public protocol WebAppContaining: class {
 
 /// Headers structure.
 public struct HTTPHeaders {
-    var storage: [String:[String]]     /* lower cased keys */
+    var storage: [String: [String]]     /* lower cased keys */
     var original: [(String, String)]   /* original casing */
     let description: String
     
@@ -53,8 +53,8 @@ public struct HTTPHeaders {
     /// Create Header structure from an array of string pairs
     public init(_ headers: [(String, String)] = []) {
         original = headers
-        description=""
-        storage = [String:[String]]()
+        description = ""
+        storage = [String: [String]]()
         makeIterator().forEach { (element: (String, String)) in
             let key = element.0.lowercased()
             let val = element.1

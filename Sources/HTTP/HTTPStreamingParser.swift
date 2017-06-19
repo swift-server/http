@@ -9,13 +9,13 @@
 import Foundation
 import Dispatch
 
-import CHttpParser
+import CHTTPParser
 
 
 /// Class that wraps the CHTTPParser and calls the `WebApp` to get the response
 public class StreamingParser: HTTPResponseWriter {
 
-    let webapp : WebApp
+    let webapp: WebApp
     
     /// Time to leave socket open waiting for next request to start
     public static let keepAliveTimeout: TimeInterval = 5
@@ -55,7 +55,7 @@ public class StreamingParser: HTTPResponseWriter {
     /// Holds the bytes that come from the CHTTPParser until we have enough of them to do something with it
     var parserBuffer: Data?
 
-    ///HTTP Parser
+    /// HTTP Parser
     var httpParser = http_parser()
     var httpParserSettings = http_parser_settings()
     
@@ -149,7 +149,7 @@ public class StreamingParser: HTTPResponseWriter {
     ///
     /// - Parameter data: data coming from network
     /// - Returns: number of bytes that we sent to the parser
-    public func readStream(data:Data) -> Int {
+    public func readStream(data: Data) -> Int {
         return data.withUnsafeBytes { (ptr) -> Int in
             return http_parser_execute(&self.httpParser, &self.httpParserSettings, ptr, data.count)
         }
