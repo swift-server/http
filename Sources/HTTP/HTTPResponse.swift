@@ -27,20 +27,42 @@ public struct HTTPResponse {
 /// Object that code writes the response and response body to. 
 public protocol HTTPResponseWriter : class {
     func writeContinue(headers: HTTPHeaders?) /* to send an HTTP `100 Continue` */
-    
     func writeResponse(_ response: HTTPResponse)
-    
     func writeTrailer(key: String, value: String)
-    
     func writeBody(data: DispatchData, completion: @escaping (Result<POSIXError, ()>) -> Void)
-    func writeBody(data: DispatchData) /* convenience */
-
     func writeBody(data: Data, completion: @escaping (Result<POSIXError, ()>) -> Void)
-    func writeBody(data: Data) /* convenience */
-
-    func done() /* convenience */
     func done(completion: @escaping (Result<POSIXError, ()>) -> Void)
     func abort()
+}
+
+/// Convenience methods for HTTP response writer.
+extension HTTPResponseWriter {
+    /// A convenience method for writing the supplied
+    /// `DispatchData` to the body of the HTTP response without
+    /// needing to supply a completion closure.
+    ///
+    /// - see: writeBody(data:completion:)
+    public func writeBody(data: DispatchData) {
+        return writeBody(data: data) { _ in }
+    }
+
+    /// A convenience method for writing the supplied
+    /// `Data` to the body of the HTTP response without
+    /// needing to supply a completion closure.
+    ///
+    /// - see: writeBody(data:completion:)
+    public func writeBody(data: Data) {
+        return writeBody(data: data) { _ in }
+    }
+
+    /// A convenience method for signalling that the
+    /// HTTP response is complete without needing to supply
+    /// a completion closure.
+    ///
+    /// - see: done(completion:)
+    public func done() {
+        done { _ in }
+    }
 }
 
 public enum HTTPTransferEncoding {

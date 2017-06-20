@@ -376,13 +376,6 @@ public class StreamingParser: HTTPResponseWriter {
         writeBody(data: Data(data), completion: completion)
     }
     
-    
-    public func writeBody(data: DispatchData) /* convenience */ {
-        writeBody(data: data) { _ in
-            
-        }
-    }
-    
     public func writeBody(data: Data, completion: @escaping (Result<POSIXError, ()>) -> Void) {
         guard headersWritten else {
             //TODO error or default headers?
@@ -409,12 +402,6 @@ public class StreamingParser: HTTPResponseWriter {
         self.parserConnector?.queueSocketWrite(dataToWrite)
         
         completion(Result(completion: ()))
-    }
-    
-    public func writeBody(data: Data) /* convenience */ {
-        writeBody(data: data) { _ in
-            
-        }
     }
     
     public func done(completion: @escaping (Result<POSIXError, ()>) -> Void) {
@@ -446,12 +433,7 @@ public class StreamingParser: HTTPResponseWriter {
         
         completion(Result(completion: closeAfter()))
     }
-    
-    public func done() /* convenience */ {
-        done() { _ in
-        }
-    }
-    
+
     public func abort() {
         fatalError("abort called, not sure what to do with it")
     }
