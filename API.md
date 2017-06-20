@@ -80,11 +80,11 @@ public enum HTTPTransferEncoding {
 
 /// Response status (200 ok, 404 not found, etc)
 public struct HTTPResponseStatus: Equatable, CustomStringConvertible, ExpressibleByIntegerLiteral {
-    public let code: UInt16
+    public let code: Int
     public let reasonPhrase: String
 
-    public init(_ code: UInt16, _ reasonPhrase: String)
-    public init(_ code: UInt16)
+    public init(_ code: Int, _ reasonPhrase: String)
+    public init(_ code: Int)
     
     /* all the codes from http://www.iana.org/assignments/http-status-codes */
     public static let `continue`

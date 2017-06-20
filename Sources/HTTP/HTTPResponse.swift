@@ -50,19 +50,19 @@ public enum HTTPTransferEncoding {
 
 /// Response status (200 ok, 404 not found, etc)
 public struct HTTPResponseStatus: Equatable, CustomStringConvertible, ExpressibleByIntegerLiteral {
-    public let code: UInt16
+    public let code: Int
     public let reasonPhrase: String
 
-    public init(_ code: UInt16, _ reasonPhrase: String) {
+    public init(_ code: Int, _ reasonPhrase: String) {
         self.code = code
         self.reasonPhrase = reasonPhrase
     }
 
-    public init(_ code: UInt16) {
+    public init(_ code: Int) {
         self.init(code, HTTPResponseStatus.defaultReasonPhrase(code))
     }
 
-    public init(integerLiteral: UInt16) {
+    public init(integerLiteral: Int) {
         self.init(integerLiteral)
     }
     
@@ -126,7 +126,7 @@ public struct HTTPResponseStatus: Equatable, CustomStringConvertible, Expressibl
     public static let notExtended = HTTPResponseStatus(510)
     public static let networkAuthenticationRequired = HTTPResponseStatus(511)
 
-    static func defaultReasonPhrase(_ code: UInt16) -> String {
+    static func defaultReasonPhrase(_ code: Int) -> String {
         switch code {
             case 100: return "Continue"
             case 101: return "Switching Protocols"
@@ -189,7 +189,7 @@ public struct HTTPResponseStatus: Equatable, CustomStringConvertible, Expressibl
         case serverError
         case invalidStatus
 
-        init(_ code: UInt16) {
+        init(_ code: Int) {
             switch code {
                 case 100..<200: self = .informational
                 case 200..<300: self = .successful
