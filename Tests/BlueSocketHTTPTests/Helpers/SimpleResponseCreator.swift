@@ -14,7 +14,7 @@
  */
 
 import Foundation
-import SwiftServerHttp
+import HTTP
 
 /// Simple block-based wrapper to create a `WebApp`. Normally used during XCTests
 public class SimpleResponseCreator: WebAppContaining {
