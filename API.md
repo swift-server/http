@@ -83,8 +83,8 @@ public struct HTTPResponseStatus: Equatable, CustomStringConvertible, Expressibl
     public let code: Int
     public let reasonPhrase: String
 
-    public init(_ code: Int, _ reasonPhrase: String)
-    public init(_ code: Int)
+    public init(code: Int, reasonPhrase: String)
+    public init(code: Int)
     
     /* all the codes from http://www.iana.org/assignments/http-status-codes */
     public static let `continue`

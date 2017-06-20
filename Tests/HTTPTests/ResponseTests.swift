@@ -24,7 +24,7 @@ class ResponseTests: XCTestCase {
     }
 
     func testNotFound() {
-        XCTAssertEqual(HTTPResponseStatus.notFound, HTTPResponseStatus(404))
+        XCTAssertEqual(HTTPResponseStatus.notFound, HTTPResponseStatus(code: 404))
         let notFound: HTTPResponseStatus = 404
         XCTAssertEqual(notFound, HTTPResponseStatus.notFound)
     }

@@ -53,80 +53,80 @@ public struct HTTPResponseStatus: Equatable, CustomStringConvertible, Expressibl
     public let code: Int
     public let reasonPhrase: String
 
-    public init(_ code: Int, _ reasonPhrase: String) {
+    public init(code: Int, reasonPhrase: String) {
         self.code = code
         self.reasonPhrase = reasonPhrase
     }
 
-    public init(_ code: Int) {
-        self.init(code, HTTPResponseStatus.defaultReasonPhrase(code))
+    public init(code: Int) {
+        self.init(code: code, reasonPhrase: HTTPResponseStatus.defaultReasonPhrase(forCode: code))
     }
 
     public init(integerLiteral: Int) {
-        self.init(integerLiteral)
+        self.init(code: integerLiteral)
     }
     
     /* all the codes from http://www.iana.org/assignments/http-status-codes */
-    public static let `continue` = HTTPResponseStatus(100)
-    public static let switchingProtocols = HTTPResponseStatus(101)
-    public static let ok = HTTPResponseStatus(200)
-    public static let created = HTTPResponseStatus(201)
-    public static let accepted = HTTPResponseStatus(202)
-    public static let nonAuthoritativeInformation = HTTPResponseStatus(203)
-    public static let noContent = HTTPResponseStatus(204)
-    public static let resetContent = HTTPResponseStatus(205)
-    public static let partialContent = HTTPResponseStatus(206)
-    public static let multiStatus = HTTPResponseStatus(207)
-    public static let alreadyReported = HTTPResponseStatus(208)
-    public static let imUsed = HTTPResponseStatus(226)
-    public static let multipleChoices = HTTPResponseStatus(300)
-    public static let movedPermanently = HTTPResponseStatus(301)
-    public static let found = HTTPResponseStatus(302)
-    public static let seeOther = HTTPResponseStatus(303)
-    public static let notModified = HTTPResponseStatus(304)
-    public static let useProxy = HTTPResponseStatus(305)
-    public static let temporaryRedirect = HTTPResponseStatus(307)
-    public static let permanentRedirect = HTTPResponseStatus(308)
-    public static let badRequest = HTTPResponseStatus(400)
-    public static let unauthorized = HTTPResponseStatus(401)
-    public static let paymentRequired = HTTPResponseStatus(402)
-    public static let forbidden = HTTPResponseStatus(403)
-    public static let notFound = HTTPResponseStatus(404)
-    public static let methodNotAllowed = HTTPResponseStatus(405)
-    public static let notAcceptable = HTTPResponseStatus(406)
-    public static let proxyAuthenticationRequired = HTTPResponseStatus(407)
-    public static let requestTimeout = HTTPResponseStatus(408)
-    public static let conflict = HTTPResponseStatus(409)
-    public static let gone = HTTPResponseStatus(410)
-    public static let lengthRequired = HTTPResponseStatus(411)
-    public static let preconditionFailed = HTTPResponseStatus(412)
-    public static let payloadTooLarge = HTTPResponseStatus(413)
-    public static let uriTooLong = HTTPResponseStatus(414)
-    public static let unsupportedMediaType = HTTPResponseStatus(415)
-    public static let rangeNotSatisfiable = HTTPResponseStatus(416)
-    public static let expectationFailed = HTTPResponseStatus(417)
-    public static let misdirectedRequest = HTTPResponseStatus(421)
-    public static let unprocessableEntity = HTTPResponseStatus(422)
-    public static let locked = HTTPResponseStatus(423)
-    public static let failedDependency = HTTPResponseStatus(424)
-    public static let upgradeRequired = HTTPResponseStatus(426)
-    public static let preconditionRequired = HTTPResponseStatus(428)
-    public static let tooManyRequests = HTTPResponseStatus(429)
-    public static let requestHeaderFieldsTooLarge = HTTPResponseStatus(431)
-    public static let unavailableForLegalReasons = HTTPResponseStatus(451)
-    public static let internalServerError = HTTPResponseStatus(500)
-    public static let notImplemented = HTTPResponseStatus(501)
-    public static let badGateway = HTTPResponseStatus(502)
-    public static let serviceUnavailable = HTTPResponseStatus(503)
-    public static let gatewayTimeout = HTTPResponseStatus(504)
-    public static let httpVersionNotSupported = HTTPResponseStatus(505)
-    public static let variantAlsoNegotiates = HTTPResponseStatus(506)
-    public static let insufficientStorage = HTTPResponseStatus(507)
-    public static let loopDetected = HTTPResponseStatus(508)
-    public static let notExtended = HTTPResponseStatus(510)
-    public static let networkAuthenticationRequired = HTTPResponseStatus(511)
+    public static let `continue` = HTTPResponseStatus(code: 100)
+    public static let switchingProtocols = HTTPResponseStatus(code: 101)
+    public static let ok = HTTPResponseStatus(code: 200)
+    public static let created = HTTPResponseStatus(code: 201)
+    public static let accepted = HTTPResponseStatus(code: 202)
+    public static let nonAuthoritativeInformation = HTTPResponseStatus(code: 203)
+    public static let noContent = HTTPResponseStatus(code: 204)
+    public static let resetContent = HTTPResponseStatus(code: 205)
+    public static let partialContent = HTTPResponseStatus(code: 206)
+    public static let multiStatus = HTTPResponseStatus(code: 207)
+    public static let alreadyReported = HTTPResponseStatus(code: 208)
+    public static let imUsed = HTTPResponseStatus(code: 226)
+    public static let multipleChoices = HTTPResponseStatus(code: 300)
+    public static let movedPermanently = HTTPResponseStatus(code: 301)
+    public static let found = HTTPResponseStatus(code: 302)
+    public static let seeOther = HTTPResponseStatus(code: 303)
+    public static let notModified = HTTPResponseStatus(code: 304)
+    public static let useProxy = HTTPResponseStatus(code: 305)
+    public static let temporaryRedirect = HTTPResponseStatus(code: 307)
+    public static let permanentRedirect = HTTPResponseStatus(code: 308)
+    public static let badRequest = HTTPResponseStatus(code: 400)
+    public static let unauthorized = HTTPResponseStatus(code: 401)
+    public static let paymentRequired = HTTPResponseStatus(code: 402)
+    public static let forbidden = HTTPResponseStatus(code: 403)
+    public static let notFound = HTTPResponseStatus(code: 404)
+    public static let methodNotAllowed = HTTPResponseStatus(code: 405)
+    public static let notAcceptable = HTTPResponseStatus(code: 406)
+    public static let proxyAuthenticationRequired = HTTPResponseStatus(code: 407)
+    public static let requestTimeout = HTTPResponseStatus(code: 408)
+    public static let conflict = HTTPResponseStatus(code: 409)
+    public static let gone = HTTPResponseStatus(code: 410)
+    public static let lengthRequired = HTTPResponseStatus(code: 411)
+    public static let preconditionFailed = HTTPResponseStatus(code: 412)
+    public static let payloadTooLarge = HTTPResponseStatus(code: 413)
+    public static let uriTooLong = HTTPResponseStatus(code: 414)
+    public static let unsupportedMediaType = HTTPResponseStatus(code: 415)
+    public static let rangeNotSatisfiable = HTTPResponseStatus(code: 416)
+    public static let expectationFailed = HTTPResponseStatus(code: 417)
+    public static let misdirectedRequest = HTTPResponseStatus(code: 421)
+    public static let unprocessableEntity = HTTPResponseStatus(code: 422)
+    public static let locked = HTTPResponseStatus(code: 423)
+    public static let failedDependency = HTTPResponseStatus(code: 424)
+    public static let upgradeRequired = HTTPResponseStatus(code: 426)
+    public static let preconditionRequired = HTTPResponseStatus(code: 428)
+    public static let tooManyRequests = HTTPResponseStatus(code: 429)
+    public static let requestHeaderFieldsTooLarge = HTTPResponseStatus(code: 431)
+    public static let unavailableForLegalReasons = HTTPResponseStatus(code: 451)
+    public static let internalServerError = HTTPResponseStatus(code: 500)
+    public static let notImplemented = HTTPResponseStatus(code: 501)
+    public static let badGateway = HTTPResponseStatus(code: 502)
+    public static let serviceUnavailable = HTTPResponseStatus(code: 503)
+    public static let gatewayTimeout = HTTPResponseStatus(code: 504)
+    public static let httpVersionNotSupported = HTTPResponseStatus(code: 505)
+    public static let variantAlsoNegotiates = HTTPResponseStatus(code: 506)
+    public static let insufficientStorage = HTTPResponseStatus(code: 507)
+    public static let loopDetected = HTTPResponseStatus(code: 508)
+    public static let notExtended = HTTPResponseStatus(code: 510)
+    public static let networkAuthenticationRequired = HTTPResponseStatus(code: 511)
 
-    static func defaultReasonPhrase(_ code: Int) -> String {
+    static func defaultReasonPhrase(forCode code: Int) -> String {
         switch code {
             case 100: return "Continue"
             case 101: return "Switching Protocols"
@@ -178,7 +178,7 @@ public struct HTTPResponseStatus: Equatable, CustomStringConvertible, Expressibl
     }
 
     public var `class`: Class {
-        return Class(code)
+        return Class(code: code)
     }
 
     public enum Class {
@@ -189,7 +189,7 @@ public struct HTTPResponseStatus: Equatable, CustomStringConvertible, Expressibl
         case serverError
         case invalidStatus
 
-        init(_ code: Int) {
+        init(code: Int) {
             switch code {
                 case 100..<200: self = .informational
                 case 200..<300: self = .successful
