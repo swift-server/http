@@ -12,7 +12,7 @@ public struct HTTPVersion {
     public private(set) var major: Int
     /// Minor version component.
     public private(set) var minor: Int
-    
+
     /// Creates an HTTP version.
     public init(major: Int, minor: Int) {
         self.major = major
@@ -21,15 +21,15 @@ public struct HTTPVersion {
 }
 
 extension HTTPVersion : Hashable {
-    
+
     public var hashValue: Int {
         return major ^ minor
     }
-    
+
     public static func == (lhs: HTTPVersion, rhs: HTTPVersion) -> Bool {
         return lhs.hashValue == rhs.hashValue
     }
-    
+
     public static func ~= (match: HTTPVersion, version: HTTPVersion) -> Bool {
         return match == version
     }
@@ -40,4 +40,3 @@ extension HTTPVersion : CustomStringConvertible {
         return "HTTP/" + major.description + "." + minor.description
     }
 }
-
