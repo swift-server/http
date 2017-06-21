@@ -17,7 +17,7 @@ class EchoWebApp: WebAppContaining {
         res.writeResponse(HTTPResponse(httpVersion: req.httpVersion,
                                        status: .ok,
                                        transferEncoding: .chunked,
-                                       headers: HTTPHeaders([("X-foo", "bar")])))
+                                       headers: ["X-foo": "bar"]))
         return .processBody { (chunk, stop) in
             switch chunk {
             case .chunk(let data, let finishedProcessing):
