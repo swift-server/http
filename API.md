@@ -79,78 +79,83 @@ public enum HTTPTransferEncoding {
 }
 
 /// Response status (200 ok, 404 not found, etc)
-public enum HTTPResponseStatus: RawRepresentable, Equatable {
-    /* be future-proof, new status codes can appear */
-    case other(statusCode: UInt16, reasonPhrase: String)
+public struct HTTPResponseStatus: Equatable, CustomStringConvertible, ExpressibleByIntegerLiteral {
+    public let code: Int
+    public let reasonPhrase: String
+
+    public init(code: Int, reasonPhrase: String)
+    public init(code: Int)
     
     /* all the codes from http://www.iana.org/assignments/http-status-codes */
-    case `continue`
-    case switchingProtocols
-    case processing
-    case ok
-    case created
-    case accepted
-    case nonAuthoritativeInformation
-    case noContent
-    case resetContent
-    case partialContent
-    case multiStatus
-    case alreadyReported
-    case imUsed
-    case multipleChoices
-    case movedPermanently
-    case found
-    case seeOther
-    case notModified
-    case useProxy
-    case temporaryRedirect
-    case permanentRedirect
-    case badRequest
-    case unauthorized
-    case paymentRequired
-    case forbidden
-    case notFound
-    case methodNotAllowed
-    case notAcceptable
-    case proxyAuthenticationRequired
-    case requestTimeout
-    case conflict
-    case gone
-    case lengthRequired
-    case preconditionFailed
-    case payloadTooLarge
-    case uriTooLong
-    case unsupportedMediaType
-    case rangeNotSatisfiable
-    case expectationFailed
-    case misdirectedRequest
-    case unprocessableEntity
-    case locked
-    case failedDependency
-    case upgradeRequired
-    case preconditionRequired
-    case tooManyRequests
-    case requestHeaderFieldsTooLarge
-    case unavailableForLegalReasons
-    case internalServerError
-    case notImplemented
-    case badGateway
-    case serviceUnavailable
-    case gatewayTimeout
-    case httpVersionNotSupported
-    case variantAlsoNegotiates
-    case insufficientStorage
-    case loopDetected
-    case notExtended
-    case networkAuthenticationRequired
-}
+    public static let `continue`
+    public static let switchingProtocols
+    public static let ok
+    public static let created
+    public static let accepted
+    public static let nonAuthoritativeInformation
+    public static let noContent
+    public static let resetContent
+    public static let partialContent
+    public static let multiStatus
+    public static let alreadyReported
+    public static let imUsed
+    public static let multipleChoices
+    public static let movedPermanently
+    public static let found
+    public static let seeOther
+    public static let notModified
+    public static let useProxy
+    public static let temporaryRedirect
+    public static let permanentRedirect
+    public static let badRequest
+    public static let unauthorized
+    public static let paymentRequired
+    public static let forbidden
+    public static let notFound
+    public static let methodNotAllowed
+    public static let notAcceptable
+    public static let proxyAuthenticationRequired
+    public static let requestTimeout
+    public static let conflict
+    public static let gone
+    public static let lengthRequired
+    public static let preconditionFailed
+    public static let payloadTooLarge
+    public static let uriTooLong
+    public static let unsupportedMediaType
+    public static let rangeNotSatisfiable
+    public static let expectationFailed
+    public static let misdirectedRequest
+    public static let unprocessableEntity
+    public static let locked
+    public static let failedDependency
+    public static let upgradeRequired
+    public static let preconditionRequired
+    public static let tooManyRequests
+    public static let requestHeaderFieldsTooLarge
+    public static let unavailableForLegalReasons
+    public static let internalServerError
+    public static let notImplemented
+    public static let badGateway
+    public static let serviceUnavailable
+    public static let gatewayTimeout
+    public static let httpVersionNotSupported
+    public static let variantAlsoNegotiates
+    public static let insufficientStorage
+    public static let loopDetected
+    public static let notExtended
+    public static let networkAuthenticationRequired
 
-extension HTTPResponseStatus {
-    public var reasonPhrase: String { get }
-    public var code: UInt16  { get }
-    
-    public static func from(code: UInt16) -> HTTPResponseStatus?
+    public var `class`: Class
 
+    public enum Class {
+        case informational
+        case successful
+        case redirection
+        case clientError
+        case serverError
+        case invalidStatus
+    }
 }
 
 /// HTTP Methods handled by http_parser.[ch] supports

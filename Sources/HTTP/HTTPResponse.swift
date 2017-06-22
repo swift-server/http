@@ -71,224 +71,159 @@ public enum HTTPTransferEncoding {
 }
 
 /// Response status (200 ok, 404 not found, etc)
-public enum HTTPResponseStatus: RawRepresentable, Equatable {
-    /* be future-proof, new status codes can appear */
-    case other(statusCode: UInt16, reasonPhrase: String)
+public struct HTTPResponseStatus: Equatable, CustomStringConvertible, ExpressibleByIntegerLiteral {
+    public let code: Int
+    public let reasonPhrase: String
+
+    public init(code: Int, reasonPhrase: String) {
+        self.code = code
+        self.reasonPhrase = reasonPhrase
+    }
+
+    public init(code: Int) {
+        self.init(code: code, reasonPhrase: HTTPResponseStatus.defaultReasonPhrase(forCode: code))
+    }
+
+    public init(integerLiteral: Int) {
+        self.init(code: integerLiteral)
+    }
     
     /* all the codes from http://www.iana.org/assignments/http-status-codes */
-    case `continue`
-    case switchingProtocols
-    case processing
-    case ok
-    case created
-    case accepted
-    case nonAuthoritativeInformation
-    case noContent
-    case resetContent
-    case partialContent
-    case multiStatus
-    case alreadyReported
-    case imUsed
-    case multipleChoices
-    case movedPermanently
-    case found
-    case seeOther
-    case notModified
-    case useProxy
-    case temporaryRedirect
-    case permanentRedirect
-    case badRequest
-    case unauthorized
-    case paymentRequired
-    case forbidden
-    case notFound
-    case methodNotAllowed
-    case notAcceptable
-    case proxyAuthenticationRequired
-    case requestTimeout
-    case conflict
-    case gone
-    case lengthRequired
-    case preconditionFailed
-    case payloadTooLarge
-    case uriTooLong
-    case unsupportedMediaType
-    case rangeNotSatisfiable
-    case expectationFailed
-    case misdirectedRequest
-    case unprocessableEntity
-    case locked
-    case failedDependency
-    case upgradeRequired
-    case preconditionRequired
-    case tooManyRequests
-    case requestHeaderFieldsTooLarge
-    case unavailableForLegalReasons
-    case internalServerError
-    case notImplemented
-    case badGateway
-    case serviceUnavailable
-    case gatewayTimeout
-    case httpVersionNotSupported
-    case variantAlsoNegotiates
-    case insufficientStorage
-    case loopDetected
-    case notExtended
-    case networkAuthenticationRequired
+    public static let `continue` = HTTPResponseStatus(code: 100)
+    public static let switchingProtocols = HTTPResponseStatus(code: 101)
+    public static let ok = HTTPResponseStatus(code: 200)
+    public static let created = HTTPResponseStatus(code: 201)
+    public static let accepted = HTTPResponseStatus(code: 202)
+    public static let nonAuthoritativeInformation = HTTPResponseStatus(code: 203)
+    public static let noContent = HTTPResponseStatus(code: 204)
+    public static let resetContent = HTTPResponseStatus(code: 205)
+    public static let partialContent = HTTPResponseStatus(code: 206)
+    public static let multiStatus = HTTPResponseStatus(code: 207)
+    public static let alreadyReported = HTTPResponseStatus(code: 208)
+    public static let imUsed = HTTPResponseStatus(code: 226)
+    public static let multipleChoices = HTTPResponseStatus(code: 300)
+    public static let movedPermanently = HTTPResponseStatus(code: 301)
+    public static let found = HTTPResponseStatus(code: 302)
+    public static let seeOther = HTTPResponseStatus(code: 303)
+    public static let notModified = HTTPResponseStatus(code: 304)
+    public static let useProxy = HTTPResponseStatus(code: 305)
+    public static let temporaryRedirect = HTTPResponseStatus(code: 307)
+    public static let permanentRedirect = HTTPResponseStatus(code: 308)
+    public static let badRequest = HTTPResponseStatus(code: 400)
+    public static let unauthorized = HTTPResponseStatus(code: 401)
+    public static let paymentRequired = HTTPResponseStatus(code: 402)
+    public static let forbidden = HTTPResponseStatus(code: 403)
+    public static let notFound = HTTPResponseStatus(code: 404)
+    public static let methodNotAllowed = HTTPResponseStatus(code: 405)
+    public static let notAcceptable = HTTPResponseStatus(code: 406)
+    public static let proxyAuthenticationRequired = HTTPResponseStatus(code: 407)
+    public static let requestTimeout = HTTPResponseStatus(code: 408)
+    public static let conflict = HTTPResponseStatus(code: 409)
+    public static let gone = HTTPResponseStatus(code: 410)
+    public static let lengthRequired = HTTPResponseStatus(code: 411)
+    public static let preconditionFailed = HTTPResponseStatus(code: 412)
+    public static let payloadTooLarge = HTTPResponseStatus(code: 413)
+    public static let uriTooLong = HTTPResponseStatus(code: 414)
+    public static let unsupportedMediaType = HTTPResponseStatus(code: 415)
+    public static let rangeNotSatisfiable = HTTPResponseStatus(code: 416)
+    public static let expectationFailed = HTTPResponseStatus(code: 417)
+    public static let misdirectedRequest = HTTPResponseStatus(code: 421)
+    public static let unprocessableEntity = HTTPResponseStatus(code: 422)
+    public static let locked = HTTPResponseStatus(code: 423)
+    public static let failedDependency = HTTPResponseStatus(code: 424)
+    public static let upgradeRequired = HTTPResponseStatus(code: 426)
+    public static let preconditionRequired = HTTPResponseStatus(code: 428)
+    public static let tooManyRequests = HTTPResponseStatus(code: 429)
+    public static let requestHeaderFieldsTooLarge = HTTPResponseStatus(code: 431)
+    public static let unavailableForLegalReasons = HTTPResponseStatus(code: 451)
+    public static let internalServerError = HTTPResponseStatus(code: 500)
+    public static let notImplemented = HTTPResponseStatus(code: 501)
+    public static let badGateway = HTTPResponseStatus(code: 502)
+    public static let serviceUnavailable = HTTPResponseStatus(code: 503)
+    public static let gatewayTimeout = HTTPResponseStatus(code: 504)
+    public static let httpVersionNotSupported = HTTPResponseStatus(code: 505)
+    public static let variantAlsoNegotiates = HTTPResponseStatus(code: 506)
+    public static let insufficientStorage = HTTPResponseStatus(code: 507)
+    public static let loopDetected = HTTPResponseStatus(code: 508)
+    public static let notExtended = HTTPResponseStatus(code: 510)
+    public static let networkAuthenticationRequired = HTTPResponseStatus(code: 511)
 
-    public init(rawValue: UInt16) {
-        switch rawValue {
-            case 100: self = .continue
-            case 101: self = .switchingProtocols
-            case 102: self = .processing
-            case 200: self = .ok
-            case 201: self = .created
-            case 202: self = .accepted
-            case 203: self = .nonAuthoritativeInformation
-            case 204: self = .noContent
-            case 205: self = .resetContent
-            case 206: self = .partialContent
-            case 207: self = .multiStatus
-            case 208: self = .alreadyReported
-            case 226: self = .imUsed
-            case 300: self = .multipleChoices
-            case 301: self = .movedPermanently
-            case 302: self = .found
-            case 303: self = .seeOther
-            case 304: self = .notModified
-            case 305: self = .useProxy
-            case 307: self = .temporaryRedirect
-            case 308: self = .permanentRedirect
-            case 400: self = .badRequest
-            case 401: self = .unauthorized
-            case 402: self = .paymentRequired
-            case 403: self = .forbidden
-            case 404: self = .notFound
-            case 405: self = .methodNotAllowed
-            case 406: self = .notAcceptable
-            case 407: self = .proxyAuthenticationRequired
-            case 408: self = .requestTimeout
-            case 409: self = .conflict
-            case 410: self = .gone
-            case 411: self = .lengthRequired
-            case 412: self = .preconditionFailed
-            case 413: self = .payloadTooLarge
-            case 414: self = .uriTooLong
-            case 415: self = .unsupportedMediaType
-            case 416: self = .rangeNotSatisfiable
-            case 417: self = .expectationFailed
-            case 421: self = .misdirectedRequest
-            case 422: self = .unprocessableEntity
-            case 423: self = .locked
-            case 424: self = .failedDependency
-            case 426: self = .upgradeRequired
-            case 428: self = .preconditionRequired
-            case 429: self = .tooManyRequests
-            case 431: self = .requestHeaderFieldsTooLarge
-            case 451: self = .unavailableForLegalReasons
-            case 500: self = .internalServerError
-            case 501: self = .notImplemented
-            case 502: self = .badGateway
-            case 503: self = .serviceUnavailable
-            case 504: self = .gatewayTimeout
-            case 505: self = .httpVersionNotSupported
-            case 506: self = .variantAlsoNegotiates
-            case 507: self = .insufficientStorage
-            case 508: self = .loopDetected
-            case 510: self = .notExtended
-            case 511: self = .networkAuthenticationRequired
-            default:  self = .other(statusCode: rawValue, reasonPhrase: "http_\(rawValue)")
+    static func defaultReasonPhrase(forCode code: Int) -> String {
+        switch code {
+            case 100: return "Continue"
+            case 101: return "Switching Protocols"
+            case 200: return "OK"
+            case 201: return "Created"
+            case 202: return "Accepted"
+            case 203: return "Non-Authoritative Information"
+            case 204: return "No Content"
+            case 205: return "Reset Content"
+            case 206: return "Partial Content"
+            case 300: return "Multiple Choices"
+            case 301: return "Moved Permanently"
+            case 302: return "Found"
+            case 303: return "See Other"
+            case 304: return "Not Modified"
+            case 305: return "Use Proxy"
+            case 307: return "Temporary Redirect"
+            case 400: return "Bad Request"
+            case 401: return "Unauthorized"
+            case 402: return "Payment Required"
+            case 403: return "Forbidden"
+            case 404: return "Not Found"
+            case 405: return "Method Not Allowed"
+            case 406: return "Not Acceptable"
+            case 407: return "Proxy Authentication Required"
+            case 408: return "Request Timeout"
+            case 409: return "Conflict"
+            case 410: return "Gone"
+            case 411: return "Length Required"
+            case 412: return "Precondition Failed"
+            case 413: return "Payload Too Large"
+            case 414: return "URI Too Long"
+            case 415: return "Unsupported Media Type"
+            case 416: return "Range Not Satisfiable"
+            case 417: return "Expectation Failed"
+            case 426: return "Upgrade Required"
+            case 500: return "Internal Server Error"
+            case 501: return "Not Implemented"
+            case 502: return "Bad Gateway"
+            case 503: return "Service Unavailable"
+            case 504: return "Gateway Timeout"
+            case 505: return "HTTP Version Not Supported"
+            default: return "http_\(code)"
         }
     }
-    public var rawValue: UInt16 {
-        switch self {
-            case .continue:                      return 100
-            case .switchingProtocols:            return 101
-            case .processing:                    return 102
-            case .ok:                            return 200
-            case .created:                       return 201
-            case .accepted:                      return 202
-            case .nonAuthoritativeInformation:   return 203
-            case .noContent:                     return 204
-            case .resetContent:                  return 205
-            case .partialContent:                return 206
-            case .multiStatus:                   return 207
-            case .alreadyReported:               return 208
-            case .imUsed:                        return 226
-            case .multipleChoices:               return 300
-            case .movedPermanently:              return 301
-            case .found:                         return 302
-            case .seeOther:                      return 303
-            case .notModified:                   return 304
-            case .useProxy:                      return 305
-            case .temporaryRedirect:             return 307
-            case .permanentRedirect:             return 308
-            case .badRequest:                    return 400
-            case .unauthorized:                  return 401
-            case .paymentRequired:               return 402
-            case .forbidden:                     return 403
-            case .notFound:                      return 404
-            case .methodNotAllowed:              return 405
-            case .notAcceptable:                 return 406
-            case .proxyAuthenticationRequired:   return 407
-            case .requestTimeout:                return 408
-            case .conflict:                      return 409
-            case .gone:                          return 410
-            case .lengthRequired:                return 411
-            case .preconditionFailed:            return 412
-            case .payloadTooLarge:               return 413
-            case .uriTooLong:                    return 414
-            case .unsupportedMediaType:          return 415
-            case .rangeNotSatisfiable:           return 416
-            case .expectationFailed:             return 417
-            case .misdirectedRequest:            return 421
-            case .unprocessableEntity:           return 422
-            case .locked:                        return 423
-            case .failedDependency:              return 424
-            case .upgradeRequired:               return 426
-            case .preconditionRequired:          return 428
-            case .tooManyRequests:               return 429
-            case .requestHeaderFieldsTooLarge:   return 431
-            case .unavailableForLegalReasons:    return 451
-            case .internalServerError:           return 500
-            case .notImplemented:                return 501
-            case .badGateway:                    return 502
-            case .serviceUnavailable:            return 503
-            case .gatewayTimeout:                return 504
-            case .httpVersionNotSupported:       return 505
-            case .variantAlsoNegotiates:         return 506
-            case .insufficientStorage:           return 507
-            case .loopDetected:                  return 508
-            case .notExtended:                   return 510
-            case .networkAuthenticationRequired: return 511
-            case .other(let code, _):            return code
+
+    public var description: String {
+        return "\(code) \(reasonPhrase)"
+    }
+
+    public var `class`: Class {
+        return Class(code: code)
+    }
+
+    public enum Class {
+        case informational
+        case successful
+        case redirection
+        case clientError
+        case serverError
+        case invalidStatus
+
+        init(code: Int) {
+            switch code {
+                case 100..<200: self = .informational
+                case 200..<300: self = .successful
+                case 300..<400: self = .redirection
+                case 400..<500: self = .clientError
+                case 500..<600: self = .serverError
+                default: self = .invalidStatus
+            }
         }
     }
-  
+
     public static func ==(lhs: HTTPResponseStatus, rhs: HTTPResponseStatus) -> Bool {
-        return lhs.rawValue == rhs.rawValue
+        return lhs.code == rhs.code
     }
 }
-
-extension HTTPResponseStatus {
-    public var reasonPhrase: String {
-        switch(self) {
-            case .other(_, let reasonPhrase): return reasonPhrase
-            case .`continue`:
-                return "CONTINUE"
-            default:
-                return String(describing: self)
-        }
-    }
-    
-    public var code: UInt16 {
-        return self.rawValue
-    }
-    
-    public static func from(code: UInt16) -> HTTPResponseStatus? {
-        return HTTPResponseStatus(rawValue: code)
-    }
-
-}
-
-
