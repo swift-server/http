@@ -11,9 +11,14 @@ import XCTest
 @testable import HTTP
 @testable import BlueSocketHTTP
 
+struct Targets {
+    static let echo = URL(string: "/echo")!
+    static let helloworld = URL(string: "/helloworld")!
+}
+
 class ServerTests: XCTestCase {
     func testResponseOK() {
-        let request = HTTPRequest(method: .GET, target:"/echo", httpVersion: HTTPVersion(major: 1, minor: 1), headers: HTTPHeaders([("X-foo", "bar")]))
+        let request = HTTPRequest(method: .GET, target: Targets.echo, httpVersion: HTTPVersion(major: 1, minor: 1), headers: HTTPHeaders([("X-foo", "bar")]))
         let resolver = TestResponseResolver(request: request, requestBody: Data())
         resolver.resolveHandler(EchoWebApp().serve)
         XCTAssertNotNil(resolver.response)
@@ -23,7 +28,7 @@ class ServerTests: XCTestCase {
 
     func testEcho() {
         let testString="This is a test"
-        let request = HTTPRequest(method: .POST, target:"/echo", httpVersion: HTTPVersion(major: 1, minor: 1), headers: HTTPHeaders([("X-foo", "bar")]))
+        let request = HTTPRequest(method: .POST, target: Targets.echo, httpVersion: HTTPVersion(major: 1, minor: 1), headers: HTTPHeaders([("X-foo", "bar")]))
         let resolver = TestResponseResolver(request: request, requestBody: testString.data(using: .utf8)!)
         resolver.resolveHandler(EchoWebApp().serve)
         XCTAssertNotNil(resolver.response)
@@ -33,7 +38,7 @@ class ServerTests: XCTestCase {
     }
     
     func testHello() {
-        let request = HTTPRequest(method: .GET, target:"/helloworld", httpVersion: HTTPVersion(major: 1, minor: 1), headers: HTTPHeaders([("X-foo", "bar")]))
+        let request = HTTPRequest(method: .GET, target: Targets.helloworld, httpVersion: HTTPVersion(major: 1, minor: 1), headers: HTTPHeaders([("X-foo", "bar")]))
         let resolver = TestResponseResolver(request: request, requestBody: Data())
         resolver.resolveHandler(HelloWorldWebApp().serve)
         XCTAssertNotNil(resolver.response)
@@ -43,7 +48,7 @@ class ServerTests: XCTestCase {
     }
     
     func testSimpleHello() {
-        let request = HTTPRequest(method: .GET, target:"/helloworld", httpVersion: HTTPVersion(major: 1, minor: 1), headers: HTTPHeaders([("X-foo", "bar")]))
+        let request = HTTPRequest(method: .GET, target: Targets.helloworld, httpVersion: HTTPVersion(major: 1, minor: 1), headers: HTTPHeaders([("X-foo", "bar")]))
         let resolver = TestResponseResolver(request: request, requestBody: Data())
         let simpleHelloWebApp = SimpleResponseCreator { (request, body) -> (reponse: HTTPResponse, responseBody: Data) in
             return (HTTPResponse(httpVersion: request.httpVersion,
