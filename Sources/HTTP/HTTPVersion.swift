@@ -29,10 +29,42 @@ extension HTTPVersion : Hashable {
     public static func == (lhs: HTTPVersion, rhs: HTTPVersion) -> Bool {
         return lhs.hashValue == rhs.hashValue
     }
-
+    
+    public static func != (lhs: HTTPVersion, rhs: HTTPVersion) -> Bool {
+        return lhs.hashValue != rhs.hashValue
+    }
+    
     public static func ~= (match: HTTPVersion, version: HTTPVersion) -> Bool {
         return match == version
     }
+}
+
+extension HTTPVersion : Comparable {
+    
+    public static func > (lhs: HTTPVersion, rhs: HTTPVersion) -> Bool {
+        if lhs.major != rhs.major {
+            return lhs.major > rhs.major
+        } else {
+            return lhs.minor > rhs.minor
+        }
+    }
+    
+    public static func >= (lhs: HTTPVersion, rhs: HTTPVersion) -> Bool {
+        return lhs > rhs || lhs == rhs
+    }
+    
+    public static func < (lhs: HTTPVersion, rhs: HTTPVersion) -> Bool {
+        if lhs.major != rhs.major {
+            return lhs.major < rhs.major
+        } else {
+            return lhs.minor < rhs.minor
+        }
+    }
+    
+    public static func <= (lhs: HTTPVersion, rhs: HTTPVersion) -> Bool {
+        return lhs < rhs || lhs == rhs
+    }
+
 }
 
 extension HTTPVersion : CustomStringConvertible {
