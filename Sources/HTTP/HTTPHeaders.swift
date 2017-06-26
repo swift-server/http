@@ -1,24 +1,8 @@
 /// Headers structure.
-public struct HTTPHeaders : Sequence, ExpressibleByDictionaryLiteral {
+public struct HTTPHeaders {
     var original: [(name: Name, value: String)]?
     var storage: [Name: [String]] {
         didSet { original = nil }
-    }
-
-    public init(dictionaryLiteral: (Name, String)...) {
-        storage = [:]
-        for (name, value) in dictionaryLiteral {
-#if swift(>=4.0)
-            storage[name, default: []].append(value)
-#else
-            if storage[name] == nil {
-                storage[name] = [value]
-            } else {
-                storage[name]!.append(value)
-            }
-#endif
-        }
-        original = dictionaryLiteral
     }
 
     public subscript(name: Name) -> String? {
@@ -40,7 +24,27 @@ public struct HTTPHeaders : Sequence, ExpressibleByDictionaryLiteral {
         get { return storage[name] ?? [] }
         set { storage[name] = newValue.isEmpty ? nil : newValue }
     }
+}
 
+extension HTTPHeaders : ExpressibleByDictionaryLiteral {
+    public init(dictionaryLiteral: (Name, String)...) {
+        storage = [:]
+        for (name, value) in dictionaryLiteral {
+#if swift(>=4.0)
+            storage[name, default: []].append(value)
+#else
+            if storage[name] == nil {
+                storage[name] = [value]
+            } else {
+                storage[name]!.append(value)
+            }
+#endif
+        }
+        original = dictionaryLiteral
+    }
+}
+
+extension HTTPHeaders {
     // Used instead of HTTPHeaders to save CPU on dictionary construction
     public struct Literal : ExpressibleByDictionaryLiteral {
         let fields: [(name: Name, value: String)]
@@ -72,7 +76,9 @@ public struct HTTPHeaders : Sequence, ExpressibleByDictionaryLiteral {
             storage[name]!.append(value)
         }
     }
+}
 
+extension HTTPHeaders : Sequence {
     public func makeIterator() -> AnyIterator<(name: Name, value: String)> {
         if let original = original {
             return AnyIterator(original.makeIterator())
@@ -101,7 +107,9 @@ public struct HTTPHeaders : Sequence, ExpressibleByDictionaryLiteral {
             return nil
         }
     }
+}
 
+extension HTTPHeaders {
     public struct Name : Hashable, ExpressibleByStringLiteral, CustomStringConvertible {
         let original: String
         let lowercased: String
