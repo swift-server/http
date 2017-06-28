@@ -163,7 +163,9 @@ class ConnectionListenerCollection {
     
     /// Used when shutting down the server to close all connections
     func closeAll() {
+        lock.wait()
         storage.filter { nil != $0.value }.forEach { $0.value?.close() }
+        lock.signal()
     }
     
     /// Close any idle sockets and remove any weak pointers to closed (and freed) sockets from the collection
@@ -176,6 +178,9 @@ class ConnectionListenerCollection {
     
     /// Count of collections
     var count: Int {
-        return storage.filter { nil != $0.value }.count
+        lock.wait()
+        let c = storage.filter { nil != $0.value }.count
+        lock.signal()
+        return c
     }
 }
