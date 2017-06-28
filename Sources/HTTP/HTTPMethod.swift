@@ -66,7 +66,7 @@ extension HTTPMethod : Hashable {
     }
     
     public static func == (lhs: HTTPMethod, rhs: HTTPMethod) -> Bool {
-        return lhs.description == rhs.description
+        return lhs.rawValue == rhs.rawValue
     }
     
     public static func ~= (match: HTTPMethod, version: HTTPMethod) -> Bool {
