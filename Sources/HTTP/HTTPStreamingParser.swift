@@ -179,7 +179,7 @@ public class StreamingParser: HTTPResponseWriter {
             }
         case .headerValueReceived:
             if let parserBuffer = self.parserBuffer, let lastHeaderName = self.lastHeaderName, let headerValue = String(data:parserBuffer, encoding: .utf8) {
-                self.parsedHeaders.append(newHeader: (lastHeaderName, headerValue))
+                self.parsedHeaders.append([HTTPHeaders.Name(lastHeaderName): headerValue])
                 self.lastHeaderName = nil
                 self.parserBuffer=nil
             } else {

@@ -13,7 +13,7 @@ import XCTest
 
 class ServerTests: XCTestCase {
     func testResponseOK() {
-        let request = HTTPRequest(method: .GET, target:"/echo", httpVersion: HTTPVersion(major: 1, minor: 1), headers: HTTPHeaders([("X-foo", "bar")]))
+        let request = HTTPRequest(method: .GET, target:"/echo", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
         let resolver = TestResponseResolver(request: request, requestBody: Data())
         resolver.resolveHandler(EchoWebApp().serve)
         XCTAssertNotNil(resolver.response)
@@ -23,7 +23,7 @@ class ServerTests: XCTestCase {
 
     func testEcho() {
         let testString="This is a test"
-        let request = HTTPRequest(method: .POST, target:"/echo", httpVersion: HTTPVersion(major: 1, minor: 1), headers: HTTPHeaders([("X-foo", "bar")]))
+        let request = HTTPRequest(method: .POST, target:"/echo", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
         let resolver = TestResponseResolver(request: request, requestBody: testString.data(using: .utf8)!)
         resolver.resolveHandler(EchoWebApp().serve)
         XCTAssertNotNil(resolver.response)
@@ -33,7 +33,7 @@ class ServerTests: XCTestCase {
     }
     
     func testHello() {
-        let request = HTTPRequest(method: .GET, target:"/helloworld", httpVersion: HTTPVersion(major: 1, minor: 1), headers: HTTPHeaders([("X-foo", "bar")]))
+        let request = HTTPRequest(method: .GET, target:"/helloworld", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
         let resolver = TestResponseResolver(request: request, requestBody: Data())
         resolver.resolveHandler(HelloWorldWebApp().serve)
         XCTAssertNotNil(resolver.response)
@@ -43,13 +43,13 @@ class ServerTests: XCTestCase {
     }
     
     func testSimpleHello() {
-        let request = HTTPRequest(method: .GET, target:"/helloworld", httpVersion: HTTPVersion(major: 1, minor: 1), headers: HTTPHeaders([("X-foo", "bar")]))
+        let request = HTTPRequest(method: .GET, target:"/helloworld", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
         let resolver = TestResponseResolver(request: request, requestBody: Data())
         let simpleHelloWebApp = SimpleResponseCreator { (request, body) -> (reponse: HTTPResponse, responseBody: Data) in
             return (HTTPResponse(httpVersion: request.httpVersion,
                                  status: .ok,
                                  transferEncoding: .chunked,
-                                 headers: HTTPHeaders([("X-foo", "bar")])),
+                                 headers: ["X-foo": "bar"]),
                     "Hello, World!".data(using: .utf8)!)
             
         }
@@ -96,7 +96,7 @@ class ServerTests: XCTestCase {
             return (HTTPResponse(httpVersion: request.httpVersion,
                                  status: .ok,
                                  transferEncoding: .chunked,
-                                 headers: HTTPHeaders([("X-foo", "bar")])),
+                                 headers: ["X-foo": "bar"]),
                     "Hello, World!".data(using: .utf8)!)
             
         }
