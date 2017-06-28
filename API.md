@@ -355,43 +355,46 @@ public struct HTTPResponseStatus: Equatable, CustomStringConvertible, Expressibl
 }
 
 /// HTTP Methods handled by http_parser.[ch] supports
-public enum HTTPMethod : RawRepresentable {
-    /* be future-proof, http_parser can be upgraded */
-    case other(String)
+public struct HTTPMethod : RawRepresentable {
+
+    public let rawValue: String
+    
+    public init(rawValue: String)
+    public init(_ rawValue: String)
         
-    /* everything that http_parser.[ch] supports */
-    case DELETE
-    case GET
-    case HEAD
-    case POST
-    case PUT
-    case CONNECT
-    case OPTIONS
-    case TRACE
-    case COPY
-    case LOCK
-    case MKCOL
-    case MOVE
-    case PROPFIND
-    case PROPPATCH
-    case SEARCH
-    case UNLOCK
-    case BIND
-    case REBIND
-    case UNBIND
-    case ACL
-    case REPORT
-    case MKACTIVITY
-    case CHECKOUT
-    case MERGE
-    case MSEARCH
-    case NOTIFY
-    case SUBSCRIBE
-    case UNSUBSCRIBE
-    case PATCH
-    case PURGE
-    case MKCALENDAR
-    case LINK
-    case UNLINK
+    /* Constants for everything that http_parser.[ch] supports */
+    public static let delete
+    public static let get
+    public static let head
+    public static let post
+    public static let put
+    public static let connect
+    public static let options
+    public static let trace
+    public static let copy
+    public static let lock
+    public static let mkol
+    public static let move
+    public static let propfind
+    public static let proppatch
+    public static let search
+    public static let unlock
+    public static let bind
+    public static let rebind
+    public static let unbind
+    public static let acl
+    public static let report
+    public static let mkactivity
+    public static let checkout
+    public static let merge
+    public static let msearch
+    public static let notify
+    public static let subscribe
+    public static let unsubscribe
+    public static let patch
+    public static let purge
+    public static let mkcalendar
+    public static let link
+    public static let unlink
 }
 ```
