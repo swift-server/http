@@ -29,10 +29,6 @@ extension HTTPVersion : Hashable {
         return lhs.major == rhs.major && lhs.minor == rhs.minor
     }
     
-    public static func != (lhs: HTTPVersion, rhs: HTTPVersion) -> Bool {
-        return lhs.hashValue != rhs.hashValue
-    }
-    
     public static func ~= (match: HTTPVersion, version: HTTPVersion) -> Bool {
         return match == version
     }
