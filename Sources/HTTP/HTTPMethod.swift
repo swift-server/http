@@ -7,18 +7,13 @@
 //
 
 /// HTTP method structure
-public struct HTTPMethod: RawRepresentable {
+public struct HTTPMethod {
     /// HTTP method
-    public let rawValue: String
+    public let method: String
     
     /// Creates an HTTP method
-    public init(rawValue: String) {
-        self.rawValue = rawValue.uppercased()
-    }
-    
-    /// Creates an HTTP method
-    public init(_ rawValue: String) {
-        self.rawValue = rawValue.uppercased()
+    public init(_ method: String) {
+        self.method = method.uppercased()
     }
 }
 
@@ -62,11 +57,11 @@ extension HTTPMethod {
 extension HTTPMethod : Hashable {
     
     public var hashValue: Int {
-        return rawValue.hashValue
+        return method.hashValue
     }
     
     public static func == (lhs: HTTPMethod, rhs: HTTPMethod) -> Bool {
-        return lhs.rawValue == rhs.rawValue
+        return lhs.method == rhs.method
     }
     
     public static func ~= (match: HTTPMethod, version: HTTPMethod) -> Bool {
@@ -74,8 +69,22 @@ extension HTTPMethod : Hashable {
     }
 }
 
+extension HTTPMethod : ExpressibleByStringLiteral {
+    public init(stringLiteral: String) {
+        self.init(stringLiteral)
+    }
+    
+    public init(unicodeScalarLiteral: String) {
+        self.init(unicodeScalarLiteral)
+    }
+    
+    public init(extendedGraphemeClusterLiteral: String) {
+        self.init(extendedGraphemeClusterLiteral)
+    }
+}
+
 extension HTTPMethod : CustomStringConvertible {
     public var description: String {
-        return rawValue
+        return method
     }
 }

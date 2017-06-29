@@ -355,13 +355,12 @@ public struct HTTPResponseStatus: Equatable, CustomStringConvertible, Expressibl
 }
 
 /// HTTP Methods handled by http_parser.[ch] supports
-public struct HTTPMethod : RawRepresentable {
+public struct HTTPMethod : Hashable, CustomStringConvertible, ExpressibleByIntegerLiteral {
 
-    public let rawValue: String
-    
-    public init(rawValue: String)
-    public init(_ rawValue: String)
-        
+    public let method: String
+
+    public init(_ method: String)
+
     /* Constants for everything that http_parser.[ch] supports */
     public static let delete
     public static let get
