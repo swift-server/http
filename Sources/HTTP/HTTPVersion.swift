@@ -21,18 +21,28 @@ public struct HTTPVersion {
 }
 
 extension HTTPVersion : Hashable {
-
     public var hashValue: Int {
-        return major ^ minor
+        return (major << 8) | minor
     }
 
     public static func == (lhs: HTTPVersion, rhs: HTTPVersion) -> Bool {
-        return lhs.hashValue == rhs.hashValue
+        return lhs.major == rhs.major && lhs.minor == rhs.minor
     }
-
+    
     public static func ~= (match: HTTPVersion, version: HTTPVersion) -> Bool {
         return match == version
     }
+}
+
+extension HTTPVersion : Comparable {    
+    public static func < (lhs: HTTPVersion, rhs: HTTPVersion) -> Bool {
+        if lhs.major != rhs.major {
+            return lhs.major < rhs.major
+        } else {
+            return lhs.minor < rhs.minor
+        }
+    }
+
 }
 
 extension HTTPVersion : CustomStringConvertible {
