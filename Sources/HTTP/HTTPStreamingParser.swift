@@ -233,7 +233,7 @@ public class StreamingParser: HTTPResponseWriter {
             case .processBody(let handler):
                 handler(.end, &stop)
             case .discardBody:
-                break
+                done()
             }
         }
         return 0
