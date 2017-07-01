@@ -29,7 +29,7 @@ class ServerTests: XCTestCase {
         XCTAssertNotNil(resolver.response)
         XCTAssertNotNil(resolver.responseBody)
         XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
-        XCTAssertEqual(testString, String(data: resolver.responseBody ?? Data(), encoding: .utf8) ?? "Nil")
+        XCTAssertEqual(testString, resolver.responseBody?.withUnsafeBytes { String(bytes: $0, encoding: .utf8) } ?? "Nil")
     }
     
     func testHello() {
@@ -39,25 +39,25 @@ class ServerTests: XCTestCase {
         XCTAssertNotNil(resolver.response)
         XCTAssertNotNil(resolver.responseBody)
         XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
-        XCTAssertEqual("Hello, World!", String(data: resolver.responseBody ?? Data(), encoding: .utf8) ?? "Nil")
+        XCTAssertEqual("Hello, World!", resolver.responseBody?.withUnsafeBytes { String(bytes: $0, encoding: .utf8) } ?? "Nil")
     }
     
     func testSimpleHello() {
         let request = HTTPRequest(method: .get, target:"/helloworld", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
         let resolver = TestResponseResolver(request: request, requestBody: Data())
-        let simpleHelloWebApp = SimpleResponseCreator { (request, body) -> (reponse: HTTPResponse, responseBody: Data) in
-            return (HTTPResponse(httpVersion: request.httpVersion,
-                                 status: .ok,
-                                 transferEncoding: .chunked,
-                                 headers: ["X-foo": "bar"]),
-                    "Hello, World!".data(using: .utf8)!)
+        let simpleHelloWebApp = SimpleResponseCreator { (request, body) -> SimpleResponseCreator.Response in
+            return SimpleResponseCreator.Response(
+                status: .ok,
+                headers: ["X-foo": "bar"],
+                body: "Hello, World!".data(using: .utf8)!
+            )
             
         }
         resolver.resolveHandler(simpleHelloWebApp.serve)
         XCTAssertNotNil(resolver.response)
         XCTAssertNotNil(resolver.responseBody)
         XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
-        XCTAssertEqual("Hello, World!", String(data: resolver.responseBody ?? Data(), encoding: .utf8) ?? "Nil")
+        XCTAssertEqual("Hello, World!", resolver.responseBody?.withUnsafeBytes { String(bytes: $0, encoding: .utf8) } ?? "Nil")
     }
     
     func testOkEndToEnd() {
@@ -121,12 +121,12 @@ class ServerTests: XCTestCase {
     
     func testSimpleHelloEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
-        let simpleHelloWebApp = SimpleResponseCreator { (request, body) -> (reponse: HTTPResponse, responseBody: Data) in
-            return (HTTPResponse(httpVersion: request.httpVersion,
-                                 status: .ok,
-                                 transferEncoding: .chunked,
-                                 headers: ["X-foo": "bar"]),
-                    "Hello, World!".data(using: .utf8)!)
+        let simpleHelloWebApp = SimpleResponseCreator { (request, body) -> SimpleResponseCreator.Response in
+            return SimpleResponseCreator.Response(
+                status: .ok,
+                headers: ["X-foo": "bar"],
+                body: "Hello, World!".data(using: .utf8)!
+            )
             
         }
 

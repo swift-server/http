@@ -17,18 +17,7 @@ public protocol WebAppContaining: class {
     func serve(req: HTTPRequest, res: HTTPResponseWriter ) -> HTTPBodyProcessing
 }
 
-public enum Result<POSIXError, Void> {
-    case success(())
-    case failure(POSIXError)
-    
-    // MARK: Constructors
-    /// Constructs a success wrapping a `closure`.
-    public init(completion: ()) {
-        self = .success(completion)
-    }
-    
-    /// Constructs a failure wrapping an `POSIXError`.
-    public init(error: POSIXError) {
-        self = .failure(error)
-    }
+public enum Result {
+    case ok
+    case error(Error)
 }

@@ -7,31 +7,44 @@ public struct HTTPRequest {
     public var headers : HTTPHeaders
 }
 
-/// HTTP Response NOT INCLUDING THE BODY
-public struct HTTPResponse {
-    public var httpVersion : HTTPVersion
-    public var status: HTTPResponseStatus
-    public var transferEncoding: HTTPTransferEncoding
-    public var headers: HTTPHeaders
-}
-
 /// Object that code writes the response and response body to. 
 public protocol HTTPResponseWriter : class {
-    func writeContinue(headers: HTTPHeaders?) /* to send an HTTP `100 Continue` */
-    
-    func writeResponse(_ response: HTTPResponse)
-    
-    func writeTrailer(key: String, value: String)
-    
-    func writeBody(data: DispatchData, completion: @escaping (Result<POSIXError, ()>) -> Void)
-    func writeBody(data: DispatchData) /* convenience */
-
-    func writeBody(data: Data, completion: @escaping (Result<POSIXError, ()>) -> Void)
-    func writeBody(data: Data) /* convenience */
-
-    func done() /* convenience */
-    func done(completion: @escaping (Result<POSIXError, ()>) -> Void)
+    func writeHeader(status: HTTPResponseStatus, headers: HTTPHeaders, completion: @escaping (Result) -> Void)
+    func writeTrailer(_ trailers: HTTPHeaders, completion: @escaping (Result) -> Void)
+    func writeBody(_ data: UnsafeHTTPResponseBody, completion: @escaping (Result) -> Void)
+    func done(completion: @escaping (Result) -> Void)
     func abort()
+}
+
+/// Convenience methods for HTTP response writer.
+extension HTTPResponseWriter {
+    public func writeHeader(status: HTTPResponseStatus, headers: HTTPHeaders)
+    public func writeHeader(status: HTTPResponseStatus)
+    public func writeTrailer(_ trailers: HTTPHeaders)
+    public func writeBody(_ data: UnsafeHTTPResponseBody)
+    public func done()
+}
+
+public protocol UnsafeHTTPResponseBody {
+    func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R
+}
+
+extension UnsafeRawBufferPointer : UnsafeHTTPResponseBody {
+    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R
+}
+
+public protocol HTTPResponseBody : UnsafeHTTPResponseBody {}
+
+extension Data : HTTPResponseBody {
+    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R
+}
+
+extension DispatchData : HTTPResponseBody {
+    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R
+}
+
+extension String : HTTPResponseBody {
+    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R
 }
 
 /// Method that takes a chunk of request body and is expected to write to the ResponseWriter

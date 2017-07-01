@@ -13,16 +13,13 @@ import HTTP
 class HelloWorldWebApp: WebAppContaining {
     func serve(req: HTTPRequest, res: HTTPResponseWriter ) -> HTTPBodyProcessing {
         //Assume the router gave us the right request - at least for now
-        res.writeResponse(HTTPResponse(httpVersion: req.httpVersion,
-                                       status: .ok,
-                                       transferEncoding: .chunked,
-                                       headers: ["X-foo": "bar"]))
+        res.writeHeader(status: .ok, headers: [.transferEncoding: "chunked", "X-foo": "bar"])
         return .processBody { (chunk, stop) in
             switch chunk {
             case .chunk(_, let finishedProcessing):
                 finishedProcessing()
             case .end:
-                res.writeBody(data: "Hello, World!".data(using: .utf8)!) { _ in }
+                res.writeBody("Hello, World!")
                 res.done()
             default:
                 stop = true /* don't call us anymore */
