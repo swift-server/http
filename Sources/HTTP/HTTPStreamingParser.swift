@@ -318,7 +318,7 @@ public class StreamingParser: HTTPResponseWriter {
             return
         }
         
-        var header = "\(parsedHTTPVersion!) \(status.code) \(status.reasonPhrase)\r\n"
+        var header = "HTTP/1.1 \(status.code) \(status.reasonPhrase)\r\n"
 
         let isContinue = status == .continue
 
