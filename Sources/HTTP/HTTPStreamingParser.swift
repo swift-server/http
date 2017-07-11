@@ -322,11 +322,9 @@ public class StreamingParser: HTTPResponseWriter {
         status += "\r\n"
         
         // TODO use requested encoding if specified
-        if let data = status.data(using: .utf8) {
-            self.parserConnector?.queueSocketWrite(data)
-        } else {
-            //TODO handle encoding error
-        }
+        let data = Data(status.utf8)
+        self.parserConnector?.queueSocketWrite(data)
+
     }
     
     public func writeResponse(_ response: HTTPResponse) {
@@ -360,12 +358,10 @@ public class StreamingParser: HTTPResponseWriter {
         headers.append("\r\n")
         
         // TODO use requested encoding if specified
-        if let data = headers.data(using: .utf8) {
-            self.parserConnector?.queueSocketWrite(data)
-            headersWritten = true
-        } else {
-            //TODO handle encoding error
-        }
+        let data = Data(headers.utf8)
+        self.parserConnector?.queueSocketWrite(data)
+        headersWritten = true
+
     }
     
     public func writeTrailer(key: String, value: String) {
@@ -390,10 +386,10 @@ public class StreamingParser: HTTPResponseWriter {
         
         var dataToWrite: Data!
         if isChunked {
-            let chunkStart = (String(data.count, radix: 16) + "\r\n").data(using: .utf8)!
+            let chunkStart = Data((String(data.count, radix: 16) + "\r\n").utf8)
             dataToWrite = Data(chunkStart)
             dataToWrite.append(data)
-            let chunkEnd = "\r\n".data(using: .utf8)!
+            let chunkEnd = Data("\r\n".utf8)
             dataToWrite.append(chunkEnd)
         } else {
             dataToWrite = data
@@ -406,7 +402,7 @@ public class StreamingParser: HTTPResponseWriter {
     
     public func done(completion: @escaping (Result<POSIXError, ()>) -> Void) {
         if isChunked {
-            let chunkTerminate = "0\r\n\r\n".data(using: .utf8)!
+            let chunkTerminate = Data("0\r\n\r\n".utf8)
             self.parserConnector?.queueSocketWrite(chunkTerminate)
         }
         
