@@ -105,7 +105,16 @@ public class StreamingParser: HTTPResponseWriter {
             guard let listener = StreamingParser.getSelf(parser: parser) else {
                 return Int32(0)
             }
-            return listener.headersCompleted()
+            let methodId = parser?.pointee.method
+            let methodName = String(validatingUTF8:http_method_str(http_method(rawValue: methodId  ?? 0))) ?? "GET"
+            let major = Int(parser?.pointee.http_major ?? 0)
+            let minor = Int(parser?.pointee.http_minor ?? 0)
+            
+            //This needs to be set here and not messageCompleted if it's going to work here
+            let keepAlive = (http_should_keep_alive(parser) == 1)
+            let upgradeRequested = get_upgrade_value(parser) == 1
+
+            return listener.headersCompleted(methodName: methodName, majorVersion: major, minorVersion: minor, keepAlive: keepAlive, upgrade: upgradeRequested)
         }
         
         httpParserSettings.on_header_field = {
@@ -186,12 +195,6 @@ public class StreamingParser: HTTPResponseWriter {
                 print("Missing parserBuffer after \(lastCallBack)")
             }
         case .headersCompleted:
-            let methodId = self.httpParser.method
-            if let methodName = http_method_str(http_method(rawValue: methodId)) {
-                self.parsedHTTPMethod = HTTPMethod(String(validatingUTF8: methodName) ?? "GET")
-            }
-            self.parsedHTTPVersion = HTTPVersion(major: Int(self.httpParser.http_major), minor: Int(self.httpParser.http_minor))
-            
             self.parserBuffer=nil
             
             if !upgradeRequested {
@@ -239,12 +242,15 @@ public class StreamingParser: HTTPResponseWriter {
         return 0
     }
     
-    func headersCompleted() -> Int32 {
+    func headersCompleted(methodName:String, majorVersion: Int, minorVersion:Int, keepAlive: Bool, upgrade:Bool) -> Int32 {
         processCurrentCallback(.headersCompleted)
+        self.parsedHTTPMethod = HTTPMethod(methodName)
+        self.parsedHTTPVersion = HTTPVersion(major: majorVersion, minor: minorVersion)
+
         //This needs to be set here and not messageCompleted if it's going to work here
-        self.clientRequestedKeepAlive = (http_should_keep_alive(&httpParser) == 1)
+        self.clientRequestedKeepAlive = keepAlive
         self.keepAliveUntil = Date(timeIntervalSinceNow: StreamingParser.keepAliveTimeout).timeIntervalSinceReferenceDate
-        upgradeRequested = get_upgrade_value(&self.httpParser) == 1
+        self.upgradeRequested = upgrade
         return 0
     }
     
