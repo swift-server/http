@@ -9,6 +9,13 @@
 import Foundation
 import Dispatch
 
+/// HTTP Response for possible use in the client.
+public struct HTTPResponse {
+    public var httpVersion : HTTPVersion
+    public var status: HTTPResponseStatus
+    public var headers: HTTPHeaders
+}
+
 /// Object that code writes the response and response body to. 
 public protocol HTTPResponseWriter : class {
     func writeHeader(status: HTTPResponseStatus, headers: HTTPHeaders, completion: @escaping (Result) -> Void)
