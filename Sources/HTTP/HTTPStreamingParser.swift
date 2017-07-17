@@ -318,99 +318,109 @@ public class StreamingParser: HTTPResponseWriter {
         return HTTPRequest(method: parsedHTTPMethod!, target: parsedURL!, httpVersion: parsedHTTPVersion!, headers: parsedHeaders)
     }
     
-    public func writeContinue(headers: HTTPHeaders?) /* to send an HTTP `100 Continue` */ {
-        var status = "HTTP/1.1 \(HTTPResponseStatus.continue.code) \(HTTPResponseStatus.continue.reasonPhrase)\r\n"
-        if let headers = headers {
-            for (key, value) in headers.makeIterator() {
-                status += "\(key): \(value)\r\n"
-            }
-        }
-        status += "\r\n"
-        
-        // TODO use requested encoding if specified
-        if let data = status.data(using: .utf8) {
-            self.parserConnector?.queueSocketWrite(data)
-        } else {
-            //TODO handle encoding error
-        }
-    }
-    
-    public func writeResponse(_ response: HTTPResponse) {
+    public func writeHeader(status: HTTPResponseStatus, headers: HTTPHeaders, completion: @escaping (Result) -> Void) {
+        // TODO call completion()
         guard !headersWritten else {
             return
         }
         
-        var headers = "HTTP/1.1 \(response.status.code) \(response.status.reasonPhrase)\r\n"
-        
-        switch(response.transferEncoding) {
-        case .chunked:
-            headers += "Transfer-Encoding: chunked\r\n"
-            isChunked = true
-        case .identity(let contentLength):
-            headers += "Content-Length: \(contentLength)\r\n"
+        var header = "HTTP/1.1 \(status.code) \(status.reasonPhrase)\r\n"
+
+        let isContinue = status == .continue
+
+        var headers = headers
+        if !isContinue {
+            adjustHeaders(status: status, headers: &headers)
         }
         
-        for (key, value) in response.headers.makeIterator() {
-            headers += "\(key): \(value)\r\n"
+        for (key, value) in headers {
+            // TODO encode value using [RFC5987]
+            header += "\(key): \(value)\r\n"
         }
+        header.append("\r\n")
         
-        let availableConnections = maxRequests - (self.connectionCounter?.connectionCount ?? 0)
-        
-        if  clientRequestedKeepAlive && (availableConnections > 0) {
-            headers.append("Connection: Keep-Alive\r\n")
-            headers.append("Keep-Alive: timeout=\(Int(StreamingParser.keepAliveTimeout)), max=\(availableConnections)\r\n")
-        }
-        else {
-            headers.append("Connection: Close\r\n")
-        }
-        headers.append("\r\n")
-        
+        // FIXME headers are US-ASCII, anything else should be encoded using [RFC5987] some lines above
         // TODO use requested encoding if specified
-        if let data = headers.data(using: .utf8) {
+        if let data = header.data(using: .utf8) {
             self.parserConnector?.queueSocketWrite(data)
-            headersWritten = true
+            if !isContinue {
+                headersWritten = true
+            }
         } else {
             //TODO handle encoding error
         }
     }
+
+    func adjustHeaders(status: HTTPResponseStatus, headers: inout HTTPHeaders) {
+        for header in status.suppressedHeaders {
+            headers[header] = nil
+        }
+
+        if headers[.contentLength] != nil {
+            headers[.transferEncoding] = "identity"
+        } else if parsedHTTPVersion! >= HTTPVersion(major: 1, minor: 1) {
+            switch headers[.transferEncoding] {
+                case .some("identity"): // identity without content-length
+                    clientRequestedKeepAlive = false
+                case .some("chunked"):
+                    isChunked = true
+                default:
+                    isChunked = true
+                    headers[.transferEncoding] = "chunked"
+            }
+        } else {
+            // HTTP 1.0 does not support chunked
+            clientRequestedKeepAlive = false
+            headers[.transferEncoding] = nil
+        }
+
+        let availableConnections = maxRequests - (self.connectionCounter?.connectionCount ?? 0)
+
+        if clientRequestedKeepAlive && (availableConnections > 0) {
+            headers[.connection] = "Keep-Alive"
+            headers[.keepAlive] = "timeout=\(Int(StreamingParser.keepAliveTimeout)), max=\(availableConnections)"
+        } else {
+            headers[.connection] = "Close"
+        }
+    }
     
-    public func writeTrailer(key: String, value: String) {
+    public func writeTrailer(_ trailers: HTTPHeaders, completion: @escaping (Result) -> Void) {
         fatalError("Not implemented")
     }
     
-    public func writeBody(data: DispatchData, completion: @escaping (Result<POSIXError, ()>) -> Void) {
-        writeBody(data: Data(data), completion: completion)
-    }
-    
-    public func writeBody(data: Data, completion: @escaping (Result<POSIXError, ()>) -> Void) {
+    public func writeBody(_ data: UnsafeHTTPResponseBody, completion: @escaping (Result) -> Void) {
         guard headersWritten else {
             //TODO error or default headers?
             return
         }
         
-        guard data.count > 0 else {
-            // TODO fix Result
-            completion(Result(completion: ()))
+        guard data.withUnsafeBytes({ $0.count > 0 }) else {
+            completion(.ok)
             return
         }
         
-        var dataToWrite: Data!
+        let dataToWrite: Data
         if isChunked {
-            let chunkStart = (String(data.count, radix: 16) + "\r\n").data(using: .utf8)!
-            dataToWrite = Data(chunkStart)
-            dataToWrite.append(data)
-            let chunkEnd = "\r\n".data(using: .utf8)!
-            dataToWrite.append(chunkEnd)
+            dataToWrite = data.withUnsafeBytes {
+                let chunkStart = (String($0.count, radix: 16) + "\r\n").data(using: .utf8)!
+                var dataToWrite = chunkStart
+                dataToWrite.append(UnsafeBufferPointer(start: $0.baseAddress?.assumingMemoryBound(to: UInt8.self), count: $0.count))
+                let chunkEnd = "\r\n".data(using: .utf8)!
+                dataToWrite.append(chunkEnd)
+                return dataToWrite
+            }
+        } else if let d = data as? Data {
+            dataToWrite = d
         } else {
-            dataToWrite = data
+            dataToWrite = data.withUnsafeBytes { Data($0) }
         }
         
         self.parserConnector?.queueSocketWrite(dataToWrite)
         
-        completion(Result(completion: ()))
+        completion(.ok)
     }
     
-    public func done(completion: @escaping (Result<POSIXError, ()>) -> Void) {
+    public func done(completion: @escaping (Result) -> Void) {
         if isChunked {
             let chunkTerminate = "0\r\n\r\n".data(using: .utf8)!
             self.parserConnector?.queueSocketWrite(chunkTerminate)
@@ -437,7 +447,11 @@ public class StreamingParser: HTTPResponseWriter {
             }
         }
         
-        completion(Result(completion: closeAfter()))
+        // FIXME I do not understand what code written here before was meant to do
+        // If it was about delayed closure invocation then it couldn't work either
+        // Here is the equivalent code
+        closeAfter()
+        completion(.ok)
     }
 
     public func abort() {
