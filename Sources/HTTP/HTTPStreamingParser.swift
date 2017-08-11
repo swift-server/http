@@ -13,6 +13,7 @@ import CHTTPParser
 
 
 /// Class that wraps the CHTTPParser and calls the `WebApp` to get the response
+/// :nodoc:
 public class StreamingParser: HTTPResponseWriter {
 
     let webapp: WebApp
@@ -465,6 +466,7 @@ public class StreamingParser: HTTPResponseWriter {
 }
 
 /// Protocol implemented by the thing that sits in between us and the network layer
+/// :nodoc:
 public protocol ParserConnecting: class {
     
     /// Send data to the network do be written to the client
@@ -482,6 +484,7 @@ public protocol ParserConnecting: class {
 
 /// Delegate that can tell us how many connections are in-flight so we can set the Keep-Alive header
 ///  to the correct number of available connections
+/// :nodoc:
 public protocol CurrentConnectionCounting: class {
     /// Current number of active connections
     var connectionCount: Int { get }
