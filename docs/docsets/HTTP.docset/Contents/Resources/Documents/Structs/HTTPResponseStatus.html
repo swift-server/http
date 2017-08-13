@@ -1,0 +1,1951 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>HTTPResponseStatus Struct Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset="utf-8">
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+    <script src="../js/lunr.min.js" defer></script>
+    <script src="../js/typeahead.jquery.js" defer></script>
+    <script src="../js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+
+    <a name="//apple_ref/swift/Struct/HTTPResponseStatus" class="dashAnchor"></a>
+
+    <a title="HTTPResponseStatus Struct Reference"></a>
+
+    <header class="header">
+      <p class="header-col header-col--primary">
+        <a class="header-link" href="../index.html">
+          HTTP Docs
+        </a>
+         (100% documented)
+      </p>
+    
+      <p class="header-col--secondary">
+        <form role="search" action="../search.json">
+          <input type="text" placeholder="Search documentation" data-typeahead>
+        </form>
+      </p>
+    
+        <p class="header-col header-col--secondary">
+          <a class="header-link" href="https://github.com/swift-server/HTTP/">
+            <img class="header-icon" src="../img/gh.png"/>
+            View on GitHub
+          </a>
+        </p>
+    
+    </header>
+
+    <p class="breadcrumbs">
+      <a class="breadcrumb" href="../index.html">HTTP Reference</a>
+      <img class="carat" src="../img/carat.png" />
+      HTTPResponseStatus Struct Reference
+    </p>
+
+    <div class="content-wrapper">
+      <nav class="navigation">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../HTTP Server.html">HTTP Server</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Protocols/WebAppContaining.html">WebAppContaining</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../HTTP Server.html#/s:4HTTP6WebApp">WebApp</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../HTTP Headers.html">HTTP Headers</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/HTTPHeaders.html">HTTPHeaders</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/HTTPHeaders/Name.html">– Name</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/HTTPVersion.html">HTTPVersion</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../HTTP Request.html">HTTP Request</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/HTTPRequest.html">HTTPRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/HTTPMethod.html">HTTPMethod</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../HTTP Request.html#/s:4HTTP15HTTPBodyHandler">HTTPBodyHandler</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/HTTPBodyProcessing.html">HTTPBodyProcessing</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/HTTPBodyChunk.html">HTTPBodyChunk</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../HTTP Response.html">HTTP Response</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/HTTPResponse.html">HTTPResponse</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/HTTPResponseStatus.html">HTTPResponseStatus</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/HTTPResponseStatus/Class.html">– Class</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Protocols/HTTPResponseWriter.html">HTTPResponseWriter</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Other Enums.html">Other Enums</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/Result.html">Result</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+
+        <section class="section">
+          <div class="section-content">
+            <h1>HTTPResponseStatus</h1>
+              <div class="declaration">
+                <div class="language">
+                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">HTTPResponseStatus</span><span class="p">:</span> <span class="kt">Equatable</span><span class="p">,</span> <span class="kt">CustomStringConvertible</span><span class="p">,</span> <span class="kt">ExpressibleByIntegerLiteral</span></code></pre>
+
+                </div>
+              </div>
+            <p>The response status for the HTTP response</p>
+<div class="aside aside-see">
+    <p class="aside-title">See</p>
+    <a href="https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml">https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml</a> for more information
+
+</div>
+
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-content">
+            <div class="task-group">
+              <ul class="item-container">
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vV4HTTP18HTTPResponseStatus4codeSi"></a>
+                    <a name="//apple_ref/swift/Property/code" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vV4HTTP18HTTPResponseStatus4codeSi">code</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The status code, eg. 200 or 404</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">code</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vV4HTTP18HTTPResponseStatus12reasonPhraseSS"></a>
+                    <a name="//apple_ref/swift/Property/reasonPhrase" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vV4HTTP18HTTPResponseStatus12reasonPhraseSS">reasonPhrase</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The reason phrase for the status code</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">reasonPhrase</span><span class="p">:</span> <span class="kt">String</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FV4HTTP18HTTPResponseStatuscFT4codeSi12reasonPhraseSS_S0_"></a>
+                    <a name="//apple_ref/swift/Method/init(code:reasonPhrase:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FV4HTTP18HTTPResponseStatuscFT4codeSi12reasonPhraseSS_S0_">init(code:reasonPhrase:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates an HTTP response status</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="kt">Int</span><span class="p">,</span> <span class="nv">reasonPhrase</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>code</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The status code used for the response status</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>reasonPhrase</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The reason phrase to use for the response status</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FV4HTTP18HTTPResponseStatuscFT4codeSi_S0_"></a>
+                    <a name="//apple_ref/swift/Method/init(code:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FV4HTTP18HTTPResponseStatuscFT4codeSi_S0_">init(code:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates an HTTP response status
+The reason phrase is added for the status code, or <q>http_(code)</q> if the code is not well known</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="kt">Int</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>code</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The status code used for the response status</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus8continueS0_"></a>
+                    <a name="//apple_ref/swift/Variable/continue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus8continueS0_">continue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>100 Continue</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">let</span> <span class="err">`</span><span class="k">continue</span><span class="err">`</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">100</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus18switchingProtocolsS0_"></a>
+                    <a name="//apple_ref/swift/Variable/switchingProtocols" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus18switchingProtocolsS0_">switchingProtocols</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>101 Switching Protocols</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">switchingProtocols</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">101</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus2okS0_"></a>
+                    <a name="//apple_ref/swift/Variable/ok" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus2okS0_">ok</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>200 OK</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">ok</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">200</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus7createdS0_"></a>
+                    <a name="//apple_ref/swift/Variable/created" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus7createdS0_">created</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>201 Created</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">created</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">201</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus8acceptedS0_"></a>
+                    <a name="//apple_ref/swift/Variable/accepted" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus8acceptedS0_">accepted</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>202 Accepted</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">accepted</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">202</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus27nonAuthoritativeInformationS0_"></a>
+                    <a name="//apple_ref/swift/Variable/nonAuthoritativeInformation" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus27nonAuthoritativeInformationS0_">nonAuthoritativeInformation</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>203 Non-Authoritative Information</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">nonAuthoritativeInformation</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">203</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus9noContentS0_"></a>
+                    <a name="//apple_ref/swift/Variable/noContent" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus9noContentS0_">noContent</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>204 No Content</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">noContent</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">204</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus12resetContentS0_"></a>
+                    <a name="//apple_ref/swift/Variable/resetContent" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus12resetContentS0_">resetContent</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>205 Reset Content</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">resetContent</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">205</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus14partialContentS0_"></a>
+                    <a name="//apple_ref/swift/Variable/partialContent" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus14partialContentS0_">partialContent</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>206 Partial Content</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">partialContent</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">206</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus11multiStatusS0_"></a>
+                    <a name="//apple_ref/swift/Variable/multiStatus" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus11multiStatusS0_">multiStatus</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>207 Multi-Status</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">multiStatus</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">207</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus15alreadyReportedS0_"></a>
+                    <a name="//apple_ref/swift/Variable/alreadyReported" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus15alreadyReportedS0_">alreadyReported</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>208 Already Reported</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">alreadyReported</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">208</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus6imUsedS0_"></a>
+                    <a name="//apple_ref/swift/Variable/imUsed" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus6imUsedS0_">imUsed</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>226 IM Used</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">imUsed</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">226</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus15multipleChoicesS0_"></a>
+                    <a name="//apple_ref/swift/Variable/multipleChoices" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus15multipleChoicesS0_">multipleChoices</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>300 Multiple Choices</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">multipleChoices</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">300</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus16movedPermanentlyS0_"></a>
+                    <a name="//apple_ref/swift/Variable/movedPermanently" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus16movedPermanentlyS0_">movedPermanently</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>301 Moved Permanently</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">movedPermanently</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">301</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus5foundS0_"></a>
+                    <a name="//apple_ref/swift/Variable/found" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus5foundS0_">found</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>302 Found</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">found</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">302</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus8seeOtherS0_"></a>
+                    <a name="//apple_ref/swift/Variable/seeOther" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus8seeOtherS0_">seeOther</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>303 See Other</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">seeOther</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">303</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus11notModifiedS0_"></a>
+                    <a name="//apple_ref/swift/Variable/notModified" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus11notModifiedS0_">notModified</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>304 Not Modified</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">notModified</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">304</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus8useProxyS0_"></a>
+                    <a name="//apple_ref/swift/Variable/useProxy" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus8useProxyS0_">useProxy</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>305 Use Proxy</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">useProxy</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">305</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus17temporaryRedirectS0_"></a>
+                    <a name="//apple_ref/swift/Variable/temporaryRedirect" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus17temporaryRedirectS0_">temporaryRedirect</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>307 Temporary Redirect</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">temporaryRedirect</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">307</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus17permanentRedirectS0_"></a>
+                    <a name="//apple_ref/swift/Variable/permanentRedirect" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus17permanentRedirectS0_">permanentRedirect</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>308 Permanent Redirect</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">permanentRedirect</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">308</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus10badRequestS0_"></a>
+                    <a name="//apple_ref/swift/Variable/badRequest" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus10badRequestS0_">badRequest</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>400 Bad Request</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">badRequest</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">400</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus12unauthorizedS0_"></a>
+                    <a name="//apple_ref/swift/Variable/unauthorized" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus12unauthorizedS0_">unauthorized</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>401 Unauthorized</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">unauthorized</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">401</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus15paymentRequiredS0_"></a>
+                    <a name="//apple_ref/swift/Variable/paymentRequired" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus15paymentRequiredS0_">paymentRequired</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>402 Payment Required</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">paymentRequired</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">402</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus9forbiddenS0_"></a>
+                    <a name="//apple_ref/swift/Variable/forbidden" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus9forbiddenS0_">forbidden</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>403 Forbidden</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">forbidden</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">403</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus8notFoundS0_"></a>
+                    <a name="//apple_ref/swift/Variable/notFound" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus8notFoundS0_">notFound</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>404 Not Found</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">notFound</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">404</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus16methodNotAllowedS0_"></a>
+                    <a name="//apple_ref/swift/Variable/methodNotAllowed" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus16methodNotAllowedS0_">methodNotAllowed</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>405 Method Not Allowed</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">methodNotAllowed</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">405</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus13notAcceptableS0_"></a>
+                    <a name="//apple_ref/swift/Variable/notAcceptable" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus13notAcceptableS0_">notAcceptable</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>406 Not Acceptable</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">notAcceptable</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">406</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus27proxyAuthenticationRequiredS0_"></a>
+                    <a name="//apple_ref/swift/Variable/proxyAuthenticationRequired" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus27proxyAuthenticationRequiredS0_">proxyAuthenticationRequired</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>407 Proxy Authentication Required</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">proxyAuthenticationRequired</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">407</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus14requestTimeoutS0_"></a>
+                    <a name="//apple_ref/swift/Variable/requestTimeout" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus14requestTimeoutS0_">requestTimeout</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>408 Request Timeout</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">requestTimeout</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">408</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus8conflictS0_"></a>
+                    <a name="//apple_ref/swift/Variable/conflict" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus8conflictS0_">conflict</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>409 Conflict</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">conflict</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">409</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus4goneS0_"></a>
+                    <a name="//apple_ref/swift/Variable/gone" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus4goneS0_">gone</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>410 Gone</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">gone</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">410</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus14lengthRequiredS0_"></a>
+                    <a name="//apple_ref/swift/Variable/lengthRequired" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus14lengthRequiredS0_">lengthRequired</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>411 Length Required</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">lengthRequired</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">411</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus18preconditionFailedS0_"></a>
+                    <a name="//apple_ref/swift/Variable/preconditionFailed" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus18preconditionFailedS0_">preconditionFailed</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>412 Precondition Failed</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">preconditionFailed</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">412</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus15payloadTooLargeS0_"></a>
+                    <a name="//apple_ref/swift/Variable/payloadTooLarge" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus15payloadTooLargeS0_">payloadTooLarge</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>413 Payload Too Large</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">payloadTooLarge</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">413</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus10uriTooLongS0_"></a>
+                    <a name="//apple_ref/swift/Variable/uriTooLong" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus10uriTooLongS0_">uriTooLong</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>414 URI Too Long</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">uriTooLong</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">414</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus20unsupportedMediaTypeS0_"></a>
+                    <a name="//apple_ref/swift/Variable/unsupportedMediaType" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus20unsupportedMediaTypeS0_">unsupportedMediaType</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>415 Unsupported Media Type</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">unsupportedMediaType</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">415</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus19rangeNotSatisfiableS0_"></a>
+                    <a name="//apple_ref/swift/Variable/rangeNotSatisfiable" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus19rangeNotSatisfiableS0_">rangeNotSatisfiable</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>416 Range Not Satisfiable</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">rangeNotSatisfiable</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">416</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus17expectationFailedS0_"></a>
+                    <a name="//apple_ref/swift/Variable/expectationFailed" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus17expectationFailedS0_">expectationFailed</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>417 Expectation Failed</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">expectationFailed</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">417</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus18misdirectedRequestS0_"></a>
+                    <a name="//apple_ref/swift/Variable/misdirectedRequest" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus18misdirectedRequestS0_">misdirectedRequest</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>421 Misdirected Request</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">misdirectedRequest</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">421</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus19unprocessableEntityS0_"></a>
+                    <a name="//apple_ref/swift/Variable/unprocessableEntity" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus19unprocessableEntityS0_">unprocessableEntity</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>422 Unprocessable Entity</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">unprocessableEntity</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">422</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus6lockedS0_"></a>
+                    <a name="//apple_ref/swift/Variable/locked" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus6lockedS0_">locked</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>423 Locked</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">locked</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">423</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus16failedDependencyS0_"></a>
+                    <a name="//apple_ref/swift/Variable/failedDependency" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus16failedDependencyS0_">failedDependency</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>424 Failed Dependency</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">failedDependency</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">424</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus15upgradeRequiredS0_"></a>
+                    <a name="//apple_ref/swift/Variable/upgradeRequired" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus15upgradeRequiredS0_">upgradeRequired</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>426 Upgrade Required</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">upgradeRequired</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">426</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus20preconditionRequiredS0_"></a>
+                    <a name="//apple_ref/swift/Variable/preconditionRequired" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus20preconditionRequiredS0_">preconditionRequired</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>428 Precondition Required</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">preconditionRequired</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">428</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus15tooManyRequestsS0_"></a>
+                    <a name="//apple_ref/swift/Variable/tooManyRequests" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus15tooManyRequestsS0_">tooManyRequests</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>429 Too Many Requests</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">tooManyRequests</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">429</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus27requestHeaderFieldsTooLargeS0_"></a>
+                    <a name="//apple_ref/swift/Variable/requestHeaderFieldsTooLarge" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus27requestHeaderFieldsTooLargeS0_">requestHeaderFieldsTooLarge</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>431 Request Header Fields Too Large</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">requestHeaderFieldsTooLarge</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">431</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus26unavailableForLegalReasonsS0_"></a>
+                    <a name="//apple_ref/swift/Variable/unavailableForLegalReasons" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus26unavailableForLegalReasonsS0_">unavailableForLegalReasons</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>451 Unavailable For Legal Reasons</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">unavailableForLegalReasons</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">451</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus19internalServerErrorS0_"></a>
+                    <a name="//apple_ref/swift/Variable/internalServerError" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus19internalServerErrorS0_">internalServerError</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>500 Internal Server Error</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">internalServerError</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">500</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus14notImplementedS0_"></a>
+                    <a name="//apple_ref/swift/Variable/notImplemented" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus14notImplementedS0_">notImplemented</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>501 Not Implemented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">notImplemented</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">501</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus10badGatewayS0_"></a>
+                    <a name="//apple_ref/swift/Variable/badGateway" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus10badGatewayS0_">badGateway</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>502 Bad Gateway</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">badGateway</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">502</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus18serviceUnavailableS0_"></a>
+                    <a name="//apple_ref/swift/Variable/serviceUnavailable" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus18serviceUnavailableS0_">serviceUnavailable</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>503 Service Unavailable</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">serviceUnavailable</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">503</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus14gatewayTimeoutS0_"></a>
+                    <a name="//apple_ref/swift/Variable/gatewayTimeout" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus14gatewayTimeoutS0_">gatewayTimeout</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>504 Gateway Timeout</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">gatewayTimeout</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">504</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus23httpVersionNotSupportedS0_"></a>
+                    <a name="//apple_ref/swift/Variable/httpVersionNotSupported" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus23httpVersionNotSupportedS0_">httpVersionNotSupported</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>505 HTTP Version Not Supported</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">httpVersionNotSupported</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">505</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus21variantAlsoNegotiatesS0_"></a>
+                    <a name="//apple_ref/swift/Variable/variantAlsoNegotiates" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus21variantAlsoNegotiatesS0_">variantAlsoNegotiates</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>506 Variant Also Negotiates</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">variantAlsoNegotiates</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">506</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus19insufficientStorageS0_"></a>
+                    <a name="//apple_ref/swift/Variable/insufficientStorage" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus19insufficientStorageS0_">insufficientStorage</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>507 Insufficient Storage</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">insufficientStorage</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">507</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus12loopDetectedS0_"></a>
+                    <a name="//apple_ref/swift/Variable/loopDetected" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus12loopDetectedS0_">loopDetected</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>508 Loop Detected</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">loopDetected</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">508</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus11notExtendedS0_"></a>
+                    <a name="//apple_ref/swift/Variable/notExtended" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus11notExtendedS0_">notExtended</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>510 Not Extended</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">notExtended</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">510</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvV4HTTP18HTTPResponseStatus29networkAuthenticationRequiredS0_"></a>
+                    <a name="//apple_ref/swift/Variable/networkAuthenticationRequired" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus29networkAuthenticationRequiredS0_">networkAuthenticationRequired</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>511 Network Authentication Required</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">networkAuthenticationRequired</span> <span class="o">=</span> <span class="kt">HTTPResponseStatus</span><span class="p">(</span><span class="nv">code</span><span class="p">:</span> <span class="mi">511</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vV4HTTP18HTTPResponseStatus5classOS0_5Class"></a>
+                    <a name="//apple_ref/swift/Property/class" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vV4HTTP18HTTPResponseStatus5classOS0_5Class">class</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+<ul>
+<li>The <code><a href="../Structs/HTTPResponseStatus/Class.html">Class</a></code> representing the class of status code for this response status</li>
+</ul>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">var</span> <span class="err">`</span><span class="kd">class</span><span class="err">`</span><span class="p">:</span> <span class="kt"><a href="../Structs/HTTPResponseStatus/Class.html">Class</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:OV4HTTP18HTTPResponseStatus5Class"></a>
+                    <a name="//apple_ref/swift/Enum/Class" class="dashAnchor"></a>
+                    <a class="token" href="#/s:OV4HTTP18HTTPResponseStatus5Class">Class</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The class of a <code><a href="../Structs/HTTPResponseStatus.html">HTTPResponseStatus</a></code> code</p>
+<div class="aside aside-see">
+    <p class="aside-title">See</p>
+    <a href="https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml">https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml</a> for more information
+
+</div>
+
+                        <a href="../Structs/HTTPResponseStatus/Class.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">Class</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+      </article>
+    </div>
+    <section class="footer">
+      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift.org Server APIs Project</a>. All rights reserved. (Last updated: 2017-08-11)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+    </section>
+  </body>
+</div>
+</html>
