@@ -8,9 +8,7 @@
 
 import Foundation
 import Dispatch
-
 import CHTTPParser
-
 
 /// Class that wraps the CHTTPParser and calls the `WebApp` to get the response
 /// :nodoc:
@@ -113,7 +111,7 @@ public class StreamingParser: HTTPResponseWriter {
             
             //This needs to be set here and not messageCompleted if it's going to work here
             let keepAlive = (http_should_keep_alive(parser) == 1)
-            let upgradeRequested = get_upgrade_value(parser) == 1
+            let upgradeRequested = parser?.pointee.upgrade == 1
 
             return listener.headersCompleted(methodName: methodName, majorVersion: major, minorVersion: minor, keepAlive: keepAlive, upgrade: upgradeRequested)
         }
@@ -277,8 +275,8 @@ public class StreamingParser: HTTPResponseWriter {
         processCurrentCallback(.bodyReceived)
         guard let data = data else { return 0 }
         data.withMemoryRebound(to: UInt8.self, capacity: length) { (ptr) -> Void in
-            let buff = UnsafeBufferPointer<UInt8>(start: ptr, count: length)
-            let chunk = DispatchData(bytes:buff)
+            let buff = UnsafeRawBufferPointer(start: ptr, count: length)
+            let chunk = DispatchData(bytes: buff)
             if let chunkHandler = self.httpBodyProcessingCallback {
                 var stop=false
                 var finished=false
