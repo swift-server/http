@@ -18,11 +18,17 @@ import HTTP
 
 /// Simple block-based wrapper to create a `WebApp`. Normally used during XCTests
 public class SimpleResponseCreator: WebAppContaining {
+
+    public struct Response {
+        public let status: HTTPResponseStatus
+        public let headers: HTTPHeaders
+        public let body: Data
+    }
     
-    typealias SimpleHandlerBlock = (_ req: HTTPRequest, _ body: Data) -> (reponse: HTTPResponse, responseBody: Data)
+    typealias SimpleHandlerBlock = (_ req: HTTPRequest, _ body: Data) -> Response
     let completionHandler: SimpleHandlerBlock
     
-    public init(completionHandler:@escaping (_ req: HTTPRequest, _ body: Data) -> (reponse: HTTPResponse, responseBody: Data)) {
+    public init(completionHandler:@escaping (_ req: HTTPRequest, _ body: Data) -> Response) {
         self.completionHandler = completionHandler
     }
     
@@ -37,12 +43,11 @@ public class SimpleResponseCreator: WebAppContaining {
                 }
                 finishedProcessing()
             case .end:
-                let (response, body) = self.completionHandler(req, self.buffer)
-                res.writeResponse(HTTPResponse(httpVersion: response.httpVersion,
-                status: response.status,
-                transferEncoding: .chunked,
-                headers: response.headers))
-                res.writeBody(data: body) { _ in
+                let response = self.completionHandler(req, self.buffer)
+                var headers = response.headers
+                headers.replace([.transferEncoding: "chunked"])
+                res.writeHeader(status: response.status, headers: headers)
+                res.writeBody(response.body) { _ in
                         res.done()
                 }
             default:

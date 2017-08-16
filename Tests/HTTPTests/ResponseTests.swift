@@ -15,15 +15,18 @@ class ResponseTests: XCTestCase {
     func testOkay() {
         let okay = HTTPResponseStatus.ok
         XCTAssertEqual(200,okay.code)
-        XCTAssertEqual("ok",okay.reasonPhrase)
+        XCTAssertEqual("OK",okay.reasonPhrase)
+        XCTAssertEqual("\(okay)", "200 OK")
     }
 
     func testContinue() {
-        XCTAssertEqual("CONTINUE",HTTPResponseStatus.continue.reasonPhrase)
+        XCTAssertEqual("Continue",HTTPResponseStatus.continue.reasonPhrase)
     }
 
     func testNotFound() {
-        XCTAssertEqual(HTTPResponseStatus.notFound, HTTPResponseStatus.from(code: 404))
+        XCTAssertEqual(HTTPResponseStatus.notFound, HTTPResponseStatus(code: 404))
+        let notFound: HTTPResponseStatus = 404
+        XCTAssertEqual(notFound, HTTPResponseStatus.notFound)
     }
 
     static var allTests = [

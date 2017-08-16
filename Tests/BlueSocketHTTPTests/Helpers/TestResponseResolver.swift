@@ -15,8 +15,8 @@ class TestResponseResolver: HTTPResponseWriter {
     let request: HTTPRequest
     let requestBody: DispatchData
     
-    var response: HTTPResponse?
-    var responseBody: Data?
+    var response: (status: HTTPResponseStatus, headers: HTTPHeaders)?
+    var responseBody: HTTPResponseBody?
     
     
     init(request: HTTPRequest, requestBody: Data) {
@@ -43,41 +43,26 @@ class TestResponseResolver: HTTPResponseWriter {
         }
     }
     
-    func writeContinue(headers: HTTPHeaders?) /* to send an HTTP `100 Continue` */ {
+    func writeHeader(status: HTTPResponseStatus, headers: HTTPHeaders, completion: @escaping (Result) -> Void) {
+        self.response = (status: status, headers: headers)
+        completion(.ok)
+    }
+    
+    func writeTrailer(_ trailers: HTTPHeaders, completion: @escaping (Result) -> Void) {
         fatalError("Not implemented")
     }
     
-    func writeResponse(_ response: HTTPResponse) {
-        self.response=response
-    }
-    
-    func writeTrailer(key: String, value: String) {
-        fatalError("Not implemented")
-    }
-    
-    func writeBody(data: DispatchData, completion: @escaping (Result<POSIXError, ()>) -> Void) {
-        self.responseBody = Data(data)
-        completion(Result(completion: ()))
-    }
-    func writeBody(data: DispatchData) /* convenience */ {
-        writeBody(data: data) { _ in
-            
+    func writeBody(_ data: UnsafeHTTPResponseBody, completion: @escaping (Result) -> Void) {
+        if let data = data as? HTTPResponseBody {
+            self.responseBody = data
+        } else {
+            self.responseBody = data.withUnsafeBytes { Data($0) }
         }
+        completion(.ok)
     }
     
-    func writeBody(data: Data, completion: @escaping (Result<POSIXError, ()>) -> Void) {
-        self.responseBody = data
-        completion(Result(completion: ()))
-    }
-    
-    func writeBody(data: Data) /* convenience */ {
-        writeBody(data: data) { _ in
-            
-        }
-    }
-    
-    func done(completion: @escaping (Result<POSIXError, ()>) -> Void) {
-        completion(Result(completion: ()))
+    func done(completion: @escaping (Result) -> Void) {
+        completion(.ok)
     }
     func done() /* convenience */ {
         done() { _ in
