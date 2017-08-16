@@ -9,13 +9,12 @@
 import XCTest
 
 @testable import HTTP
-@testable import BlueSocketHTTP
 
 class ServerTests: XCTestCase {
     func testResponseOK() {
         let request = HTTPRequest(method: .get, target:"/echo", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
         let resolver = TestResponseResolver(request: request, requestBody: Data())
-        resolver.resolveHandler(EchoWebApp().serve)
+        resolver.resolveHandler(EchoHandler().handle)
         XCTAssertNotNil(resolver.response)
         XCTAssertNotNil(resolver.responseBody)
         XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
@@ -25,7 +24,7 @@ class ServerTests: XCTestCase {
         let testString="This is a test"
         let request = HTTPRequest(method: .post, target:"/echo", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
         let resolver = TestResponseResolver(request: request, requestBody: testString.data(using: .utf8)!)
-        resolver.resolveHandler(EchoWebApp().serve)
+        resolver.resolveHandler(EchoHandler().handle)
         XCTAssertNotNil(resolver.response)
         XCTAssertNotNil(resolver.responseBody)
         XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
@@ -35,7 +34,7 @@ class ServerTests: XCTestCase {
     func testHello() {
         let request = HTTPRequest(method: .get, target:"/helloworld", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
         let resolver = TestResponseResolver(request: request, requestBody: Data())
-        resolver.resolveHandler(HelloWorldWebApp().serve)
+        resolver.resolveHandler(HelloWorldHandler().handle)
         XCTAssertNotNil(resolver.response)
         XCTAssertNotNil(resolver.responseBody)
         XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
@@ -53,7 +52,7 @@ class ServerTests: XCTestCase {
             )
             
         }
-        resolver.resolveHandler(simpleHelloWebApp.serve)
+        resolver.resolveHandler(simpleHelloWebApp.handle)
         XCTAssertNotNil(resolver.response)
         XCTAssertNotNil(resolver.responseBody)
         XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
@@ -63,9 +62,9 @@ class ServerTests: XCTestCase {
     func testOkEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
         
-        let server = BlueSocketSimpleServer()
+        let server = HTTPServer()
         do {
-            try server.start(port: 0, webapp: OkWebApp().serve)
+            try server.start(port: 0, handler: OkHandler().handle)
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let url = URL(string: "http://localhost:\(server.port)/")!
             print("Test \(#function) on port \(server.port)")
@@ -92,9 +91,9 @@ class ServerTests: XCTestCase {
     func testHelloEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
         
-        let server = BlueSocketSimpleServer()
+        let server = HTTPServer()
         do {
-            try server.start(port: 0, webapp: HelloWorldWebApp().serve)
+            try server.start(port: 0, handler: HelloWorldHandler().handle)
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let url = URL(string: "http://localhost:\(server.port)/helloworld")!
             print("Test \(#function) on port \(server.port)")
@@ -130,9 +129,9 @@ class ServerTests: XCTestCase {
             
         }
 
-        let server = BlueSocketSimpleServer()
+        let server = HTTPServer()
         do {
-            try server.start(port: 0, webapp: simpleHelloWebApp.serve)
+            try server.start(port: 0, handler: simpleHelloWebApp.handle)
         } catch {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
@@ -167,9 +166,9 @@ class ServerTests: XCTestCase {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
         let testString="This is a test"
 
-        let server = BlueSocketSimpleServer()
+        let server = HTTPServer()
         do {
-            try server.start(port: 0, webapp: EchoWebApp().serve)
+            try server.start(port: 0, handler: EchoHandler().handle)
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
@@ -207,9 +206,9 @@ class ServerTests: XCTestCase {
         let testString2="This is a test, too"
         let testString3="This is also a test"
         
-        let server = BlueSocketSimpleServer()
+        let server = HTTPServer()
         do {
-            try server.start(port: 0, webapp: EchoWebApp().serve)
+            try server.start(port: 0, handler: EchoHandler().handle)
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
@@ -305,9 +304,9 @@ class ServerTests: XCTestCase {
         
         let testData = Data(testDataLong)
         
-        let server = BlueSocketSimpleServer()
+        let server = HTTPServer()
         do {
-            try server.start(port: 0, webapp: EchoWebApp().serve)
+            try server.start(port: 0, handler: EchoHandler().handle)
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")

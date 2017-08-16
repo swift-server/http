@@ -15,7 +15,5 @@ XCTMain([
     testCase(VersionTests.allTests),
     testCase(HeadersTests.allTests),
     testCase(ResponseTests.allTests),
-
-	// BlueSocketHTTPTests
     testCase(ServerTests.allTests),
 ])
