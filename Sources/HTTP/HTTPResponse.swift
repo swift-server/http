@@ -89,18 +89,11 @@ public struct HTTPResponseStatus: Equatable, CustomStringConvertible, Expressibl
     public let reasonPhrase: String
 
     /// Creates an HTTP response status
-    /// - Parameter code: The status code used for the response status
-    /// - Parameter reasonPhrase: The reason phrase to use for the response status
-    public init(code: Int, reasonPhrase: String) {
-        self.code = code
-        self.reasonPhrase = reasonPhrase
-    }
-    
-    /// Creates an HTTP response status
     /// The reason phrase is added for the status code, or "http_(code)" if the code is not well known
     /// - Parameter code: The status code used for the response status
     public init(code: Int) {
-        self.init(code: code, reasonPhrase: HTTPResponseStatus.defaultReasonPhrase(forCode: code))
+        self.code = code
+        self.reasonPhrase = HTTPResponseStatus.defaultReasonPhrase(forCode: code)
     }
 
     /// :nodoc:
