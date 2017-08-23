@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>HTTPRequest Struct Reference</title>
+    <title>HTTPServer Class Reference</title>
     <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
     <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
     <meta charset="utf-8">
@@ -11,9 +11,9 @@
   </head>
   <body>
 
-    <a name="//apple_ref/swift/Struct/HTTPRequest" class="dashAnchor"></a>
+    <a name="//apple_ref/swift/Class/HTTPServer" class="dashAnchor"></a>
 
-    <a title="HTTPRequest Struct Reference"></a>
+    <a title="HTTPServer Class Reference"></a>
 
     <header class="header">
       <p class="header-col header-col--primary">
@@ -35,7 +35,7 @@
     <p class="breadcrumbs">
       <a class="breadcrumb" href="../index.html">HTTP Reference</a>
       <img class="carat" src="../img/carat.png" />
-      HTTPRequest Struct Reference
+      HTTPServer Class Reference
     </p>
 
     <div class="content-wrapper">
@@ -147,14 +147,16 @@
 
         <section class="section">
           <div class="section-content">
-            <h1>HTTPRequest</h1>
+            <h1>HTTPServer</h1>
               <div class="declaration">
                 <div class="language">
-                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">HTTPRequest</span></code></pre>
+                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">HTTPServer</span> <span class="p">:</span> <span class="kt"><a href="../Protocols/HTTPServing.html">HTTPServing</a></span></code></pre>
 
                 </div>
               </div>
-            <p>A structure representing the headers from a HTTP request, without the body of the request.</p>
+            <p>A basic HTTP server. Currently this is implemented using the BlueSocket
+abstraction, but the intention is to remove this dependency and reimplement
+the class using transport APIs provided by the Server APIs working group.</p>
 
           </div>
         </section>
@@ -166,9 +168,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4HTTP11HTTPRequestV6methodAA10HTTPMethodVv"></a>
-                    <a name="//apple_ref/swift/Property/method" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4HTTP11HTTPRequestV6methodAA10HTTPMethodVv">method</a>
+                    <a name="/s:4HTTP10HTTPServerCACycfc"></a>
+                    <a name="//apple_ref/swift/Method/init()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4HTTP10HTTPServerCACycfc">init()</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -176,14 +178,14 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>HTTP request method.</p>
+                        <p>Undocumented</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">method</span><span class="p">:</span> <span class="kt"><a href="../Structs/HTTPMethod.html">HTTPMethod</a></span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">HTTPServer</span> <span class="p">:</span> <span class="kt"><a href="../Protocols/HTTPServing.html">HTTPServing</a></span></code></pre>
 
                         </div>
                       </div>
@@ -193,9 +195,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4HTTP11HTTPRequestV6targetSSv"></a>
-                    <a name="//apple_ref/swift/Property/target" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4HTTP11HTTPRequestV6targetSSv">target</a>
+                    <a name="/s:4HTTP11HTTPServingP5startySi4port_AA18HTTPBodyProcessingOAA11HTTPRequestV_AA18HTTPResponseWriter_ptc7handlertKF"></a>
+                    <a name="//apple_ref/swift/Method/start(port:handler:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4HTTP11HTTPServingP5startySi4port_AA18HTTPBodyProcessingOAA11HTTPRequestV_AA18HTTPResponseWriter_ptc7handlertKF">start(port:handler:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -203,14 +205,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>HTTP request URI, eg. <q>/foo/bar?buz=qux</q></p>
+                        <p>A basic HTTP server. Currently this is implemented using the BlueSocket
+abstraction, but the intention is to remove this dependency and reimplement
+the class using transport APIs provided by the Server APIs working group.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">target</span><span class="p">:</span> <span class="kt">String</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">start</span><span class="p">(</span><span class="nv">port</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">handler</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt"><a href="../HTTP Server.html#/s:4HTTP18HTTPRequestHandlera">HTTPRequestHandler</a></span><span class="p">)</span> <span class="k">throws</span></code></pre>
 
                         </div>
                       </div>
@@ -220,9 +224,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4HTTP11HTTPRequestV11httpVersionAA11HTTPVersionVv"></a>
-                    <a name="//apple_ref/swift/Property/httpVersion" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4HTTP11HTTPRequestV11httpVersionAA11HTTPVersionVv">httpVersion</a>
+                    <a name="/s:4HTTP11HTTPServingP4stopyyF"></a>
+                    <a name="//apple_ref/swift/Method/stop()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4HTTP11HTTPServingP4stopyyF">stop()</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -230,14 +234,16 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>HTTP request version</p>
+                        <p>A basic HTTP server. Currently this is implemented using the BlueSocket
+abstraction, but the intention is to remove this dependency and reimplement
+the class using transport APIs provided by the Server APIs working group.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">httpVersion</span><span class="p">:</span> <span class="kt"><a href="../Structs/HTTPVersion.html">HTTPVersion</a></span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">stop</span><span class="p">()</span></code></pre>
 
                         </div>
                       </div>
@@ -247,9 +253,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4HTTP11HTTPRequestV7headersAA11HTTPHeadersVv"></a>
-                    <a name="//apple_ref/swift/Property/headers" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4HTTP11HTTPRequestV7headersAA11HTTPHeadersVv">headers</a>
+                    <a name="/s:4HTTP11HTTPServingP4portSiv"></a>
+                    <a name="//apple_ref/swift/Property/port" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4HTTP11HTTPServingP4portSiv">port</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -257,14 +263,45 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>HTTP request headers</p>
+                        <p>A basic HTTP server. Currently this is implemented using the BlueSocket
+abstraction, but the intention is to remove this dependency and reimplement
+the class using transport APIs provided by the Server APIs working group.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">headers</span><span class="p">:</span> <span class="kt"><a href="../Structs/HTTPHeaders.html">HTTPHeaders</a></span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">port</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4HTTP11HTTPServingP15connectionCountSiv"></a>
+                    <a name="//apple_ref/swift/Property/connectionCount" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4HTTP11HTTPServingP15connectionCountSiv">connectionCount</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A basic HTTP server. Currently this is implemented using the BlueSocket
+abstraction, but the intention is to remove this dependency and reimplement
+the class using transport APIs provided by the Server APIs working group.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">connectionCount</span><span class="p">:</span> <span class="kt">Int</span></code></pre>
 
                         </div>
                       </div>

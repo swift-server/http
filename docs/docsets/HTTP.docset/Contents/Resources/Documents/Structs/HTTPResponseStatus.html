@@ -8,9 +8,6 @@
     <script src="../js/jquery.min.js" defer></script>
     <script src="../js/jazzy.js" defer></script>
     
-    <script src="../js/lunr.min.js" defer></script>
-    <script src="../js/typeahead.jquery.js" defer></script>
-    <script src="../js/jazzy.search.js" defer></script>
   </head>
   <body>
 
@@ -23,17 +20,11 @@
         <a class="header-link" href="../index.html">
           HTTP Docs
         </a>
-         (100% documented)
-      </p>
-    
-      <p class="header-col--secondary">
-        <form role="search" action="../search.json">
-          <input type="text" placeholder="Search documentation" data-typeahead>
-        </form>
+         (99% documented)
       </p>
     
         <p class="header-col header-col--secondary">
-          <a class="header-link" href="https://github.com/swift-server/HTTP/">
+          <a class="header-link" href="https://github.com/swift-server/http/">
             <img class="header-icon" src="../img/gh.png"/>
             View on GitHub
           </a>
@@ -54,10 +45,10 @@
             <a class="nav-group-name-link" href="../HTTP Server.html">HTTP Server</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../Protocols/WebAppContaining.html">WebAppContaining</a>
+                <a class="nav-group-task-link" href="../Protocols/HTTPRequestHandling.html">HTTPRequestHandling</a>
               </li>
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../HTTP Server.html#/s:4HTTP6WebApp">WebApp</a>
+                <a class="nav-group-task-link" href="../HTTP Server.html#/s:4HTTP18HTTPRequestHandlera">HTTPRequestHandler</a>
               </li>
             </ul>
           </li>
@@ -85,7 +76,7 @@
                 <a class="nav-group-task-link" href="../Structs/HTTPMethod.html">HTTPMethod</a>
               </li>
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../HTTP Request.html#/s:4HTTP15HTTPBodyHandler">HTTPBodyHandler</a>
+                <a class="nav-group-task-link" href="../HTTP Request.html#/s:4HTTP15HTTPBodyHandlera">HTTPBodyHandler</a>
               </li>
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="../Enums/HTTPBodyProcessing.html">HTTPBodyProcessing</a>
@@ -113,10 +104,40 @@
             </ul>
           </li>
           <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Other Classes.html">Other Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BlueSocketConnectionListener.html">BlueSocketConnectionListener</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BlueSocketSimpleServer.html">BlueSocketSimpleServer</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/HTTPServer.html">HTTPServer</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
             <a class="nav-group-name-link" href="../Other Enums.html">Other Enums</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="../Enums/Result.html">Result</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Other Extensions.html">Other Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Extensions/UnsafeRawBufferPointer.html">UnsafeRawBufferPointer</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Other Protocols.html">Other Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Protocols/HTTPServing.html">HTTPServing</a>
               </li>
             </ul>
           </li>
@@ -133,12 +154,8 @@
 
                 </div>
               </div>
-            <p>The response status for the HTTP response</p>
-<div class="aside aside-see">
-    <p class="aside-title">See</p>
-    <a href="https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml">https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml</a> for more information
-
-</div>
+            <p>The response status for the HTTP response
+- See: <a href="https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml">https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml</a> for more information</p>
 
           </div>
         </section>
@@ -150,9 +167,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vV4HTTP18HTTPResponseStatus4codeSi"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV4codeSiv"></a>
                     <a name="//apple_ref/swift/Property/code" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vV4HTTP18HTTPResponseStatus4codeSi">code</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV4codeSiv">code</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -177,9 +194,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vV4HTTP18HTTPResponseStatus12reasonPhraseSS"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV12reasonPhraseSSv"></a>
                     <a name="//apple_ref/swift/Property/reasonPhrase" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vV4HTTP18HTTPResponseStatus12reasonPhraseSS">reasonPhrase</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV12reasonPhraseSSv">reasonPhrase</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -204,9 +221,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FV4HTTP18HTTPResponseStatuscFT4codeSi12reasonPhraseSS_S0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusVACSi4code_SS12reasonPhrasetcfc"></a>
                     <a name="//apple_ref/swift/Method/init(code:reasonPhrase:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FV4HTTP18HTTPResponseStatuscFT4codeSi12reasonPhraseSS_S0_">init(code:reasonPhrase:)</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusVACSi4code_SS12reasonPhrasetcfc">init(code:reasonPhrase:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -214,7 +231,9 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Creates an HTTP response status</p>
+                        <p>Creates an HTTP response status
+- Parameter code: The status code used for the response status
+- Parameter reasonPhrase: The reason phrase to use for the response status</p>
 
                       </div>
                       <div class="declaration">
@@ -225,46 +244,15 @@
 
                         </div>
                       </div>
-                      <div>
-                        <h4>Parameters</h4>
-                        <table class="graybox">
-                          <tbody>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>code</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>The status code used for the response status</p>
-                                </div>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>reasonPhrase</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>The reason phrase to use for the response status</p>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
                     </section>
                   </div>
                 </li>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FV4HTTP18HTTPResponseStatuscFT4codeSi_S0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusVACSi4code_tcfc"></a>
                     <a name="//apple_ref/swift/Method/init(code:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FV4HTTP18HTTPResponseStatuscFT4codeSi_S0_">init(code:)</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusVACSi4code_tcfc">init(code:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -273,7 +261,8 @@
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates an HTTP response status
-The reason phrase is added for the status code, or <q>http_(code)</q> if the code is not well known</p>
+The reason phrase is added for the status code, or <q>http_(code)</q> if the code is not well known
+- Parameter code: The status code used for the response status</p>
 
                       </div>
                       <div class="declaration">
@@ -284,34 +273,15 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
 
                         </div>
                       </div>
-                      <div>
-                        <h4>Parameters</h4>
-                        <table class="graybox">
-                          <tbody>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>code</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>The status code used for the response status</p>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
                     </section>
                   </div>
                 </li>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus8continueS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV8continueACvZ"></a>
                     <a name="//apple_ref/swift/Variable/continue" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus8continueS0_">continue</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV8continueACvZ">continue</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -336,9 +306,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus18switchingProtocolsS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV18switchingProtocolsACvZ"></a>
                     <a name="//apple_ref/swift/Variable/switchingProtocols" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus18switchingProtocolsS0_">switchingProtocols</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV18switchingProtocolsACvZ">switchingProtocols</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -363,9 +333,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus2okS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV2okACvZ"></a>
                     <a name="//apple_ref/swift/Variable/ok" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus2okS0_">ok</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV2okACvZ">ok</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -390,9 +360,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus7createdS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV7createdACvZ"></a>
                     <a name="//apple_ref/swift/Variable/created" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus7createdS0_">created</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV7createdACvZ">created</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -417,9 +387,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus8acceptedS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV8acceptedACvZ"></a>
                     <a name="//apple_ref/swift/Variable/accepted" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus8acceptedS0_">accepted</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV8acceptedACvZ">accepted</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -444,9 +414,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus27nonAuthoritativeInformationS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV27nonAuthoritativeInformationACvZ"></a>
                     <a name="//apple_ref/swift/Variable/nonAuthoritativeInformation" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus27nonAuthoritativeInformationS0_">nonAuthoritativeInformation</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV27nonAuthoritativeInformationACvZ">nonAuthoritativeInformation</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -471,9 +441,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus9noContentS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV9noContentACvZ"></a>
                     <a name="//apple_ref/swift/Variable/noContent" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus9noContentS0_">noContent</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV9noContentACvZ">noContent</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -498,9 +468,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus12resetContentS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV12resetContentACvZ"></a>
                     <a name="//apple_ref/swift/Variable/resetContent" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus12resetContentS0_">resetContent</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV12resetContentACvZ">resetContent</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -525,9 +495,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus14partialContentS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV14partialContentACvZ"></a>
                     <a name="//apple_ref/swift/Variable/partialContent" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus14partialContentS0_">partialContent</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV14partialContentACvZ">partialContent</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -552,9 +522,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus11multiStatusS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV05multiC0ACvZ"></a>
                     <a name="//apple_ref/swift/Variable/multiStatus" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus11multiStatusS0_">multiStatus</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV05multiC0ACvZ">multiStatus</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -579,9 +549,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus15alreadyReportedS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV15alreadyReportedACvZ"></a>
                     <a name="//apple_ref/swift/Variable/alreadyReported" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus15alreadyReportedS0_">alreadyReported</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV15alreadyReportedACvZ">alreadyReported</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -606,9 +576,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus6imUsedS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV6imUsedACvZ"></a>
                     <a name="//apple_ref/swift/Variable/imUsed" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus6imUsedS0_">imUsed</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV6imUsedACvZ">imUsed</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -633,9 +603,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus15multipleChoicesS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV15multipleChoicesACvZ"></a>
                     <a name="//apple_ref/swift/Variable/multipleChoices" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus15multipleChoicesS0_">multipleChoices</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV15multipleChoicesACvZ">multipleChoices</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -660,9 +630,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus16movedPermanentlyS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV16movedPermanentlyACvZ"></a>
                     <a name="//apple_ref/swift/Variable/movedPermanently" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus16movedPermanentlyS0_">movedPermanently</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV16movedPermanentlyACvZ">movedPermanently</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -687,9 +657,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus5foundS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV5foundACvZ"></a>
                     <a name="//apple_ref/swift/Variable/found" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus5foundS0_">found</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV5foundACvZ">found</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -714,9 +684,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus8seeOtherS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV8seeOtherACvZ"></a>
                     <a name="//apple_ref/swift/Variable/seeOther" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus8seeOtherS0_">seeOther</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV8seeOtherACvZ">seeOther</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -741,9 +711,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus11notModifiedS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV11notModifiedACvZ"></a>
                     <a name="//apple_ref/swift/Variable/notModified" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus11notModifiedS0_">notModified</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV11notModifiedACvZ">notModified</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -768,9 +738,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus8useProxyS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV8useProxyACvZ"></a>
                     <a name="//apple_ref/swift/Variable/useProxy" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus8useProxyS0_">useProxy</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV8useProxyACvZ">useProxy</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -795,9 +765,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus17temporaryRedirectS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV17temporaryRedirectACvZ"></a>
                     <a name="//apple_ref/swift/Variable/temporaryRedirect" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus17temporaryRedirectS0_">temporaryRedirect</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV17temporaryRedirectACvZ">temporaryRedirect</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -822,9 +792,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus17permanentRedirectS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV17permanentRedirectACvZ"></a>
                     <a name="//apple_ref/swift/Variable/permanentRedirect" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus17permanentRedirectS0_">permanentRedirect</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV17permanentRedirectACvZ">permanentRedirect</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -849,9 +819,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus10badRequestS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV10badRequestACvZ"></a>
                     <a name="//apple_ref/swift/Variable/badRequest" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus10badRequestS0_">badRequest</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV10badRequestACvZ">badRequest</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -876,9 +846,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus12unauthorizedS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV12unauthorizedACvZ"></a>
                     <a name="//apple_ref/swift/Variable/unauthorized" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus12unauthorizedS0_">unauthorized</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV12unauthorizedACvZ">unauthorized</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -903,9 +873,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus15paymentRequiredS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV15paymentRequiredACvZ"></a>
                     <a name="//apple_ref/swift/Variable/paymentRequired" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus15paymentRequiredS0_">paymentRequired</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV15paymentRequiredACvZ">paymentRequired</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -930,9 +900,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus9forbiddenS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV9forbiddenACvZ"></a>
                     <a name="//apple_ref/swift/Variable/forbidden" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus9forbiddenS0_">forbidden</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV9forbiddenACvZ">forbidden</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -957,9 +927,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus8notFoundS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV8notFoundACvZ"></a>
                     <a name="//apple_ref/swift/Variable/notFound" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus8notFoundS0_">notFound</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV8notFoundACvZ">notFound</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -984,9 +954,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus16methodNotAllowedS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV16methodNotAllowedACvZ"></a>
                     <a name="//apple_ref/swift/Variable/methodNotAllowed" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus16methodNotAllowedS0_">methodNotAllowed</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV16methodNotAllowedACvZ">methodNotAllowed</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1011,9 +981,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus13notAcceptableS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV13notAcceptableACvZ"></a>
                     <a name="//apple_ref/swift/Variable/notAcceptable" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus13notAcceptableS0_">notAcceptable</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV13notAcceptableACvZ">notAcceptable</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1038,9 +1008,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus27proxyAuthenticationRequiredS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV27proxyAuthenticationRequiredACvZ"></a>
                     <a name="//apple_ref/swift/Variable/proxyAuthenticationRequired" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus27proxyAuthenticationRequiredS0_">proxyAuthenticationRequired</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV27proxyAuthenticationRequiredACvZ">proxyAuthenticationRequired</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1065,9 +1035,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus14requestTimeoutS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV14requestTimeoutACvZ"></a>
                     <a name="//apple_ref/swift/Variable/requestTimeout" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus14requestTimeoutS0_">requestTimeout</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV14requestTimeoutACvZ">requestTimeout</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1092,9 +1062,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus8conflictS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV8conflictACvZ"></a>
                     <a name="//apple_ref/swift/Variable/conflict" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus8conflictS0_">conflict</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV8conflictACvZ">conflict</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1119,9 +1089,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus4goneS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV4goneACvZ"></a>
                     <a name="//apple_ref/swift/Variable/gone" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus4goneS0_">gone</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV4goneACvZ">gone</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1146,9 +1116,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus14lengthRequiredS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV14lengthRequiredACvZ"></a>
                     <a name="//apple_ref/swift/Variable/lengthRequired" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus14lengthRequiredS0_">lengthRequired</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV14lengthRequiredACvZ">lengthRequired</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1173,9 +1143,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus18preconditionFailedS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV18preconditionFailedACvZ"></a>
                     <a name="//apple_ref/swift/Variable/preconditionFailed" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus18preconditionFailedS0_">preconditionFailed</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV18preconditionFailedACvZ">preconditionFailed</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1200,9 +1170,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus15payloadTooLargeS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV15payloadTooLargeACvZ"></a>
                     <a name="//apple_ref/swift/Variable/payloadTooLarge" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus15payloadTooLargeS0_">payloadTooLarge</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV15payloadTooLargeACvZ">payloadTooLarge</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1227,9 +1197,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus10uriTooLongS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV10uriTooLongACvZ"></a>
                     <a name="//apple_ref/swift/Variable/uriTooLong" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus10uriTooLongS0_">uriTooLong</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV10uriTooLongACvZ">uriTooLong</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1254,9 +1224,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus20unsupportedMediaTypeS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV20unsupportedMediaTypeACvZ"></a>
                     <a name="//apple_ref/swift/Variable/unsupportedMediaType" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus20unsupportedMediaTypeS0_">unsupportedMediaType</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV20unsupportedMediaTypeACvZ">unsupportedMediaType</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1281,9 +1251,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus19rangeNotSatisfiableS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV19rangeNotSatisfiableACvZ"></a>
                     <a name="//apple_ref/swift/Variable/rangeNotSatisfiable" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus19rangeNotSatisfiableS0_">rangeNotSatisfiable</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV19rangeNotSatisfiableACvZ">rangeNotSatisfiable</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1308,9 +1278,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus17expectationFailedS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV17expectationFailedACvZ"></a>
                     <a name="//apple_ref/swift/Variable/expectationFailed" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus17expectationFailedS0_">expectationFailed</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV17expectationFailedACvZ">expectationFailed</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1335,9 +1305,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus18misdirectedRequestS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV18misdirectedRequestACvZ"></a>
                     <a name="//apple_ref/swift/Variable/misdirectedRequest" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus18misdirectedRequestS0_">misdirectedRequest</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV18misdirectedRequestACvZ">misdirectedRequest</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1362,9 +1332,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus19unprocessableEntityS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV19unprocessableEntityACvZ"></a>
                     <a name="//apple_ref/swift/Variable/unprocessableEntity" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus19unprocessableEntityS0_">unprocessableEntity</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV19unprocessableEntityACvZ">unprocessableEntity</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1389,9 +1359,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus6lockedS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV6lockedACvZ"></a>
                     <a name="//apple_ref/swift/Variable/locked" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus6lockedS0_">locked</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV6lockedACvZ">locked</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1416,9 +1386,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus16failedDependencyS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV16failedDependencyACvZ"></a>
                     <a name="//apple_ref/swift/Variable/failedDependency" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus16failedDependencyS0_">failedDependency</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV16failedDependencyACvZ">failedDependency</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1443,9 +1413,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus15upgradeRequiredS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV15upgradeRequiredACvZ"></a>
                     <a name="//apple_ref/swift/Variable/upgradeRequired" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus15upgradeRequiredS0_">upgradeRequired</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV15upgradeRequiredACvZ">upgradeRequired</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1470,9 +1440,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus20preconditionRequiredS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV20preconditionRequiredACvZ"></a>
                     <a name="//apple_ref/swift/Variable/preconditionRequired" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus20preconditionRequiredS0_">preconditionRequired</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV20preconditionRequiredACvZ">preconditionRequired</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1497,9 +1467,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus15tooManyRequestsS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV15tooManyRequestsACvZ"></a>
                     <a name="//apple_ref/swift/Variable/tooManyRequests" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus15tooManyRequestsS0_">tooManyRequests</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV15tooManyRequestsACvZ">tooManyRequests</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1524,9 +1494,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus27requestHeaderFieldsTooLargeS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV27requestHeaderFieldsTooLargeACvZ"></a>
                     <a name="//apple_ref/swift/Variable/requestHeaderFieldsTooLarge" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus27requestHeaderFieldsTooLargeS0_">requestHeaderFieldsTooLarge</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV27requestHeaderFieldsTooLargeACvZ">requestHeaderFieldsTooLarge</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1551,9 +1521,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus26unavailableForLegalReasonsS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV26unavailableForLegalReasonsACvZ"></a>
                     <a name="//apple_ref/swift/Variable/unavailableForLegalReasons" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus26unavailableForLegalReasonsS0_">unavailableForLegalReasons</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV26unavailableForLegalReasonsACvZ">unavailableForLegalReasons</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1578,9 +1548,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus19internalServerErrorS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV19internalServerErrorACvZ"></a>
                     <a name="//apple_ref/swift/Variable/internalServerError" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus19internalServerErrorS0_">internalServerError</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV19internalServerErrorACvZ">internalServerError</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1605,9 +1575,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus14notImplementedS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV14notImplementedACvZ"></a>
                     <a name="//apple_ref/swift/Variable/notImplemented" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus14notImplementedS0_">notImplemented</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV14notImplementedACvZ">notImplemented</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1632,9 +1602,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus10badGatewayS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV10badGatewayACvZ"></a>
                     <a name="//apple_ref/swift/Variable/badGateway" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus10badGatewayS0_">badGateway</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV10badGatewayACvZ">badGateway</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1659,9 +1629,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus18serviceUnavailableS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV18serviceUnavailableACvZ"></a>
                     <a name="//apple_ref/swift/Variable/serviceUnavailable" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus18serviceUnavailableS0_">serviceUnavailable</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV18serviceUnavailableACvZ">serviceUnavailable</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1686,9 +1656,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus14gatewayTimeoutS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV14gatewayTimeoutACvZ"></a>
                     <a name="//apple_ref/swift/Variable/gatewayTimeout" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus14gatewayTimeoutS0_">gatewayTimeout</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV14gatewayTimeoutACvZ">gatewayTimeout</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1713,9 +1683,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus23httpVersionNotSupportedS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV23httpVersionNotSupportedACvZ"></a>
                     <a name="//apple_ref/swift/Variable/httpVersionNotSupported" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus23httpVersionNotSupportedS0_">httpVersionNotSupported</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV23httpVersionNotSupportedACvZ">httpVersionNotSupported</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1740,9 +1710,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus21variantAlsoNegotiatesS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV21variantAlsoNegotiatesACvZ"></a>
                     <a name="//apple_ref/swift/Variable/variantAlsoNegotiates" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus21variantAlsoNegotiatesS0_">variantAlsoNegotiates</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV21variantAlsoNegotiatesACvZ">variantAlsoNegotiates</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1767,9 +1737,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus19insufficientStorageS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV19insufficientStorageACvZ"></a>
                     <a name="//apple_ref/swift/Variable/insufficientStorage" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus19insufficientStorageS0_">insufficientStorage</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV19insufficientStorageACvZ">insufficientStorage</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1794,9 +1764,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus12loopDetectedS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV12loopDetectedACvZ"></a>
                     <a name="//apple_ref/swift/Variable/loopDetected" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus12loopDetectedS0_">loopDetected</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV12loopDetectedACvZ">loopDetected</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1821,9 +1791,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus11notExtendedS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV11notExtendedACvZ"></a>
                     <a name="//apple_ref/swift/Variable/notExtended" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus11notExtendedS0_">notExtended</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV11notExtendedACvZ">notExtended</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1848,9 +1818,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP18HTTPResponseStatus29networkAuthenticationRequiredS0_"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV29networkAuthenticationRequiredACvZ"></a>
                     <a name="//apple_ref/swift/Variable/networkAuthenticationRequired" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP18HTTPResponseStatus29networkAuthenticationRequiredS0_">networkAuthenticationRequired</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV29networkAuthenticationRequiredACvZ">networkAuthenticationRequired</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1875,9 +1845,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vV4HTTP18HTTPResponseStatus5classOS0_5Class"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV5classAC5ClassOv"></a>
                     <a name="//apple_ref/swift/Property/class" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vV4HTTP18HTTPResponseStatus5classOS0_5Class">class</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV5classAC5ClassOv">class</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1885,8 +1855,7 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        
-<ul>
+                        <ul>
 <li>The <code><a href="../Structs/HTTPResponseStatus/Class.html">Class</a></code> representing the class of status code for this response status</li>
 </ul>
 
@@ -1905,9 +1874,9 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:OV4HTTP18HTTPResponseStatus5Class"></a>
+                    <a name="/s:4HTTP18HTTPResponseStatusV5ClassO"></a>
                     <a name="//apple_ref/swift/Enum/Class" class="dashAnchor"></a>
-                    <a class="token" href="#/s:OV4HTTP18HTTPResponseStatus5Class">Class</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV5ClassO">Class</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1915,12 +1884,8 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>The class of a <code><a href="../Structs/HTTPResponseStatus.html">HTTPResponseStatus</a></code> code</p>
-<div class="aside aside-see">
-    <p class="aside-title">See</p>
-    <a href="https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml">https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml</a> for more information
-
-</div>
+                        <p>The class of a <code><a href="../Structs/HTTPResponseStatus.html">HTTPResponseStatus</a></code> code
+- See: <a href="https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml">https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml</a> for more information</p>
 
                         <a href="../Structs/HTTPResponseStatus/Class.html" class="slightly-smaller">See more</a>
                       </div>
@@ -1943,8 +1908,8 @@ The reason phrase is added for the status code, or <q>http_(code)</q> if the cod
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift.org Server APIs Project</a>. All rights reserved. (Last updated: 2017-08-11)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift Server API project</a>. All rights reserved. (Last updated: 2017-08-23)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>

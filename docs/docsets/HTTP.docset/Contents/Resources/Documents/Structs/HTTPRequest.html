@@ -8,9 +8,6 @@
     <script src="../js/jquery.min.js" defer></script>
     <script src="../js/jazzy.js" defer></script>
     
-    <script src="../js/lunr.min.js" defer></script>
-    <script src="../js/typeahead.jquery.js" defer></script>
-    <script src="../js/jazzy.search.js" defer></script>
   </head>
   <body>
 
@@ -23,17 +20,11 @@
         <a class="header-link" href="../index.html">
           HTTP Docs
         </a>
-         (100% documented)
-      </p>
-    
-      <p class="header-col--secondary">
-        <form role="search" action="../search.json">
-          <input type="text" placeholder="Search documentation" data-typeahead>
-        </form>
+         (99% documented)
       </p>
     
         <p class="header-col header-col--secondary">
-          <a class="header-link" href="https://github.com/swift-server/HTTP/">
+          <a class="header-link" href="https://github.com/swift-server/http/">
             <img class="header-icon" src="../img/gh.png"/>
             View on GitHub
           </a>
@@ -54,10 +45,10 @@
             <a class="nav-group-name-link" href="../HTTP Server.html">HTTP Server</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../Protocols/WebAppContaining.html">WebAppContaining</a>
+                <a class="nav-group-task-link" href="../Protocols/HTTPRequestHandling.html">HTTPRequestHandling</a>
               </li>
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../HTTP Server.html#/s:4HTTP6WebApp">WebApp</a>
+                <a class="nav-group-task-link" href="../HTTP Server.html#/s:4HTTP18HTTPRequestHandlera">HTTPRequestHandler</a>
               </li>
             </ul>
           </li>
@@ -85,7 +76,7 @@
                 <a class="nav-group-task-link" href="../Structs/HTTPMethod.html">HTTPMethod</a>
               </li>
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../HTTP Request.html#/s:4HTTP15HTTPBodyHandler">HTTPBodyHandler</a>
+                <a class="nav-group-task-link" href="../HTTP Request.html#/s:4HTTP15HTTPBodyHandlera">HTTPBodyHandler</a>
               </li>
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="../Enums/HTTPBodyProcessing.html">HTTPBodyProcessing</a>
@@ -113,10 +104,40 @@
             </ul>
           </li>
           <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Other Classes.html">Other Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BlueSocketConnectionListener.html">BlueSocketConnectionListener</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BlueSocketSimpleServer.html">BlueSocketSimpleServer</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/HTTPServer.html">HTTPServer</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
             <a class="nav-group-name-link" href="../Other Enums.html">Other Enums</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="../Enums/Result.html">Result</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Other Extensions.html">Other Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Extensions/UnsafeRawBufferPointer.html">UnsafeRawBufferPointer</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Other Protocols.html">Other Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Protocols/HTTPServing.html">HTTPServing</a>
               </li>
             </ul>
           </li>
@@ -145,9 +166,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vV4HTTP11HTTPRequest6methodVS_10HTTPMethod"></a>
+                    <a name="/s:4HTTP11HTTPRequestV6methodAA10HTTPMethodVv"></a>
                     <a name="//apple_ref/swift/Property/method" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vV4HTTP11HTTPRequest6methodVS_10HTTPMethod">method</a>
+                    <a class="token" href="#/s:4HTTP11HTTPRequestV6methodAA10HTTPMethodVv">method</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -172,9 +193,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vV4HTTP11HTTPRequest6targetSS"></a>
+                    <a name="/s:4HTTP11HTTPRequestV6targetSSv"></a>
                     <a name="//apple_ref/swift/Property/target" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vV4HTTP11HTTPRequest6targetSS">target</a>
+                    <a class="token" href="#/s:4HTTP11HTTPRequestV6targetSSv">target</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -199,9 +220,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vV4HTTP11HTTPRequest11httpVersionVS_11HTTPVersion"></a>
+                    <a name="/s:4HTTP11HTTPRequestV11httpVersionAA11HTTPVersionVv"></a>
                     <a name="//apple_ref/swift/Property/httpVersion" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vV4HTTP11HTTPRequest11httpVersionVS_11HTTPVersion">httpVersion</a>
+                    <a class="token" href="#/s:4HTTP11HTTPRequestV11httpVersionAA11HTTPVersionVv">httpVersion</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -226,9 +247,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vV4HTTP11HTTPRequest7headersVS_11HTTPHeaders"></a>
+                    <a name="/s:4HTTP11HTTPRequestV7headersAA11HTTPHeadersVv"></a>
                     <a name="//apple_ref/swift/Property/headers" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vV4HTTP11HTTPRequest7headersVS_11HTTPHeaders">headers</a>
+                    <a class="token" href="#/s:4HTTP11HTTPRequestV7headersAA11HTTPHeadersVv">headers</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -258,8 +279,8 @@
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift.org Server APIs Project</a>. All rights reserved. (Last updated: 2017-08-11)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift Server API project</a>. All rights reserved. (Last updated: 2017-08-23)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>

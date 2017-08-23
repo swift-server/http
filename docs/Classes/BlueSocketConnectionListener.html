@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>HTTPRequest Struct Reference</title>
+    <title>BlueSocketConnectionListener Class Reference</title>
     <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
     <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
     <meta charset="utf-8">
@@ -11,9 +11,9 @@
   </head>
   <body>
 
-    <a name="//apple_ref/swift/Struct/HTTPRequest" class="dashAnchor"></a>
+    <a name="//apple_ref/swift/Class/BlueSocketConnectionListener" class="dashAnchor"></a>
 
-    <a title="HTTPRequest Struct Reference"></a>
+    <a title="BlueSocketConnectionListener Class Reference"></a>
 
     <header class="header">
       <p class="header-col header-col--primary">
@@ -35,7 +35,7 @@
     <p class="breadcrumbs">
       <a class="breadcrumb" href="../index.html">HTTP Reference</a>
       <img class="carat" src="../img/carat.png" />
-      HTTPRequest Struct Reference
+      BlueSocketConnectionListener Class Reference
     </p>
 
     <div class="content-wrapper">
@@ -147,14 +147,15 @@
 
         <section class="section">
           <div class="section-content">
-            <h1>HTTPRequest</h1>
+            <h1>BlueSocketConnectionListener</h1>
               <div class="declaration">
                 <div class="language">
-                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">HTTPRequest</span></code></pre>
+                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">BlueSocketConnectionListener</span><span class="p">:</span> <span class="kt">ParserConnecting</span></code></pre>
 
                 </div>
               </div>
-            <p>A structure representing the headers from a HTTP request, without the body of the request.</p>
+            <p>The Interface between the StreamingParser class and IBM&rsquo;s BlueSocket wrapper around socket(2).
+You hopefully should be able to replace this with any network library/engine.</p>
 
           </div>
         </section>
@@ -166,9 +167,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4HTTP11HTTPRequestV6methodAA10HTTPMethodVv"></a>
-                    <a name="//apple_ref/swift/Property/method" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4HTTP11HTTPRequestV6methodAA10HTTPMethodVv">method</a>
+                    <a name="/s:4HTTP28BlueSocketConnectionListenerCAC0C0ADC6socket_AA15StreamingParserC6parserSo13DispatchQueueC04readK0AK05writeK0tcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(socket:parser:readQueue:writeQueue:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4HTTP28BlueSocketConnectionListenerCAC0C0ADC6socket_AA15StreamingParserC6parserSo13DispatchQueueC04readK0AK05writeK0tcfc">init(socket:parser:readQueue:writeQueue:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -176,14 +177,23 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>HTTP request method.</p>
+                        <p>initializer</p>
+
+<ul>
+<li>Parameters:
+
+<ul>
+<li>socket: Socket object from BlueSocket library wrapping a socket(2)</li>
+<li>parser: Manager of the CHTTPParser library</li>
+</ul></li>
+</ul>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">method</span><span class="p">:</span> <span class="kt"><a href="../Structs/HTTPMethod.html">HTTPMethod</a></span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">socket</span><span class="p">:</span> <span class="kt">Socket</span><span class="p">,</span> <span class="nv">parser</span><span class="p">:</span> <span class="kt">StreamingParser</span><span class="p">,</span> <span class="nv">readQueue</span><span class="p">:</span> <span class="kt">DispatchQueue</span><span class="p">,</span> <span class="nv">writeQueue</span><span class="p">:</span> <span class="kt">DispatchQueue</span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>
@@ -193,9 +203,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4HTTP11HTTPRequestV6targetSSv"></a>
-                    <a name="//apple_ref/swift/Property/target" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4HTTP11HTTPRequestV6targetSSv">target</a>
+                    <a name="/s:4HTTP28BlueSocketConnectionListenerC6isOpenSbv"></a>
+                    <a name="//apple_ref/swift/Property/isOpen" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4HTTP28BlueSocketConnectionListenerC6isOpenSbv">isOpen</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -203,14 +213,14 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>HTTP request URI, eg. <q>/foo/bar?buz=qux</q></p>
+                        <p>Check if socket is still open. Used to decide whether it should be closed/pruned after timeout</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">target</span><span class="p">:</span> <span class="kt">String</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">isOpen</span><span class="p">:</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
                       </div>
@@ -220,9 +230,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4HTTP11HTTPRequestV11httpVersionAA11HTTPVersionVv"></a>
-                    <a name="//apple_ref/swift/Property/httpVersion" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4HTTP11HTTPRequestV11httpVersionAA11HTTPVersionVv">httpVersion</a>
+                    <a name="/s:4HTTP28BlueSocketConnectionListenerC11closeWriteryyF"></a>
+                    <a name="//apple_ref/swift/Method/closeWriter()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4HTTP28BlueSocketConnectionListenerC11closeWriteryyF">closeWriter()</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -230,14 +240,14 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>HTTP request version</p>
+                        <p>Called by the parser to let us know that it&rsquo;s done with this socket</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">httpVersion</span><span class="p">:</span> <span class="kt"><a href="../Structs/HTTPVersion.html">HTTPVersion</a></span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">closeWriter</span><span class="p">()</span></code></pre>
 
                         </div>
                       </div>
@@ -247,9 +257,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4HTTP11HTTPRequestV7headersAA11HTTPHeadersVv"></a>
-                    <a name="//apple_ref/swift/Property/headers" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4HTTP11HTTPRequestV7headersAA11HTTPHeadersVv">headers</a>
+                    <a name="/s:4HTTP28BlueSocketConnectionListenerC17responseBeginningyyF"></a>
+                    <a name="//apple_ref/swift/Method/responseBeginning()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4HTTP28BlueSocketConnectionListenerC17responseBeginningyyF">responseBeginning()</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -257,14 +267,134 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>HTTP request headers</p>
+                        <p>Called by the parser to let us know that a response has started being created</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">headers</span><span class="p">:</span> <span class="kt"><a href="../Structs/HTTPHeaders.html">HTTPHeaders</a></span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">responseBeginning</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4HTTP28BlueSocketConnectionListenerC16responseCompleteyyF"></a>
+                    <a name="//apple_ref/swift/Method/responseComplete()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4HTTP28BlueSocketConnectionListenerC16responseCompleteyyF">responseComplete()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Called by the parser to let us know that a response is complete, and we can close after timeout</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">responseComplete</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4HTTP28BlueSocketConnectionListenerC7processyyF"></a>
+                    <a name="//apple_ref/swift/Method/process()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4HTTP28BlueSocketConnectionListenerC7processyyF">process()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Starts reading from the socket and feeding that data to the parser</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">process</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4HTTP28BlueSocketConnectionListenerC05queueC5Writey10Foundation4DataVF"></a>
+                    <a name="//apple_ref/swift/Method/queueSocketWrite(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4HTTP28BlueSocketConnectionListenerC05queueC5Writey10Foundation4DataVF">queueSocketWrite(_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Called by the parser to give us data to send back out of the socket</p>
+
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter bytes: Data object to be queued to be written to the socket
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">queueSocketWrite</span><span class="p">(</span><span class="n">_</span> <span class="nv">bytes</span><span class="p">:</span> <span class="kt">Data</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4HTTP28BlueSocketConnectionListenerC5writey10Foundation4DataVF"></a>
+                    <a name="//apple_ref/swift/Method/write(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4HTTP28BlueSocketConnectionListenerC5writey10Foundation4DataVF">write(_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Write data to a socket. Should be called in an <code>async</code> block on the <code>socketWriterQueue</code></p>
+
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter data: data to be written
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">write</span><span class="p">(</span><span class="n">_</span> <span class="nv">data</span><span class="p">:</span><span class="kt">Data</span><span class="p">)</span></code></pre>
 
                         </div>
                       </div>

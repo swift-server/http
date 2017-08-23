@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>HTTP Response  Reference</title>
+    <title>Other Classes  Reference</title>
     <link rel="stylesheet" type="text/css" href="css/jazzy.css" />
     <link rel="stylesheet" type="text/css" href="css/highlight.css" />
     <meta charset="utf-8">
@@ -12,7 +12,7 @@
   <body>
 
 
-    <a title="HTTP Response  Reference"></a>
+    <a title="Other Classes  Reference"></a>
 
     <header class="header">
       <p class="header-col header-col--primary">
@@ -34,7 +34,7 @@
     <p class="breadcrumbs">
       <a class="breadcrumb" href="index.html">HTTP Reference</a>
       <img class="carat" src="img/carat.png" />
-      HTTP Response  Reference
+      Other Classes  Reference
     </p>
 
     <div class="content-wrapper">
@@ -146,8 +146,9 @@
 
         <section class="section">
           <div class="section-content">
-            <h1>HTTP Response</h1>
-            
+            <h1>Other Classes</h1>
+            <p>The following classes are available globally.</p>
+
           </div>
         </section>
 
@@ -158,9 +159,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4HTTP12HTTPResponseV"></a>
-                    <a name="//apple_ref/swift/Struct/HTTPResponse" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4HTTP12HTTPResponseV">HTTPResponse</a>
+                    <a name="/s:4HTTP10HTTPServerC"></a>
+                    <a name="//apple_ref/swift/Class/HTTPServer" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4HTTP10HTTPServerC">HTTPServer</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -168,27 +169,33 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>A structure representing the headers for a HTTP response, without the body of the response.</p>
+                        <p>A basic HTTP server. Currently this is implemented using the BlueSocket
+abstraction, but the intention is to remove this dependency and reimplement
+the class using transport APIs provided by the Server APIs working group.</p>
 
-                        <a href="Structs/HTTPResponse.html" class="slightly-smaller">See more</a>
+                        <a href="Classes/HTTPServer.html" class="slightly-smaller">See more</a>
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">HTTPResponse</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">HTTPServer</span> <span class="p">:</span> <span class="kt"><a href="Protocols/HTTPServing.html">HTTPServing</a></span></code></pre>
 
                         </div>
                       </div>
                     </section>
                   </div>
                 </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <ul class="item-container">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4HTTP18HTTPResponseStatusV"></a>
-                    <a name="//apple_ref/swift/Struct/HTTPResponseStatus" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4HTTP18HTTPResponseStatusV">HTTPResponseStatus</a>
+                    <a name="/s:4HTTP28BlueSocketConnectionListenerC"></a>
+                    <a name="//apple_ref/swift/Class/BlueSocketConnectionListener" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4HTTP28BlueSocketConnectionListenerC">BlueSocketConnectionListener</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -196,28 +203,39 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>The response status for the HTTP response
-- See: <a href="https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml">https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml</a> for more information</p>
+                        <p>The Interface between the StreamingParser class and IBM&rsquo;s BlueSocket wrapper around socket(2).
+You hopefully should be able to replace this with any network library/engine.</p>
 
-                        <a href="Structs/HTTPResponseStatus.html" class="slightly-smaller">See more</a>
+                        <a href="Classes/BlueSocketConnectionListener.html" class="slightly-smaller">See more</a>
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">HTTPResponseStatus</span><span class="p">:</span> <span class="kt">Equatable</span><span class="p">,</span> <span class="kt">CustomStringConvertible</span><span class="p">,</span> <span class="kt">ExpressibleByIntegerLiteral</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">BlueSocketConnectionListener</span><span class="p">:</span> <span class="kt">ParserConnecting</span></code></pre>
 
                         </div>
                       </div>
                     </section>
                   </div>
                 </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Server"></a>
+                <a name="//apple_ref/swift/Section/Server" class="dashAnchor"></a>
+                <a href="#/Server">
+                  <h3 class="section-name">Server</h3>
+                </a>
+              </div>
+              <ul class="item-container">
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4HTTP18HTTPResponseWriterP"></a>
-                    <a name="//apple_ref/swift/Protocol/HTTPResponseWriter" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4HTTP18HTTPResponseWriterP">HTTPResponseWriter</a>
+                    <a name="/s:4HTTP22BlueSocketSimpleServerC"></a>
+                    <a name="//apple_ref/swift/Class/BlueSocketSimpleServer" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4HTTP22BlueSocketSimpleServerC">BlueSocketSimpleServer</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -225,15 +243,15 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>HTTPResponseWriter provides functions to create an HTTP response</p>
+                        <p>An HTTP server that listens for connections on a TCP socket and spawns Listeners to handle them.</p>
 
-                        <a href="Protocols/HTTPResponseWriter.html" class="slightly-smaller">See more</a>
+                        <a href="Classes/BlueSocketSimpleServer.html" class="slightly-smaller">See more</a>
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">HTTPResponseWriter</span> <span class="p">:</span> <span class="kd">class</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">BlueSocketSimpleServer</span> <span class="p">:</span> <span class="kt">CurrentConnectionCounting</span></code></pre>
 
                         </div>
                       </div>
