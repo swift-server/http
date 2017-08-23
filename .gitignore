@@ -73,3 +73,4 @@ fastlane/test_output
 *.orig
 /.idea
 /Package.pins
+docs

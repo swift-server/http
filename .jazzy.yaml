@@ -12,14 +12,14 @@ readme: README.md
 skip_undocumented: false
 hide_documentation_coverage: false
 
-xcodebuild_arguments: [-project, SwiftServerHTTP.xcodeproj, -target, HTTP, LIBRARY_SEARCH_PATHS=.build/debug]
+xcodebuild_arguments: [-project, SwiftServerHTTP.xcodeproj, -target, HTTP]
 
 custom_categories:
 
   - name: HTTP Server
     children:
-    - WebAppContaining
-    - WebApp
+    - HTTPRequestHandling
+    - HTTPRequestHandler
 
   - name: HTTP Headers
     children:

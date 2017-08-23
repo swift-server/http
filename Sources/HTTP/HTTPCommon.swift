@@ -16,6 +16,7 @@ public typealias HTTPRequestHandler = (HTTPRequest, HTTPResponseWriter) -> HTTPB
 
 /// Class protocol containing the HTTPRequestHandler that responds to the incoming HTTP requests.
 /// The following is an example of a HTTPRequestHandler that returns the request as a response:
+///
 /// ```swift
 ///    class EchoHandler: HTTPRequestHandling {
 ///        func handle(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {
