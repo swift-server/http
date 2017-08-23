@@ -9,11 +9,11 @@
 import Foundation
 import HTTP
 
-/// Simple `WebApp` that returns 200: OK without a body
-class OkWebApp: WebAppContaining {
-    func serve(req: HTTPRequest, res: HTTPResponseWriter ) -> HTTPBodyProcessing {
+/// Simple `HTTPRequestHandler` that returns 200: OK without a body
+class OkHandler: HTTPRequestHandling {
+    func handle(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {
         //Assume the router gave us the right request - at least for now
-        res.writeHeader(status: .ok, headers: ["Transfer-Encoding": "chunked", "X-foo": "bar"])
+        response.writeHeader(status: .ok, headers: ["Transfer-Encoding": "chunked", "X-foo": "bar"])
         return .discardBody
     }
 }

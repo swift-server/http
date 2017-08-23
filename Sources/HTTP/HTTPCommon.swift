@@ -12,13 +12,13 @@ import Foundation
 /// - Parameter req: the incoming HTTP request.
 /// - Parameter res: a writer providing functions to create an HTTP reponse to the request.
 /// - Returns HTTPBodyProcessing: a enum that either discards the request data, or provides a closure to process it.
-public typealias WebApp = (HTTPRequest, HTTPResponseWriter) -> HTTPBodyProcessing
+public typealias HTTPRequestHandler = (HTTPRequest, HTTPResponseWriter) -> HTTPBodyProcessing
 
-/// Class protocol containing the WebApp that responds to the incoming HTTP requests.
-/// The following is an example of a WebApp that returns the request as a response:
+/// Class protocol containing the HTTPRequestHandler that responds to the incoming HTTP requests.
+/// The following is an example of a HTTPRequestHandler that returns the request as a response:
 /// ```swift
-///    class EchoWebApp: WebAppContaining {
-///        func serve(req: HTTPRequest, res: HTTPResponseWriter ) -> HTTPBodyProcessing {
+///    class EchoHandler: HTTPRequestHandling {
+///        func handle(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {
 ///            res.writeHeader(status: .ok, headers: [:])
 ///            return .processBody { (chunk, stop) in
 ///                switch chunk {
@@ -36,12 +36,12 @@ public typealias WebApp = (HTTPRequest, HTTPResponseWriter) -> HTTPBodyProcessin
 ///        }
 ///    }
 /// ```
-public protocol WebAppContaining: class {
-    /// serve: function called when a new HTTP request is received by the HTTP server.
-    /// - Parameter req: the incoming HTTP request.
-    /// - Parameter res: an writer providing functions to create an HTTP reponse to the request.
+public protocol HTTPRequestHandling: class {
+    /// handle: function called when a new HTTP request is received by the HTTP server.
+    /// - Parameter request: the incoming HTTP request.
+    /// - Parameter response: a writer providing functions to create an HTTP response to the request.
     /// - Returns HTTPBodyProcessing: a enum that either discards the request data, or provides a closure to process it.
-    func serve(req: HTTPRequest, res: HTTPResponseWriter ) -> HTTPBodyProcessing
+    func handle(request: HTTPRequest, response: HTTPResponseWriter) -> HTTPBodyProcessing
 }
 
 /// The result returned as part of a completion handler

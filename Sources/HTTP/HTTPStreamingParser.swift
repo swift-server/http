@@ -12,11 +12,11 @@ import Dispatch
 import CHTTPParser
 
 
-/// Class that wraps the CHTTPParser and calls the `WebApp` to get the response
+/// Class that wraps the CHTTPParser and calls the `HTTPRequestHandler` to get the response
 /// :nodoc:
 public class StreamingParser: HTTPResponseWriter {
 
-    let webapp: WebApp
+    let handle: HTTPRequestHandler
     
     /// Time to leave socket open waiting for next request to start
     public static let keepAliveTimeout: TimeInterval = 5
@@ -77,11 +77,11 @@ public class StreamingParser: HTTPResponseWriter {
     /// Is the currently parsed request an upgrade request?
     public private(set) var upgradeRequested = false
     
-    /// Class that wraps the CHTTPParser and calls the `WebApp` to get the response
+    /// Class that wraps the CHTTPParser and calls the `HTTPRequestHandler` to get the response
     ///
-    /// - Parameter webapp: function that is used to create the response
-    public init(webapp: @escaping WebApp, connectionCounter: CurrentConnectionCounting? = nil) {
-        self.webapp = webapp
+    /// - Parameter handler: function that is used to create the response
+    public init(handler: @escaping HTTPRequestHandler, connectionCounter: CurrentConnectionCounting? = nil) {
+        self.handle = handler
         self.connectionCounter = connectionCounter
         
         //Set up all the callbacks for the CHTTPParser library
@@ -199,7 +199,7 @@ public class StreamingParser: HTTPResponseWriter {
             self.parserBuffer=nil
             
             if !upgradeRequested {
-                self.httpBodyProcessingCallback = self.webapp(self.createRequest(), self)
+                self.httpBodyProcessingCallback = self.handle(self.createRequest(), self)
             }
         case .urlReceived:
             if let parserBuffer = self.parserBuffer {

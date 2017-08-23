@@ -9,15 +9,15 @@
 /*
  
  This file isn't part of the API per se, but it's the easiest way to get started- just supply a completion block.
- It's also really handy for building up `WebApp`s to use when writing tests.
+ It's also really handy for building up `HTTPRequestHandler`s to use when writing tests.
  
  */
 
 import Foundation
 import HTTP
 
-/// Simple block-based wrapper to create a `WebApp`. Normally used during XCTests
-public class SimpleResponseCreator: WebAppContaining {
+/// Simple block-based wrapper to create a `HTTPRequestHandler`. Normally used during XCTests
+public class SimpleResponseCreator: HTTPRequestHandling {
 
     public struct Response {
         public let status: HTTPResponseStatus
@@ -34,7 +34,7 @@ public class SimpleResponseCreator: WebAppContaining {
     
     var buffer = Data()
     
-    public func serve(req: HTTPRequest, res: HTTPResponseWriter ) -> HTTPBodyProcessing {
+    public func handle(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {
         return .processBody { (chunk, stop) in
             switch chunk {
             case .chunk(let data, let finishedProcessing):
@@ -43,16 +43,16 @@ public class SimpleResponseCreator: WebAppContaining {
                 }
                 finishedProcessing()
             case .end:
-                let response = self.completionHandler(req, self.buffer)
-                var headers = response.headers
+                let responseResult = self.completionHandler(request, self.buffer)
+                var headers = responseResult.headers
                 headers.replace([.transferEncoding: "chunked"])
-                res.writeHeader(status: response.status, headers: headers)
-                res.writeBody(response.body) { _ in
-                        res.done()
+                response.writeHeader(status: responseResult.status, headers: headers)
+                response.writeBody(responseResult.body) { _ in
+                        response.done()
                 }
             default:
                 stop = true /* don't call us anymore */
-                res.abort()
+                response.abort()
             }
         }
     }

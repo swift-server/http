@@ -6,7 +6,6 @@ let package = Package(
     name: "SwiftServerHTTP",
     targets: [
     	Target(name: "HTTP"),
-    	Target(name: "BlueSocketHTTP", dependencies: ["HTTP"]),
     ],
     dependencies: [
         .Package(url: "https://github.com/IBM-Swift/CHTTPParser.git", majorVersion: 0, minor: 4),

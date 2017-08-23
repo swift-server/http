@@ -9,21 +9,23 @@
 import Foundation
 import HTTP
 
-/// Simple `WebApp` that prints "Hello, World" as per K&R
-class HelloWorldWebApp: WebAppContaining {
-    func serve(req: HTTPRequest, res: HTTPResponseWriter ) -> HTTPBodyProcessing {
+
+/// Simple `HTTPRequestHandler` that just echoes back whatever input it gets
+class EchoHandler: HTTPRequestHandling {
+    func handle(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {
         //Assume the router gave us the right request - at least for now
-        res.writeHeader(status: .ok, headers: [.transferEncoding: "chunked", "X-foo": "bar"])
+        response.writeHeader(status: .ok, headers: ["Transfer-Encoding": "chunked", "X-foo": "bar"])
         return .processBody { (chunk, stop) in
             switch chunk {
-            case .chunk(_, let finishedProcessing):
-                finishedProcessing()
+            case .chunk(let data, let finishedProcessing):
+                response.writeBody(data) { _ in
+                    finishedProcessing()
+                }
             case .end:
-                res.writeBody("Hello, World!")
-                res.done()
+                response.done()
             default:
                 stop = true /* don't call us anymore */
-                res.abort()
+                response.abort()
             }
         }
     }
