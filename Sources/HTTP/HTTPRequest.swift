@@ -6,8 +6,8 @@
 // See http://swift.org/LICENSE.txt for license information
 //
 
-import Foundation
 import Dispatch
+import Foundation
 
 /// A structure representing the headers from a HTTP request, without the body of the request.
 public struct HTTPRequest {

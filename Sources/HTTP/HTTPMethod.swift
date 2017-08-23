@@ -10,7 +10,7 @@
 public struct HTTPMethod {
     /// HTTP method
     public let method: String
-    
+
     /// Creates an HTTP method
     public init(_ method: String) {
         self.method = method.uppercased()
@@ -88,16 +88,15 @@ extension HTTPMethod {
 }
 
 extension HTTPMethod : Hashable {
-    
     public var hashValue: Int {
         return method.hashValue
     }
-    
+
     /// :nodoc:
     public static func == (lhs: HTTPMethod, rhs: HTTPMethod) -> Bool {
         return lhs.method == rhs.method
     }
-    
+
     /// :nodoc:
     public static func ~= (match: HTTPMethod, version: HTTPMethod) -> Bool {
         return match == version
@@ -109,12 +108,12 @@ extension HTTPMethod : ExpressibleByStringLiteral {
     public init(stringLiteral: String) {
         self.init(stringLiteral)
     }
-    
+
     /// :nodoc:
     public init(unicodeScalarLiteral: String) {
         self.init(unicodeScalarLiteral)
     }
-    
+
     /// :nodoc:
     public init(extendedGraphemeClusterLiteral: String) {
         self.init(extendedGraphemeClusterLiteral)

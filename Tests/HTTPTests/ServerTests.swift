@@ -12,7 +12,7 @@ import XCTest
 
 class ServerTests: XCTestCase {
     func testResponseOK() {
-        let request = HTTPRequest(method: .get, target:"/echo", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
+        let request = HTTPRequest(method: .get, target: "/echo", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
         let resolver = TestResponseResolver(request: request, requestBody: Data())
         resolver.resolveHandler(EchoHandler().handle)
         XCTAssertNotNil(resolver.response)
@@ -22,7 +22,7 @@ class ServerTests: XCTestCase {
 
     func testEcho() {
         let testString="This is a test"
-        let request = HTTPRequest(method: .post, target:"/echo", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
+        let request = HTTPRequest(method: .post, target: "/echo", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
         let resolver = TestResponseResolver(request: request, requestBody: testString.data(using: .utf8)!)
         resolver.resolveHandler(EchoHandler().handle)
         XCTAssertNotNil(resolver.response)
@@ -30,9 +30,9 @@ class ServerTests: XCTestCase {
         XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
         XCTAssertEqual(testString, resolver.responseBody?.withUnsafeBytes { String(bytes: $0, encoding: .utf8) } ?? "Nil")
     }
-    
+
     func testHello() {
-        let request = HTTPRequest(method: .get, target:"/helloworld", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
+        let request = HTTPRequest(method: .get, target: "/helloworld", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
         let resolver = TestResponseResolver(request: request, requestBody: Data())
         resolver.resolveHandler(HelloWorldHandler().handle)
         XCTAssertNotNil(resolver.response)
@@ -40,17 +40,16 @@ class ServerTests: XCTestCase {
         XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
         XCTAssertEqual("Hello, World!", resolver.responseBody?.withUnsafeBytes { String(bytes: $0, encoding: .utf8) } ?? "Nil")
     }
-    
+
     func testSimpleHello() {
-        let request = HTTPRequest(method: .get, target:"/helloworld", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
+        let request = HTTPRequest(method: .get, target: "/helloworld", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
         let resolver = TestResponseResolver(request: request, requestBody: Data())
-        let simpleHelloWebApp = SimpleResponseCreator { (request, body) -> SimpleResponseCreator.Response in
+        let simpleHelloWebApp = SimpleResponseCreator { (_, body) -> SimpleResponseCreator.Response in
             return SimpleResponseCreator.Response(
                 status: .ok,
                 headers: ["X-foo": "bar"],
                 body: "Hello, World!".data(using: .utf8)!
             )
-            
         }
         resolver.resolveHandler(simpleHelloWebApp.handle)
         XCTAssertNotNil(resolver.response)
@@ -58,10 +57,10 @@ class ServerTests: XCTestCase {
         XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
         XCTAssertEqual("Hello, World!", resolver.responseBody?.withUnsafeBytes { String(bytes: $0, encoding: .utf8) } ?? "Nil")
     }
-    
+
     func testOkEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
-        
+
         let server = HTTPServer()
         do {
             try server.start(port: 0, handler: OkHandler().handle)
@@ -90,7 +89,7 @@ class ServerTests: XCTestCase {
 
     func testHelloEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
-        
+
         let server = HTTPServer()
         do {
             try server.start(port: 0, handler: HelloWorldHandler().handle)
@@ -117,16 +116,15 @@ class ServerTests: XCTestCase {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
     }
-    
+
     func testSimpleHelloEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
-        let simpleHelloWebApp = SimpleResponseCreator { (request, body) -> SimpleResponseCreator.Response in
+        let simpleHelloWebApp = SimpleResponseCreator { (_, body) -> SimpleResponseCreator.Response in
             return SimpleResponseCreator.Response(
                 status: .ok,
                 headers: ["X-foo": "bar"],
                 body: "Hello, World!".data(using: .utf8)!
             )
-            
         }
 
         let server = HTTPServer()
@@ -135,7 +133,7 @@ class ServerTests: XCTestCase {
         } catch {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
-        
+
         let session = URLSession(configuration: URLSessionConfiguration.default)
         let url = URL(string: "http://localhost:\(server.port)/helloworld")!
         print("Test \(#function) on port \(server.port)")
@@ -161,7 +159,6 @@ class ServerTests: XCTestCase {
         print("\(#function) stopping server")
     }
 
-    
     func testRequestEchoEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
         let testString="This is a test"
@@ -176,7 +173,7 @@ class ServerTests: XCTestCase {
             request.httpMethod = "POST"
             request.httpBody = testString.data(using: .utf8)
             request.setValue("text/plain", forHTTPHeaderField: "Content-Type")
-            
+
             let dataTask = session.dataTask(with: request) { (responseBody, rawResponse, error) in
                 let response = rawResponse as? HTTPURLResponse
                 XCTAssertNil(error, "\(error!.localizedDescription)")
@@ -197,7 +194,7 @@ class ServerTests: XCTestCase {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
     }
-    
+
     func testRequestKeepAliveEchoEndToEnd() {
         let receivedExpectation1 = self.expectation(description: "Received web response 1: \(#function)")
         let receivedExpectation2 = self.expectation(description: "Received web response 2: \(#function)")
@@ -205,7 +202,7 @@ class ServerTests: XCTestCase {
         let testString1="This is a test"
         let testString2="This is a test, too"
         let testString3="This is also a test"
-        
+
         let server = HTTPServer()
         do {
             try server.start(port: 0, handler: EchoHandler().handle)
@@ -216,17 +213,17 @@ class ServerTests: XCTestCase {
             request1.httpMethod = "POST"
             request1.httpBody = testString1.data(using: .utf8)
             request1.setValue("text/plain", forHTTPHeaderField: "Content-Type")
-            
+
             let dataTask1 = session.dataTask(with: request1) { (responseBody, rawResponse, error) in
                 let response = rawResponse as? HTTPURLResponse
                 XCTAssertNil(error, "\(error!.localizedDescription)")
                 XCTAssertNotNil(response)
-                let headers = response?.allHeaderFields ?? ["":""]
+                let headers = response?.allHeaderFields ?? ["": ""]
                 let connectionHeader: String = headers["Connection"] as? String ?? ""
                 let keepAliveHeader = headers["Keep-Alive"]
-                XCTAssertEqual(connectionHeader,"Keep-Alive","No Keep-Alive Connection")
+                XCTAssertEqual(connectionHeader, "Keep-Alive", "No Keep-Alive Connection")
                 XCTAssertNotNil(keepAliveHeader)
-                XCTAssertNotNil(responseBody,"No Keep-Alive Header")
+                XCTAssertNotNil(responseBody, "No Keep-Alive Header")
                 XCTAssertEqual(server.connectionCount, 1)
                 XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
                 XCTAssertEqual(testString1, String(data: responseBody ?? Data(), encoding: .utf8) ?? "Nil")
@@ -238,11 +235,11 @@ class ServerTests: XCTestCase {
                     let response2 = rawResponse2 as? HTTPURLResponse
                     XCTAssertNil(error2, "\(error2!.localizedDescription)")
                     XCTAssertNotNil(response2)
-                    let headers = response2?.allHeaderFields ?? ["":""]
+                    let headers = response2?.allHeaderFields ?? ["": ""]
                     let connectionHeader: String = headers["Connection"] as? String ?? ""
                     let keepAliveHeader = headers["Keep-Alive"]
-                    XCTAssertEqual(connectionHeader,"Keep-Alive","No Keep-Alive Connection")
-                    XCTAssertNotNil(keepAliveHeader,"No Keep-Alive Header")
+                    XCTAssertEqual(connectionHeader, "Keep-Alive", "No Keep-Alive Connection")
+                    XCTAssertNotNil(keepAliveHeader, "No Keep-Alive Header")
                     XCTAssertEqual(server.connectionCount, 1)
                     XCTAssertNotNil(responseBody2)
                     XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response2?.statusCode ?? 0)
@@ -255,11 +252,11 @@ class ServerTests: XCTestCase {
                         let response = rawResponse as? HTTPURLResponse
                         XCTAssertNil(error, "\(error!.localizedDescription)")
                         XCTAssertNotNil(response)
-                        let headers = response?.allHeaderFields ?? ["":""]
+                        let headers = response?.allHeaderFields ?? ["": ""]
                         let connectionHeader: String = headers["Connection"] as? String ?? ""
                         let keepAliveHeader = headers["Keep-Alive"]
-                        XCTAssertEqual(connectionHeader,"Keep-Alive","No Keep-Alive Connection")
-                        XCTAssertNotNil(keepAliveHeader,"No Keep-Alive Header")
+                        XCTAssertEqual(connectionHeader, "Keep-Alive", "No Keep-Alive Connection")
+                        XCTAssertNotNil(keepAliveHeader, "No Keep-Alive Header")
                         XCTAssertEqual(server.connectionCount, 1)
                         XCTAssertNotNil(responseBody)
                         XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
@@ -285,25 +282,30 @@ class ServerTests: XCTestCase {
         }
     }
 
-
     func testRequestLargeEchoEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
-        //Get a file we know exists
-        //let currentDirectoryURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-        let executableUrl = URL(fileURLWithPath: CommandLine.arguments[0])
-        
-        let testExecutableData = try! Data(contentsOf: executableUrl)
-        
+
+        // Get a file we know exists
+        let executableURL = URL(fileURLWithPath: CommandLine.arguments[0])
+        let testExecutableData: Data
+
+        do {
+            testExecutableData = try Data(contentsOf: executableURL)
+        } catch {
+            XCTFail("Could not create Data from contents of \(executableURL)")
+            return
+        }
+
         var testDataLong = testExecutableData + testExecutableData + testExecutableData + testExecutableData
         let length = testDataLong.count
         let keep = 16385
         let remove = length - keep
-        if (remove > 0) {
+        if remove > 0 {
             testDataLong.removeLast(remove)
         }
-        
+
         let testData = Data(testDataLong)
-        
+
         let server = HTTPServer()
         do {
             try server.start(port: 0, handler: EchoHandler().handle)
@@ -333,7 +335,7 @@ class ServerTests: XCTestCase {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
     }
-    
+
     static var allTests = [
         ("testEcho", testEcho),
         ("testHello", testHello),
