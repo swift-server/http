@@ -8,9 +8,6 @@
     <script src="../js/jquery.min.js" defer></script>
     <script src="../js/jazzy.js" defer></script>
     
-    <script src="../js/lunr.min.js" defer></script>
-    <script src="../js/typeahead.jquery.js" defer></script>
-    <script src="../js/jazzy.search.js" defer></script>
   </head>
   <body>
 
@@ -23,17 +20,11 @@
         <a class="header-link" href="../index.html">
           HTTP Docs
         </a>
-         (100% documented)
-      </p>
-    
-      <p class="header-col--secondary">
-        <form role="search" action="../search.json">
-          <input type="text" placeholder="Search documentation" data-typeahead>
-        </form>
+         (99% documented)
       </p>
     
         <p class="header-col header-col--secondary">
-          <a class="header-link" href="https://github.com/swift-server/HTTP/">
+          <a class="header-link" href="https://github.com/swift-server/http/">
             <img class="header-icon" src="../img/gh.png"/>
             View on GitHub
           </a>
@@ -54,10 +45,10 @@
             <a class="nav-group-name-link" href="../HTTP Server.html">HTTP Server</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../Protocols/WebAppContaining.html">WebAppContaining</a>
+                <a class="nav-group-task-link" href="../Protocols/HTTPRequestHandling.html">HTTPRequestHandling</a>
               </li>
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../HTTP Server.html#/s:4HTTP6WebApp">WebApp</a>
+                <a class="nav-group-task-link" href="../HTTP Server.html#/s:4HTTP18HTTPRequestHandlera">HTTPRequestHandler</a>
               </li>
             </ul>
           </li>
@@ -85,7 +76,7 @@
                 <a class="nav-group-task-link" href="../Structs/HTTPMethod.html">HTTPMethod</a>
               </li>
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../HTTP Request.html#/s:4HTTP15HTTPBodyHandler">HTTPBodyHandler</a>
+                <a class="nav-group-task-link" href="../HTTP Request.html#/s:4HTTP15HTTPBodyHandlera">HTTPBodyHandler</a>
               </li>
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="../Enums/HTTPBodyProcessing.html">HTTPBodyProcessing</a>
@@ -113,10 +104,40 @@
             </ul>
           </li>
           <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Other Classes.html">Other Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BlueSocketConnectionListener.html">BlueSocketConnectionListener</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BlueSocketSimpleServer.html">BlueSocketSimpleServer</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/HTTPServer.html">HTTPServer</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
             <a class="nav-group-name-link" href="../Other Enums.html">Other Enums</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="../Enums/Result.html">Result</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Other Extensions.html">Other Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Extensions/UnsafeRawBufferPointer.html">UnsafeRawBufferPointer</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Other Protocols.html">Other Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Protocols/HTTPServing.html">HTTPServing</a>
               </li>
             </ul>
           </li>
@@ -145,9 +166,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FP4HTTP18HTTPResponseWriter11writeHeaderFT6statusVS_18HTTPResponseStatus7headersVS_11HTTPHeaders10completionFOS_6ResultT__T_"></a>
+                    <a name="/s:4HTTP18HTTPResponseWriterP11writeHeaderyAA0B6StatusV6status_AA11HTTPHeadersV7headersyAA6ResultOc10completiontF"></a>
                     <a name="//apple_ref/swift/Method/writeHeader(status:headers:completion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FP4HTTP18HTTPResponseWriter11writeHeaderFT6statusVS_18HTTPResponseStatus7headersVS_11HTTPHeaders10completionFOS_6ResultT__T_">writeHeader(status:headers:completion:)</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseWriterP11writeHeaderyAA0B6StatusV6status_AA11HTTPHeadersV7headersyAA6ResultOc10completiontF">writeHeader(status:headers:completion:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -155,7 +176,10 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>writeHeader: Writer function to create the headers for an HTTP response</p>
+                        <p>writeHeader: Writer function to create the headers for an HTTP response
+- Parameter status: The status code to include in the HTTP response
+- Parameter headers: The HTTP headers to include in the HTTP response
+- Parameter completion: Closure that is called when the HTTP headers have been written to the HTTP respose</p>
 
                       </div>
                       <div class="declaration">
@@ -166,58 +190,15 @@
 
                         </div>
                       </div>
-                      <div>
-                        <h4>Parameters</h4>
-                        <table class="graybox">
-                          <tbody>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>status</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>The status code to include in the HTTP response</p>
-                                </div>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>headers</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>The HTTP headers to include in the HTTP response</p>
-                                </div>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>completion</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>Closure that is called when the HTTP headers have been written to the HTTP respose</p>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
                     </section>
                   </div>
                 </li>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FP4HTTP18HTTPResponseWriter12writeTrailerFTVS_11HTTPHeaders10completionFOS_6ResultT__T_"></a>
+                    <a name="/s:4HTTP18HTTPResponseWriterP12writeTraileryAA11HTTPHeadersV_yAA6ResultOc10completiontF"></a>
                     <a name="//apple_ref/swift/Method/writeTrailer(_:completion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FP4HTTP18HTTPResponseWriter12writeTrailerFTVS_11HTTPHeaders10completionFOS_6ResultT__T_">writeTrailer(_:completion:)</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseWriterP12writeTraileryAA11HTTPHeadersV_yAA6ResultOc10completiontF">writeTrailer(_:completion:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -225,7 +206,10 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>writeTrailer: Writer function to write a trailer header as part of the HTTP response</p>
+                        <p>writeTrailer: Writer function to write a trailer header as part of the HTTP response
+- Parameter trailers: The trailers to write as part of the HTTP response
+- Parameter completion: Closure that is called when the trailers has been written to the HTTP response
+This is not currently implemented</p>
 
                       </div>
                       <div class="declaration">
@@ -236,47 +220,15 @@
 
                         </div>
                       </div>
-                      <div>
-                        <h4>Parameters</h4>
-                        <table class="graybox">
-                          <tbody>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>trailers</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>The trailers to write as part of the HTTP response</p>
-                                </div>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>completion</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>Closure that is called when the trailers has been written to the HTTP response
-This is not currently implemented</p>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
                     </section>
                   </div>
                 </li>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FP4HTTP18HTTPResponseWriter9writeBodyFTPS_22UnsafeHTTPResponseBody_10completionFOS_6ResultT__T_"></a>
+                    <a name="/s:4HTTP18HTTPResponseWriterP9writeBodyyAA06UnsafebE0_p_yAA6ResultOc10completiontF"></a>
                     <a name="//apple_ref/swift/Method/writeBody(_:completion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FP4HTTP18HTTPResponseWriter9writeBodyFTPS_22UnsafeHTTPResponseBody_10completionFOS_6ResultT__T_">writeBody(_:completion:)</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseWriterP9writeBodyyAA06UnsafebE0_p_yAA6ResultOc10completiontF">writeBody(_:completion:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -284,7 +236,9 @@ This is not currently implemented</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>writeBody: Writer function to write data to the body of the HTTP response</p>
+                        <p>writeBody: Writer function to write data to the body of the HTTP response
+- Parameter data: The data to write as part of the HTTP response
+- Parameter completion: Closure that is called when the data has been written to the HTTP response</p>
 
                       </div>
                       <div class="declaration">
@@ -295,46 +249,15 @@ This is not currently implemented</p>
 
                         </div>
                       </div>
-                      <div>
-                        <h4>Parameters</h4>
-                        <table class="graybox">
-                          <tbody>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>data</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>The data to write as part of the HTTP response</p>
-                                </div>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>completion</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>Closure that is called when the data has been written to the HTTP response</p>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
                     </section>
                   </div>
                 </li>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FP4HTTP18HTTPResponseWriter4doneFT10completionFOS_6ResultT__T_"></a>
+                    <a name="/s:4HTTP18HTTPResponseWriterP4doneyyAA6ResultOc10completion_tF"></a>
                     <a name="//apple_ref/swift/Method/done(completion:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FP4HTTP18HTTPResponseWriter4doneFT10completionFOS_6ResultT__T_">done(completion:)</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseWriterP4doneyyAA6ResultOc10completion_tF">done(completion:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -342,7 +265,8 @@ This is not currently implemented</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>done: Writer function to complete the HTTP response</p>
+                        <p>done: Writer function to complete the HTTP response
+- Parameter completion: Closure that is called when the HTTP response has been completed</p>
 
                       </div>
                       <div class="declaration">
@@ -353,34 +277,15 @@ This is not currently implemented</p>
 
                         </div>
                       </div>
-                      <div>
-                        <h4>Parameters</h4>
-                        <table class="graybox">
-                          <tbody>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>completion</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>Closure that is called when the HTTP response has been completed</p>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
                     </section>
                   </div>
                 </li>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FP4HTTP18HTTPResponseWriter5abortFT_T_"></a>
+                    <a name="/s:4HTTP18HTTPResponseWriterP5abortyyF"></a>
                     <a name="//apple_ref/swift/Method/abort()" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FP4HTTP18HTTPResponseWriter5abortFT_T_">abort()</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseWriterP5abortyyF">abort()</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -409,9 +314,9 @@ This is not currently implemented</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FE4HTTPPS_18HTTPResponseWriter11writeHeaderFT6statusVS_18HTTPResponseStatus7headersVS_11HTTPHeaders_T_"></a>
+                    <a name="/s:4HTTP18HTTPResponseWriterPAAE11writeHeaderyAA0B6StatusV6status_AA11HTTPHeadersV7headerstF"></a>
                     <a name="//apple_ref/swift/Method/writeHeader(status:headers:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FE4HTTPPS_18HTTPResponseWriter11writeHeaderFT6statusVS_18HTTPResponseStatus7headersVS_11HTTPHeaders_T_">writeHeader(status:headers:)</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseWriterPAAE11writeHeaderyAA0B6StatusV6status_AA11HTTPHeadersV7headerstF">writeHeader(status:headers:)</a>
                     </code>
                       <span class="declaration-note">
                         Extension method
@@ -422,12 +327,8 @@ This is not currently implemented</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Convenience funtion to write the headers for an HTTP response without a completion handler</p>
-<div class="aside aside-see">
-    <p class="aside-title">See</p>
-    <code><a href="../Protocols/HTTPResponseWriter.html#/s:FP4HTTP18HTTPResponseWriter11writeHeaderFT6statusVS_18HTTPResponseStatus7headersVS_11HTTPHeaders10completionFOS_6ResultT__T_">writeHeader(status:headers:completion:)</a></code>
-
-</div>
+                        <p>Convenience funtion to write the headers for an HTTP response without a completion handler
+- See: <code><a href="../Protocols/HTTPResponseWriter.html#/s:4HTTP18HTTPResponseWriterP11writeHeaderyAA0B6StatusV6status_AA11HTTPHeadersV7headersyAA6ResultOc10completiontF">writeHeader(status:headers:completion:)</a></code></p>
 
                       </div>
                       <div class="declaration">
@@ -444,9 +345,9 @@ This is not currently implemented</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FE4HTTPPS_18HTTPResponseWriter11writeHeaderFT6statusVS_18HTTPResponseStatus_T_"></a>
+                    <a name="/s:4HTTP18HTTPResponseWriterPAAE11writeHeaderyAA0B6StatusV6status_tF"></a>
                     <a name="//apple_ref/swift/Method/writeHeader(status:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FE4HTTPPS_18HTTPResponseWriter11writeHeaderFT6statusVS_18HTTPResponseStatus_T_">writeHeader(status:)</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseWriterPAAE11writeHeaderyAA0B6StatusV6status_tF">writeHeader(status:)</a>
                     </code>
                       <span class="declaration-note">
                         Extension method
@@ -457,12 +358,8 @@ This is not currently implemented</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Convenience funtion to write a HTTP response with no headers or completion handler</p>
-<div class="aside aside-see">
-    <p class="aside-title">See</p>
-    <code><a href="../Protocols/HTTPResponseWriter.html#/s:FP4HTTP18HTTPResponseWriter11writeHeaderFT6statusVS_18HTTPResponseStatus7headersVS_11HTTPHeaders10completionFOS_6ResultT__T_">writeHeader(status:headers:completion:)</a></code>
-
-</div>
+                        <p>Convenience funtion to write a HTTP response with no headers or completion handler
+- See: <code><a href="../Protocols/HTTPResponseWriter.html#/s:4HTTP18HTTPResponseWriterP11writeHeaderyAA0B6StatusV6status_AA11HTTPHeadersV7headersyAA6ResultOc10completiontF">writeHeader(status:headers:completion:)</a></code></p>
 
                       </div>
                       <div class="declaration">
@@ -479,9 +376,9 @@ This is not currently implemented</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FE4HTTPPS_18HTTPResponseWriter12writeTrailerFVS_11HTTPHeadersT_"></a>
+                    <a name="/s:4HTTP18HTTPResponseWriterPAAE12writeTraileryAA11HTTPHeadersVF"></a>
                     <a name="//apple_ref/swift/Method/writeTrailer(_:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FE4HTTPPS_18HTTPResponseWriter12writeTrailerFVS_11HTTPHeadersT_">writeTrailer(_:)</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseWriterPAAE12writeTraileryAA11HTTPHeadersVF">writeTrailer(_:)</a>
                     </code>
                       <span class="declaration-note">
                         Extension method
@@ -492,12 +389,8 @@ This is not currently implemented</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Convenience function to write a trailer header as part of the HTTP response without a completion handler</p>
-<div class="aside aside-see">
-    <p class="aside-title">See</p>
-    <code><a href="../Protocols/HTTPResponseWriter.html#/s:FP4HTTP18HTTPResponseWriter12writeTrailerFTVS_11HTTPHeaders10completionFOS_6ResultT__T_">writeTrailer(_:completion:)</a></code>
-
-</div>
+                        <p>Convenience function to write a trailer header as part of the HTTP response without a completion handler
+- See: <code><a href="../Protocols/HTTPResponseWriter.html#/s:4HTTP18HTTPResponseWriterP12writeTraileryAA11HTTPHeadersV_yAA6ResultOc10completiontF">writeTrailer(_:completion:)</a></code></p>
 
                       </div>
                       <div class="declaration">
@@ -514,9 +407,9 @@ This is not currently implemented</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FE4HTTPPS_18HTTPResponseWriter9writeBodyFPS_22UnsafeHTTPResponseBody_T_"></a>
+                    <a name="/s:4HTTP18HTTPResponseWriterPAAE9writeBodyyAA06UnsafebE0_pF"></a>
                     <a name="//apple_ref/swift/Method/writeBody(_:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FE4HTTPPS_18HTTPResponseWriter9writeBodyFPS_22UnsafeHTTPResponseBody_T_">writeBody(_:)</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseWriterPAAE9writeBodyyAA06UnsafebE0_pF">writeBody(_:)</a>
                     </code>
                       <span class="declaration-note">
                         Extension method
@@ -527,12 +420,8 @@ This is not currently implemented</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Convenience function for writing <code>data</code> to the body of the HTTP response without a completion handler.</p>
-<div class="aside aside-see">
-    <p class="aside-title">See</p>
-    writeBody(_:completion:)
-
-</div>
+                        <p>Convenience function for writing <code>data</code> to the body of the HTTP response without a completion handler.
+- See: writeBody(_:completion:)</p>
 
                       </div>
                       <div class="declaration">
@@ -549,9 +438,9 @@ This is not currently implemented</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FE4HTTPPS_18HTTPResponseWriter4doneFT_T_"></a>
+                    <a name="/s:4HTTP18HTTPResponseWriterPAAE4doneyyF"></a>
                     <a name="//apple_ref/swift/Method/done()" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FE4HTTPPS_18HTTPResponseWriter4doneFT_T_">done()</a>
+                    <a class="token" href="#/s:4HTTP18HTTPResponseWriterPAAE4doneyyF">done()</a>
                     </code>
                       <span class="declaration-note">
                         Extension method
@@ -562,12 +451,8 @@ This is not currently implemented</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Convenience function to complete the HTTP response without a completion handler.</p>
-<div class="aside aside-see">
-    <p class="aside-title">See</p>
-    done(completion:)
-
-</div>
+                        <p>Convenience function to complete the HTTP response without a completion handler.
+- See: done(completion:)</p>
 
                       </div>
                       <div class="declaration">
@@ -589,8 +474,8 @@ This is not currently implemented</p>
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift.org Server APIs Project</a>. All rights reserved. (Last updated: 2017-08-11)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift Server API project</a>. All rights reserved. (Last updated: 2017-08-23)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>
