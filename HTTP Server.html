@@ -8,9 +8,6 @@
     <script src="js/jquery.min.js" defer></script>
     <script src="js/jazzy.js" defer></script>
     
-    <script src="js/lunr.min.js" defer></script>
-    <script src="js/typeahead.jquery.js" defer></script>
-    <script src="js/jazzy.search.js" defer></script>
   </head>
   <body>
 
@@ -22,17 +19,11 @@
         <a class="header-link" href="index.html">
           HTTP Docs
         </a>
-         (100% documented)
-      </p>
-    
-      <p class="header-col--secondary">
-        <form role="search" action="search.json">
-          <input type="text" placeholder="Search documentation" data-typeahead>
-        </form>
+         (99% documented)
       </p>
     
         <p class="header-col header-col--secondary">
-          <a class="header-link" href="https://github.com/swift-server/HTTP/">
+          <a class="header-link" href="https://github.com/swift-server/http/">
             <img class="header-icon" src="img/gh.png"/>
             View on GitHub
           </a>
@@ -53,10 +44,10 @@
             <a class="nav-group-name-link" href="HTTP Server.html">HTTP Server</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="Protocols/WebAppContaining.html">WebAppContaining</a>
+                <a class="nav-group-task-link" href="Protocols/HTTPRequestHandling.html">HTTPRequestHandling</a>
               </li>
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="HTTP Server.html#/s:4HTTP6WebApp">WebApp</a>
+                <a class="nav-group-task-link" href="HTTP Server.html#/s:4HTTP18HTTPRequestHandlera">HTTPRequestHandler</a>
               </li>
             </ul>
           </li>
@@ -84,7 +75,7 @@
                 <a class="nav-group-task-link" href="Structs/HTTPMethod.html">HTTPMethod</a>
               </li>
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="HTTP Request.html#/s:4HTTP15HTTPBodyHandler">HTTPBodyHandler</a>
+                <a class="nav-group-task-link" href="HTTP Request.html#/s:4HTTP15HTTPBodyHandlera">HTTPBodyHandler</a>
               </li>
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="Enums/HTTPBodyProcessing.html">HTTPBodyProcessing</a>
@@ -112,10 +103,40 @@
             </ul>
           </li>
           <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Other Classes.html">Other Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/BlueSocketConnectionListener.html">BlueSocketConnectionListener</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/BlueSocketSimpleServer.html">BlueSocketSimpleServer</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/HTTPServer.html">HTTPServer</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
             <a class="nav-group-name-link" href="Other Enums.html">Other Enums</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="Enums/Result.html">Result</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Other Extensions.html">Other Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions/UnsafeRawBufferPointer.html">UnsafeRawBufferPointer</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Other Protocols.html">Other Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/HTTPServing.html">HTTPServing</a>
               </li>
             </ul>
           </li>
@@ -137,9 +158,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:P4HTTP16WebAppContaining"></a>
-                    <a name="//apple_ref/swift/Protocol/WebAppContaining" class="dashAnchor"></a>
-                    <a class="token" href="#/s:P4HTTP16WebAppContaining">WebAppContaining</a>
+                    <a name="/s:4HTTP19HTTPRequestHandlingP"></a>
+                    <a name="//apple_ref/swift/Protocol/HTTPRequestHandling" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4HTTP19HTTPRequestHandlingP">HTTPRequestHandling</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -147,10 +168,11 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Class protocol containing the WebApp that responds to the incoming HTTP requests.
-The following is an example of a WebApp that returns the request as a response:</p>
-<pre class="highlight swift"><code>   <span class="kd">class</span> <span class="kt">EchoWebApp</span><span class="p">:</span> <span class="kt">WebAppContaining</span> <span class="p">{</span>
-       <span class="kd">func</span> <span class="nf">serve</span><span class="p">(</span><span class="nv">req</span><span class="p">:</span> <span class="kt">HTTPRequest</span><span class="p">,</span> <span class="nv">res</span><span class="p">:</span> <span class="kt">HTTPResponseWriter</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">HTTPBodyProcessing</span> <span class="p">{</span>
+                        <p>Class protocol containing the HTTPRequestHandler that responds to the incoming HTTP requests.
+The following is an example of a HTTPRequestHandler that returns the request as a response:</p>
+
+<pre class="highlight swift"><code>   <span class="kd">class</span> <span class="kt">EchoHandler</span><span class="p">:</span> <span class="kt">HTTPRequestHandling</span> <span class="p">{</span>
+       <span class="kd">func</span> <span class="nf">handle</span><span class="p">(</span><span class="nv">request</span><span class="p">:</span> <span class="kt">HTTPRequest</span><span class="p">,</span> <span class="nv">response</span><span class="p">:</span> <span class="kt">HTTPResponseWriter</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">HTTPBodyProcessing</span> <span class="p">{</span>
            <span class="n">res</span><span class="o">.</span><span class="nf">writeHeader</span><span class="p">(</span><span class="nv">status</span><span class="p">:</span> <span class="o">.</span><span class="n">ok</span><span class="p">,</span> <span class="nv">headers</span><span class="p">:</span> <span class="p">[:])</span>
            <span class="k">return</span> <span class="o">.</span><span class="n">processBody</span> <span class="p">{</span> <span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span> <span class="k">in</span>
                <span class="k">switch</span> <span class="n">chunk</span> <span class="p">{</span>
@@ -169,13 +191,13 @@ The following is an example of a WebApp that returns the request as a response:<
    <span class="p">}</span>
 </code></pre>
 
-                        <a href="Protocols/WebAppContaining.html" class="slightly-smaller">See more</a>
+                        <a href="Protocols/HTTPRequestHandling.html" class="slightly-smaller">See more</a>
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">WebAppContaining</span><span class="p">:</span> <span class="kd">class</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">HTTPRequestHandling</span><span class="p">:</span> <span class="kd">class</span></code></pre>
 
                         </div>
                       </div>
@@ -185,9 +207,9 @@ The following is an example of a WebApp that returns the request as a response:<
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4HTTP6WebApp"></a>
-                    <a name="//apple_ref/swift/Alias/WebApp" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4HTTP6WebApp">WebApp</a>
+                    <a name="/s:4HTTP18HTTPRequestHandlera"></a>
+                    <a name="//apple_ref/swift/Alias/HTTPRequestHandler" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4HTTP18HTTPRequestHandlera">HTTPRequestHandler</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -195,47 +217,19 @@ The following is an example of a WebApp that returns the request as a response:<
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Typealias for a closure that handles an incoming HTTP request</p>
+                        <p>Typealias for a closure that handles an incoming HTTP request
+- Parameter req: the incoming HTTP request.
+- Parameter res: a writer providing functions to create an HTTP reponse to the request.
+- Returns HTTPBodyProcessing: a enum that either discards the request data, or provides a closure to process it.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">typealias</span> <span class="kt">WebApp</span> <span class="o">=</span> <span class="p">(</span><span class="kt"><a href="Structs/HTTPRequest.html">HTTPRequest</a></span><span class="p">,</span> <span class="kt"><a href="Protocols/HTTPResponseWriter.html">HTTPResponseWriter</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="Enums/HTTPBodyProcessing.html">HTTPBodyProcessing</a></span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">typealias</span> <span class="kt">HTTPRequestHandler</span> <span class="o">=</span> <span class="p">(</span><span class="kt"><a href="Structs/HTTPRequest.html">HTTPRequest</a></span><span class="p">,</span> <span class="kt"><a href="Protocols/HTTPResponseWriter.html">HTTPResponseWriter</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="Enums/HTTPBodyProcessing.html">HTTPBodyProcessing</a></span></code></pre>
 
                         </div>
-                      </div>
-                      <div>
-                        <h4>Parameters</h4>
-                        <table class="graybox">
-                          <tbody>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>req</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>the incoming HTTP request.</p>
-                                </div>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>res</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>a writer providing functions to create an HTTP reponse to the request.</p>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
                       </div>
                     </section>
                   </div>
@@ -248,8 +242,8 @@ The following is an example of a WebApp that returns the request as a response:<
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift.org Server APIs Project</a>. All rights reserved. (Last updated: 2017-08-11)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift Server API project</a>. All rights reserved. (Last updated: 2017-08-23)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>

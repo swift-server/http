@@ -8,9 +8,6 @@
     <script src="../js/jquery.min.js" defer></script>
     <script src="../js/jazzy.js" defer></script>
     
-    <script src="../js/lunr.min.js" defer></script>
-    <script src="../js/typeahead.jquery.js" defer></script>
-    <script src="../js/jazzy.search.js" defer></script>
   </head>
   <body>
 
@@ -23,17 +20,11 @@
         <a class="header-link" href="../index.html">
           HTTP Docs
         </a>
-         (100% documented)
-      </p>
-    
-      <p class="header-col--secondary">
-        <form role="search" action="../search.json">
-          <input type="text" placeholder="Search documentation" data-typeahead>
-        </form>
+         (99% documented)
       </p>
     
         <p class="header-col header-col--secondary">
-          <a class="header-link" href="https://github.com/swift-server/HTTP/">
+          <a class="header-link" href="https://github.com/swift-server/http/">
             <img class="header-icon" src="../img/gh.png"/>
             View on GitHub
           </a>
@@ -54,10 +45,10 @@
             <a class="nav-group-name-link" href="../HTTP Server.html">HTTP Server</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../Protocols/WebAppContaining.html">WebAppContaining</a>
+                <a class="nav-group-task-link" href="../Protocols/HTTPRequestHandling.html">HTTPRequestHandling</a>
               </li>
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../HTTP Server.html#/s:4HTTP6WebApp">WebApp</a>
+                <a class="nav-group-task-link" href="../HTTP Server.html#/s:4HTTP18HTTPRequestHandlera">HTTPRequestHandler</a>
               </li>
             </ul>
           </li>
@@ -85,7 +76,7 @@
                 <a class="nav-group-task-link" href="../Structs/HTTPMethod.html">HTTPMethod</a>
               </li>
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../HTTP Request.html#/s:4HTTP15HTTPBodyHandler">HTTPBodyHandler</a>
+                <a class="nav-group-task-link" href="../HTTP Request.html#/s:4HTTP15HTTPBodyHandlera">HTTPBodyHandler</a>
               </li>
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="../Enums/HTTPBodyProcessing.html">HTTPBodyProcessing</a>
@@ -113,10 +104,40 @@
             </ul>
           </li>
           <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Other Classes.html">Other Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BlueSocketConnectionListener.html">BlueSocketConnectionListener</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BlueSocketSimpleServer.html">BlueSocketSimpleServer</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/HTTPServer.html">HTTPServer</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
             <a class="nav-group-name-link" href="../Other Enums.html">Other Enums</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="../Enums/Result.html">Result</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Other Extensions.html">Other Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Extensions/UnsafeRawBufferPointer.html">UnsafeRawBufferPointer</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Other Protocols.html">Other Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Protocols/HTTPServing.html">HTTPServing</a>
               </li>
             </ul>
           </li>
@@ -134,13 +155,14 @@
                 </div>
               </div>
             <p>Representation of the HTTP headers associated with a <code><a href="../Structs/HTTPRequest.html">HTTPRequest</a></code> or <code><a href="../Structs/HTTPResponse.html">HTTPResponse</a></code>.
-Headers are subscriptable using case-insensitive comparison or provide <code>Name</code> constants. eg.</p>
-<pre class="highlight swift"><code>   <span class="k">let</span> <span class="nv">contentLength</span> <span class="o">=</span> <span class="n">headers</span><span class="p">[</span><span class="s">"content-length"</span><span class="p">]</span>
-</code></pre>
-
-<p>or</p>
-<pre class="highlight swift"><code>   <span class="k">let</span> <span class="nv">contentLength</span> <span class="o">=</span> <span class="n">headers</span><span class="p">[</span><span class="o">.</span><span class="n">contentLength</span><span class="p">]</span>
-</code></pre>
+Headers are subscriptable using case-insensitive comparison or provide <code>Name</code> constants. eg.
+<code>swift
+   let contentLength = headers[&quot;content-length&quot;]
+</code>
+or
+<code>swift
+   let contentLength = headers[.contentLength]
+</code></p>
 
           </div>
         </section>
@@ -152,9 +174,9 @@ Headers are subscriptable using case-insensitive comparison or provide <code>Nam
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FV4HTTP11HTTPHeaderscFt17dictionaryLiteralGSaTVS0_4NameSS___S0_"></a>
+                    <a name="/s:4HTTP11HTTPHeadersVACSayAC4NameV_SStG17dictionaryLiterald_tcfc"></a>
                     <a name="//apple_ref/swift/Method/init(dictionaryLiteral:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FV4HTTP11HTTPHeaderscFt17dictionaryLiteralGSaTVS0_4NameSS___S0_">init(dictionaryLiteral:)</a>
+                    <a class="token" href="#/s:4HTTP11HTTPHeadersVACSayAC4NameV_SStG17dictionaryLiterald_tcfc">init(dictionaryLiteral:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -183,9 +205,9 @@ Headers are subscriptable using case-insensitive comparison or provide <code>Nam
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FV4HTTP11HTTPHeaders6appendFVS0_7LiteralT_"></a>
+                    <a name="/s:4HTTP11HTTPHeadersV6appendyAC7LiteralVF"></a>
                     <a name="//apple_ref/swift/Method/append(_:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FV4HTTP11HTTPHeaders6appendFVS0_7LiteralT_">append(_:)</a>
+                    <a class="token" href="#/s:4HTTP11HTTPHeadersV6appendyAC7LiteralVF">append(_:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -210,9 +232,9 @@ Headers are subscriptable using case-insensitive comparison or provide <code>Nam
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FV4HTTP11HTTPHeaders7replaceFVS0_7LiteralT_"></a>
+                    <a name="/s:4HTTP11HTTPHeadersV7replaceyAC7LiteralVF"></a>
                     <a name="//apple_ref/swift/Method/replace(_:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FV4HTTP11HTTPHeaders7replaceFVS0_7LiteralT_">replace(_:)</a>
+                    <a class="token" href="#/s:4HTTP11HTTPHeadersV7replaceyAC7LiteralVF">replace(_:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -241,9 +263,9 @@ Headers are subscriptable using case-insensitive comparison or provide <code>Nam
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:VV4HTTP11HTTPHeaders4Name"></a>
+                    <a name="/s:4HTTP11HTTPHeadersV4NameV"></a>
                     <a name="//apple_ref/swift/Struct/Name" class="dashAnchor"></a>
-                    <a class="token" href="#/s:VV4HTTP11HTTPHeaders4Name">Name</a>
+                    <a class="token" href="#/s:4HTTP11HTTPHeadersV4NameV">Name</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -274,8 +296,8 @@ Headers are subscriptable using case-insensitive comparison or provide <code>Nam
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift.org Server APIs Project</a>. All rights reserved. (Last updated: 2017-08-11)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift Server API project</a>. All rights reserved. (Last updated: 2017-08-23)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>

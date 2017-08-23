@@ -8,9 +8,6 @@
     <script src="../js/jquery.min.js" defer></script>
     <script src="../js/jazzy.js" defer></script>
     
-    <script src="../js/lunr.min.js" defer></script>
-    <script src="../js/typeahead.jquery.js" defer></script>
-    <script src="../js/jazzy.search.js" defer></script>
   </head>
   <body>
 
@@ -23,17 +20,11 @@
         <a class="header-link" href="../index.html">
           HTTP Docs
         </a>
-         (100% documented)
-      </p>
-    
-      <p class="header-col--secondary">
-        <form role="search" action="../search.json">
-          <input type="text" placeholder="Search documentation" data-typeahead>
-        </form>
+         (99% documented)
       </p>
     
         <p class="header-col header-col--secondary">
-          <a class="header-link" href="https://github.com/swift-server/HTTP/">
+          <a class="header-link" href="https://github.com/swift-server/http/">
             <img class="header-icon" src="../img/gh.png"/>
             View on GitHub
           </a>
@@ -54,10 +45,10 @@
             <a class="nav-group-name-link" href="../HTTP Server.html">HTTP Server</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../Protocols/WebAppContaining.html">WebAppContaining</a>
+                <a class="nav-group-task-link" href="../Protocols/HTTPRequestHandling.html">HTTPRequestHandling</a>
               </li>
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../HTTP Server.html#/s:4HTTP6WebApp">WebApp</a>
+                <a class="nav-group-task-link" href="../HTTP Server.html#/s:4HTTP18HTTPRequestHandlera">HTTPRequestHandler</a>
               </li>
             </ul>
           </li>
@@ -85,7 +76,7 @@
                 <a class="nav-group-task-link" href="../Structs/HTTPMethod.html">HTTPMethod</a>
               </li>
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../HTTP Request.html#/s:4HTTP15HTTPBodyHandler">HTTPBodyHandler</a>
+                <a class="nav-group-task-link" href="../HTTP Request.html#/s:4HTTP15HTTPBodyHandlera">HTTPBodyHandler</a>
               </li>
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="../Enums/HTTPBodyProcessing.html">HTTPBodyProcessing</a>
@@ -113,10 +104,40 @@
             </ul>
           </li>
           <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Other Classes.html">Other Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BlueSocketConnectionListener.html">BlueSocketConnectionListener</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BlueSocketSimpleServer.html">BlueSocketSimpleServer</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/HTTPServer.html">HTTPServer</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
             <a class="nav-group-name-link" href="../Other Enums.html">Other Enums</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="../Enums/Result.html">Result</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Other Extensions.html">Other Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Extensions/UnsafeRawBufferPointer.html">UnsafeRawBufferPointer</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Other Protocols.html">Other Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Protocols/HTTPServing.html">HTTPServing</a>
               </li>
             </ul>
           </li>
@@ -145,9 +166,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vV4HTTP10HTTPMethod6methodSS"></a>
+                    <a name="/s:4HTTP10HTTPMethodV6methodSSv"></a>
                     <a name="//apple_ref/swift/Property/method" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vV4HTTP10HTTPMethod6methodSS">method</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV6methodSSv">method</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -172,9 +193,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FV4HTTP10HTTPMethodcFSSS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodVACSScfc"></a>
                     <a name="//apple_ref/swift/Method/init(_:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FV4HTTP10HTTPMethodcFSSS0_">init(_:)</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodVACSScfc">init(_:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -203,9 +224,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod6deleteS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV6deleteACvZ"></a>
                     <a name="//apple_ref/swift/Variable/delete" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod6deleteS0_">delete</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV6deleteACvZ">delete</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -230,9 +251,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod3getS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV3getACvZ"></a>
                     <a name="//apple_ref/swift/Variable/get" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod3getS0_">get</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV3getACvZ">get</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -257,9 +278,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod4headS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV4headACvZ"></a>
                     <a name="//apple_ref/swift/Variable/head" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod4headS0_">head</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV4headACvZ">head</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -284,9 +305,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod4postS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV4postACvZ"></a>
                     <a name="//apple_ref/swift/Variable/post" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod4postS0_">post</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV4postACvZ">post</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -311,9 +332,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod3putS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV3putACvZ"></a>
                     <a name="//apple_ref/swift/Variable/put" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod3putS0_">put</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV3putACvZ">put</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -338,9 +359,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod7connectS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV7connectACvZ"></a>
                     <a name="//apple_ref/swift/Variable/connect" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod7connectS0_">connect</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV7connectACvZ">connect</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -365,9 +386,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod7optionsS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV7optionsACvZ"></a>
                     <a name="//apple_ref/swift/Variable/options" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod7optionsS0_">options</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV7optionsACvZ">options</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -392,9 +413,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod5traceS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV5traceACvZ"></a>
                     <a name="//apple_ref/swift/Variable/trace" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod5traceS0_">trace</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV5traceACvZ">trace</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -419,9 +440,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod4copyS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV4copyACvZ"></a>
                     <a name="//apple_ref/swift/Variable/copy" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod4copyS0_">copy</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV4copyACvZ">copy</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -446,9 +467,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod4lockS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV4lockACvZ"></a>
                     <a name="//apple_ref/swift/Variable/lock" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod4lockS0_">lock</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV4lockACvZ">lock</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -473,9 +494,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod4mkolS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV4mkolACvZ"></a>
                     <a name="//apple_ref/swift/Variable/mkol" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod4mkolS0_">mkol</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV4mkolACvZ">mkol</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -500,9 +521,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod4moveS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV4moveACvZ"></a>
                     <a name="//apple_ref/swift/Variable/move" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod4moveS0_">move</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV4moveACvZ">move</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -527,9 +548,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod8propfindS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV8propfindACvZ"></a>
                     <a name="//apple_ref/swift/Variable/propfind" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod8propfindS0_">propfind</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV8propfindACvZ">propfind</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -554,9 +575,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod9proppatchS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV9proppatchACvZ"></a>
                     <a name="//apple_ref/swift/Variable/proppatch" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod9proppatchS0_">proppatch</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV9proppatchACvZ">proppatch</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -581,9 +602,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod6searchS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV6searchACvZ"></a>
                     <a name="//apple_ref/swift/Variable/search" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod6searchS0_">search</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV6searchACvZ">search</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -608,9 +629,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod6unlockS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV6unlockACvZ"></a>
                     <a name="//apple_ref/swift/Variable/unlock" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod6unlockS0_">unlock</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV6unlockACvZ">unlock</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -635,9 +656,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod4bindS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV4bindACvZ"></a>
                     <a name="//apple_ref/swift/Variable/bind" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod4bindS0_">bind</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV4bindACvZ">bind</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -662,9 +683,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod6rebindS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV6rebindACvZ"></a>
                     <a name="//apple_ref/swift/Variable/rebind" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod6rebindS0_">rebind</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV6rebindACvZ">rebind</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -689,9 +710,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod6unbindS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV6unbindACvZ"></a>
                     <a name="//apple_ref/swift/Variable/unbind" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod6unbindS0_">unbind</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV6unbindACvZ">unbind</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -716,9 +737,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod3aclS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV3aclACvZ"></a>
                     <a name="//apple_ref/swift/Variable/acl" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod3aclS0_">acl</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV3aclACvZ">acl</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -743,9 +764,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod6reportS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV6reportACvZ"></a>
                     <a name="//apple_ref/swift/Variable/report" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod6reportS0_">report</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV6reportACvZ">report</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -770,9 +791,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod10mkactivityS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV10mkactivityACvZ"></a>
                     <a name="//apple_ref/swift/Variable/mkactivity" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod10mkactivityS0_">mkactivity</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV10mkactivityACvZ">mkactivity</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -797,9 +818,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod8checkoutS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV8checkoutACvZ"></a>
                     <a name="//apple_ref/swift/Variable/checkout" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod8checkoutS0_">checkout</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV8checkoutACvZ">checkout</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -824,9 +845,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod5mergeS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV5mergeACvZ"></a>
                     <a name="//apple_ref/swift/Variable/merge" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod5mergeS0_">merge</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV5mergeACvZ">merge</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -851,9 +872,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod7msearchS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV7msearchACvZ"></a>
                     <a name="//apple_ref/swift/Variable/msearch" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod7msearchS0_">msearch</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV7msearchACvZ">msearch</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -878,9 +899,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod6notifyS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV6notifyACvZ"></a>
                     <a name="//apple_ref/swift/Variable/notify" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod6notifyS0_">notify</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV6notifyACvZ">notify</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -905,9 +926,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod9subscribeS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV9subscribeACvZ"></a>
                     <a name="//apple_ref/swift/Variable/subscribe" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod9subscribeS0_">subscribe</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV9subscribeACvZ">subscribe</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -932,9 +953,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod11unsubscribeS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV11unsubscribeACvZ"></a>
                     <a name="//apple_ref/swift/Variable/unsubscribe" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod11unsubscribeS0_">unsubscribe</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV11unsubscribeACvZ">unsubscribe</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -959,9 +980,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod5patchS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV5patchACvZ"></a>
                     <a name="//apple_ref/swift/Variable/patch" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod5patchS0_">patch</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV5patchACvZ">patch</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -986,9 +1007,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod5purgeS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV5purgeACvZ"></a>
                     <a name="//apple_ref/swift/Variable/purge" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod5purgeS0_">purge</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV5purgeACvZ">purge</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1013,9 +1034,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod10mkcalendarS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV10mkcalendarACvZ"></a>
                     <a name="//apple_ref/swift/Variable/mkcalendar" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod10mkcalendarS0_">mkcalendar</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV10mkcalendarACvZ">mkcalendar</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1040,9 +1061,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod4linkS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV4linkACvZ"></a>
                     <a name="//apple_ref/swift/Variable/link" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod4linkS0_">link</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV4linkACvZ">link</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1067,9 +1088,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvV4HTTP10HTTPMethod6unlinkS0_"></a>
+                    <a name="/s:4HTTP10HTTPMethodV6unlinkACvZ"></a>
                     <a name="//apple_ref/swift/Variable/unlink" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvV4HTTP10HTTPMethod6unlinkS0_">unlink</a>
+                    <a class="token" href="#/s:4HTTP10HTTPMethodV6unlinkACvZ">unlink</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1098,9 +1119,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vPs8Hashable9hashValueSi"></a>
+                    <a name="/s:s8HashableP9hashValueSiv"></a>
                     <a name="//apple_ref/swift/Property/hashValue" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vPs8Hashable9hashValueSi">hashValue</a>
+                    <a class="token" href="#/s:s8HashableP9hashValueSiv">hashValue</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1108,7 +1129,8 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        
+                        <p>UNLINK method.</p>
+
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
@@ -1129,8 +1151,8 @@
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift.org Server APIs Project</a>. All rights reserved. (Last updated: 2017-08-11)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift Server API project</a>. All rights reserved. (Last updated: 2017-08-23)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>
