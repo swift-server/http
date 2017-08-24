@@ -1,7 +1,6 @@
 # Xcode
 #
 # gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
-*.xcodeproj
 
 ## Build generated
 build/
@@ -68,7 +67,6 @@ fastlane/test_output
 .DS_Store
 /.build
 /Packages
-/*.xcodeproj
 *.DS_Store
 *.orig
 /.idea
