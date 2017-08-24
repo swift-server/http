@@ -30,7 +30,7 @@ extension HTTPVersion : Hashable {
     public static func == (lhs: HTTPVersion, rhs: HTTPVersion) -> Bool {
         return lhs.major == rhs.major && lhs.minor == rhs.minor
     }
-    
+
     /// :nodoc:
     public static func ~= (match: HTTPVersion, version: HTTPVersion) -> Bool {
         return match == version

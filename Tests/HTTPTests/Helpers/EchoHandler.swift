@@ -9,7 +9,6 @@
 import Foundation
 import HTTP
 
-
 /// Simple `HTTPRequestHandler` that just echoes back whatever input it gets
 class EchoHandler: HTTPRequestHandling {
     func handle(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {

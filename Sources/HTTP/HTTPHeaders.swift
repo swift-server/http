@@ -58,7 +58,7 @@ extension HTTPHeaders : ExpressibleByDictionaryLiteral {
 extension HTTPHeaders {
     // Used instead of HTTPHeaders to save CPU on dictionary construction
     /// :nodoc:
-    public struct Literal : ExpressibleByDictionaryLiteral {
+    public struct Literal: ExpressibleByDictionaryLiteral {
         let fields: [(name: Name, value: String)]
 
         public init(dictionaryLiteral: (Name, String)...) {
@@ -102,7 +102,7 @@ extension HTTPHeaders : Sequence {
         }
     }
 
-    struct StorageIterator : IteratorProtocol {
+    struct StorageIterator: IteratorProtocol {
         var headers: DictionaryIterator<Name, [String]>
         var header: (name: Name, values: IndexingIterator<[String]>)?
 
@@ -126,9 +126,8 @@ extension HTTPHeaders : Sequence {
 
 /// HTTPHeaders structure.
 extension HTTPHeaders {
-    
     /// Type used for the name of a HTTP header in the `HTTPHeaders` storage.
-    public struct Name : Hashable, ExpressibleByStringLiteral, CustomStringConvertible {
+    public struct Name: Hashable, ExpressibleByStringLiteral, CustomStringConvertible {
         let original: String
         let lowercased: String
         public let hashValue: Int
@@ -156,7 +155,7 @@ extension HTTPHeaders {
         public var description: String {
             return original
         }
-        
+
         /// :nodoc:
         public static func == (lhs: Name, rhs: Name) -> Bool {
             return lhs.lowercased == rhs.lowercased
@@ -164,7 +163,7 @@ extension HTTPHeaders {
 
         // https://www.iana.org/assignments/message-headers/message-headers.xhtml
         // Permanent Message Header Field Names
-        
+
         /// A-IM header.
         public static let aIM = Name("A-IM")
         /// Accept header.

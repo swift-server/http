@@ -14,44 +14,43 @@ import HTTP
 class TestResponseResolver: HTTPResponseWriter {
     let request: HTTPRequest
     let requestBody: DispatchData
-    
+
     var response: (status: HTTPResponseStatus, headers: HTTPHeaders)?
     var responseBody: HTTPResponseBody?
-    
-    
+
     init(request: HTTPRequest, requestBody: Data) {
         self.request = request
         self.requestBody = requestBody.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) -> DispatchData in
             DispatchData(bytes: UnsafeBufferPointer<UInt8>(start: ptr, count: requestBody.count))
         }
     }
-    
+
     func resolveHandler(_ handler: HTTPRequestHandler) {
         let chunkHandler = handler(request, self)
-        var stop=false
-        var finished=false
+        var stop = false
+        var finished = false
         while !stop && !finished {
             switch chunkHandler {
             case .processBody(let handler):
                 handler(.chunk(data: self.requestBody, finishedProcessing: {
-                    finished=true
+                    finished = true
                 }), &stop)
                 handler(.end, &stop)
             case .discardBody:
-                finished=true
+                finished = true
             }
         }
     }
-    
+
     func writeHeader(status: HTTPResponseStatus, headers: HTTPHeaders, completion: @escaping (Result) -> Void) {
         self.response = (status: status, headers: headers)
         completion(.ok)
     }
-    
+
     func writeTrailer(_ trailers: HTTPHeaders, completion: @escaping (Result) -> Void) {
         fatalError("Not implemented")
     }
-    
+
     func writeBody(_ data: UnsafeHTTPResponseBody, completion: @escaping (Result) -> Void) {
         if let data = data as? HTTPResponseBody {
             self.responseBody = data
@@ -60,17 +59,16 @@ class TestResponseResolver: HTTPResponseWriter {
         }
         completion(.ok)
     }
-    
+
     func done(completion: @escaping (Result) -> Void) {
         completion(.ok)
     }
     func done() /* convenience */ {
-        done() { _ in
+        done { _ in
         }
     }
-    
+
     func abort() {
         fatalError("abort called, not sure what to do with it")
     }
-    
 }

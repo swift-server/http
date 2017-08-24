@@ -25,7 +25,7 @@ public protocol HTTPServing : class {
 /// A basic HTTP server. Currently this is implemented using the BlueSocket
 /// abstraction, but the intention is to remove this dependency and reimplement
 /// the class using transport APIs provided by the Server APIs working group.
-public class HTTPServer : HTTPServing {
+public class HTTPServer: HTTPServing {
     private let server = BlueSocketSimpleServer()
 
     public init() {
@@ -34,7 +34,7 @@ public class HTTPServer : HTTPServing {
     public func start(port: Int = 0, handler: @escaping HTTPRequestHandler) throws {
         try server.start(handler: handler)
     }
-    
+
     public func stop() {
         server.stop()
     }

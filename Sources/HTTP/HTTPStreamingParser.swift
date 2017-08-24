@@ -6,25 +6,22 @@
 // See http://swift.org/LICENSE.txt for license information
 //
 
+import CHTTPParser
 import Foundation
 import Dispatch
-
-import CHTTPParser
-
 
 /// Class that wraps the CHTTPParser and calls the `HTTPRequestHandler` to get the response
 /// :nodoc:
 public class StreamingParser: HTTPResponseWriter {
 
     let handle: HTTPRequestHandler
-    
+
     /// Time to leave socket open waiting for next request to start
     public static let keepAliveTimeout: TimeInterval = 5
-    
+
     /// Flag to track if the client wants to send multiple requests on the same TCP connection
     var clientRequestedKeepAlive = false
-    
-    
+
     /// Tracks when socket should be closed. Needs to have a lock, since it's updated often
     private let _keepAliveUntilLock = DispatchSemaphore(value: 1)
     private var _keepAliveUntil: TimeInterval?
@@ -47,7 +44,7 @@ public class StreamingParser: HTTPResponseWriter {
 
     /// Theoretical limit of how many open requests we can have. Used in Keep-Alive Header
     let maxRequests = 100
-    
+
     /// Optional delegate that can tell us how many connections are in-flight so we can set the Keep-Alive header
     ///  to the correct number of available connections. If not present, the client will not be limited in number of 
     ///  connections that can be made simultaneously
@@ -59,14 +56,14 @@ public class StreamingParser: HTTPResponseWriter {
     /// HTTP Parser
     var httpParser = http_parser()
     var httpParserSettings = http_parser_settings()
-    
+
     /// Block that takes a chunk from the HTTPParser as input and writes to a Response as a result
     var httpBodyProcessingCallback: HTTPBodyProcessing?
-    
+
     //Note: we want this to be strong so it holds onto the connector until it's explicitly cleared
     /// Protocol that we use to send data (and status info) back to the Network layer
     public var parserConnector: ParserConnecting?
-    
+
     var lastCallBack = CallbackRecord.idle
     var lastHeaderName: String?
     var parsedHeaders = HTTPHeaders()
@@ -76,85 +73,82 @@ public class StreamingParser: HTTPResponseWriter {
 
     /// Is the currently parsed request an upgrade request?
     public private(set) var upgradeRequested = false
-    
+
     /// Class that wraps the CHTTPParser and calls the `HTTPRequestHandler` to get the response
     ///
     /// - Parameter handler: function that is used to create the response
     public init(handler: @escaping HTTPRequestHandler, connectionCounter: CurrentConnectionCounting? = nil) {
         self.handle = handler
         self.connectionCounter = connectionCounter
-        
+
         //Set up all the callbacks for the CHTTPParser library
-        httpParserSettings.on_message_begin = {
-            parser -> Int32 in
+        httpParserSettings.on_message_begin = { parser -> Int32 in
             guard let listener = StreamingParser.getSelf(parser: parser) else {
                 return Int32(0)
             }
             return listener.messageBegan()
         }
-        
-        httpParserSettings.on_message_complete = {
-            parser -> Int32 in
+
+        httpParserSettings.on_message_complete = { parser -> Int32 in
             guard let listener = StreamingParser.getSelf(parser: parser) else {
-                return Int32(0)
+                return 0
             }
             return listener.messageCompleted()
         }
-        
-        httpParserSettings.on_headers_complete = {
-            parser -> Int32 in
+
+        httpParserSettings.on_headers_complete = { parser -> Int32 in
             guard let listener = StreamingParser.getSelf(parser: parser) else {
-                return Int32(0)
+                return 0
             }
             let methodId = parser?.pointee.method
-            let methodName = String(validatingUTF8:http_method_str(http_method(rawValue: methodId  ?? 0))) ?? "GET"
+            let methodName = String(validatingUTF8: http_method_str(http_method(rawValue: methodId ?? 0))) ?? "GET"
             let major = Int(parser?.pointee.http_major ?? 0)
             let minor = Int(parser?.pointee.http_minor ?? 0)
-            
+
             //This needs to be set here and not messageCompleted if it's going to work here
-            let keepAlive = (http_should_keep_alive(parser) == 1)
+            let keepAlive = http_should_keep_alive(parser) == 1
             let upgradeRequested = get_upgrade_value(parser) == 1
 
-            return listener.headersCompleted(methodName: methodName, majorVersion: major, minorVersion: minor, keepAlive: keepAlive, upgrade: upgradeRequested)
+            return listener.headersCompleted(methodName: methodName,
+                                             majorVersion: major,
+                                             minorVersion: minor,
+                                             keepAlive: keepAlive,
+                                             upgrade: upgradeRequested)
         }
-        
-        httpParserSettings.on_header_field = {
-            (parser, chunk, length) -> Int32 in
+
+        httpParserSettings.on_header_field = { (parser, chunk, length) -> Int32 in
             guard let listener = StreamingParser.getSelf(parser: parser) else {
-                return Int32(0)
+                return 0
             }
             return listener.headerFieldReceived(data: chunk, length: length)
         }
-        
-        httpParserSettings.on_header_value = {
-            (parser, chunk, length) -> Int32 in
+
+        httpParserSettings.on_header_value = { (parser, chunk, length) -> Int32 in
             guard let listener = StreamingParser.getSelf(parser: parser) else {
-                return Int32(0)
+                return 0
             }
             return listener.headerValueReceived(data: chunk, length: length)
         }
-        
-        httpParserSettings.on_body = {
-            (parser, chunk, length) -> Int32 in
+
+        httpParserSettings.on_body = { (parser, chunk, length) -> Int32 in
             guard let listener = StreamingParser.getSelf(parser: parser) else {
-                return Int32(0)
+                return 0
             }
             return listener.bodyReceived(data: chunk, length: length)
         }
-        
-        httpParserSettings.on_url = {
-            (parser, chunk, length) -> Int32 in
+
+        httpParserSettings.on_url = { (parser, chunk, length) -> Int32 in
             guard let listener = StreamingParser.getSelf(parser: parser) else {
-                return Int32(0)
+                return 0
             }
             return listener.urlReceived(data: chunk, length: length)
         }
+
         http_parser_init(&httpParser, HTTP_REQUEST)
-        
+
         self.httpParser.data = Unmanaged.passUnretained(self).toOpaque()
-        
     }
-    
+
     /// Read a stream from the network, pass it to the parser and return number of bytes consumed
     ///
     /// - Parameter data: data coming from network
@@ -164,18 +158,18 @@ public class StreamingParser: HTTPResponseWriter {
             return http_parser_execute(&self.httpParser, &self.httpParserSettings, ptr, data.count)
         }
     }
-    
+
     /// States to track where we are in parsing the HTTP Stream from the client
     enum CallbackRecord {
         case idle, messageBegan, messageCompleted, headersCompleted, headerFieldReceived, headerValueReceived, bodyReceived, urlReceived
     }
-    
+
     /// Process change of state as we get more and more parser callbacks
     ///
     /// - Parameter currentCallBack: state we are entering, as specified by the CHTTPParser
     /// - Returns: Whether or not the state actually changed
     @discardableResult
-    func processCurrentCallback(_ currentCallBack:CallbackRecord) -> Bool {
+    func processCurrentCallback(_ currentCallBack: CallbackRecord) -> Bool {
         if lastCallBack == currentCallBack {
             return false
         }
@@ -183,21 +177,23 @@ public class StreamingParser: HTTPResponseWriter {
         case .headerFieldReceived:
             if let parserBuffer = self.parserBuffer {
                 self.lastHeaderName = String(data: parserBuffer, encoding: .utf8)
-                self.parserBuffer=nil
+                self.parserBuffer = nil
             } else {
                 print("Missing parserBuffer after \(lastCallBack)")
             }
         case .headerValueReceived:
-            if let parserBuffer = self.parserBuffer, let lastHeaderName = self.lastHeaderName, let headerValue = String(data:parserBuffer, encoding: .utf8) {
+            if let parserBuffer = self.parserBuffer,
+               let lastHeaderName = self.lastHeaderName,
+               let headerValue = String(data:parserBuffer, encoding: .utf8) {
                 self.parsedHeaders.append([HTTPHeaders.Name(lastHeaderName): headerValue])
                 self.lastHeaderName = nil
-                self.parserBuffer=nil
+                self.parserBuffer = nil
             } else {
                 print("Missing parserBuffer after \(lastCallBack)")
             }
         case .headersCompleted:
-            self.parserBuffer=nil
-            
+            self.parserBuffer = nil
+
             if !upgradeRequested {
                 self.httpBodyProcessingCallback = self.handle(self.createRequest(), self)
             }
@@ -206,7 +202,7 @@ public class StreamingParser: HTTPResponseWriter {
                 //Under heaptrack, this may appear to leak via _CFGetTSDCreateIfNeeded, 
                 //  apparently, that's because it triggers thread metadata to be created
                 self.parsedURL = String(data:parserBuffer, encoding: .utf8)
-                self.parserBuffer=nil
+                self.parserBuffer = nil
             } else {
                 print("Missing parserBuffer after \(lastCallBack)")
             }
@@ -222,17 +218,17 @@ public class StreamingParser: HTTPResponseWriter {
         lastCallBack = currentCallBack
         return true
     }
-    
+
     func messageBegan() -> Int32 {
         processCurrentCallback(.messageBegan)
         self.parserConnector?.responseBeginning()
         return 0
     }
-    
+
     func messageCompleted() -> Int32 {
         let didChangeState = processCurrentCallback(.messageCompleted)
         if let chunkHandler = self.httpBodyProcessingCallback, didChangeState {
-            var stop=false
+            var stop = false
             switch chunkHandler {
             case .processBody(let handler):
                 handler(.end, &stop)
@@ -242,8 +238,12 @@ public class StreamingParser: HTTPResponseWriter {
         }
         return 0
     }
-    
-    func headersCompleted(methodName:String, majorVersion: Int, minorVersion:Int, keepAlive: Bool, upgrade:Bool) -> Int32 {
+
+    func headersCompleted(methodName: String,
+                          majorVersion: Int,
+                          minorVersion: Int,
+                          keepAlive: Bool,
+                          upgrade: Bool) -> Int32 {
         processCurrentCallback(.headersCompleted)
         self.parsedHTTPMethod = HTTPMethod(methodName)
         self.parsedHTTPVersion = HTTPVersion(major: majorVersion, minor: minorVersion)
@@ -254,25 +254,33 @@ public class StreamingParser: HTTPResponseWriter {
         self.upgradeRequested = upgrade
         return 0
     }
-    
+
     func headerFieldReceived(data: UnsafePointer<Int8>?, length: Int) -> Int32 {
         processCurrentCallback(.headerFieldReceived)
         guard let data = data else { return 0 }
         data.withMemoryRebound(to: UInt8.self, capacity: length) { (ptr) -> Void in
-            self.parserBuffer == nil ? self.parserBuffer = Data(bytes:data, count:length) : self.parserBuffer?.append(ptr, count:length)
+            if var parserBuffer = parserBuffer {
+                parserBuffer.append(ptr, count: length)
+            } else {
+                parserBuffer = Data(bytes: data, count: length)
+            }
         }
         return 0
     }
-    
+
     func headerValueReceived(data: UnsafePointer<Int8>?, length: Int) -> Int32 {
         processCurrentCallback(.headerValueReceived)
         guard let data = data else { return 0 }
         data.withMemoryRebound(to: UInt8.self, capacity: length) { (ptr) -> Void in
-            self.parserBuffer == nil ? self.parserBuffer = Data(bytes:data, count:length) : self.parserBuffer?.append(ptr, count:length)
+            if var parserBuffer = parserBuffer {
+                parserBuffer.append(ptr, count: length)
+            } else {
+                parserBuffer = Data(bytes: data, count: length)
+            }
         }
         return 0
     }
-    
+
     func bodyReceived(data: UnsafePointer<Int8>?, length: Int) -> Int32 {
         processCurrentCallback(.bodyReceived)
         guard let data = data else { return 0 }
@@ -280,51 +288,58 @@ public class StreamingParser: HTTPResponseWriter {
             let buff = UnsafeBufferPointer<UInt8>(start: ptr, count: length)
             let chunk = DispatchData(bytes:buff)
             if let chunkHandler = self.httpBodyProcessingCallback {
-                var stop=false
-                var finished=false
+                var stop = false
+                var finished = false
                 while !stop && !finished {
                     switch chunkHandler {
                     case .processBody(let handler):
                         handler(.chunk(data: chunk, finishedProcessing: {
-                            finished=true
+                            finished = true
                         }), &stop)
                     case .discardBody:
-                        finished=true
+                        finished = true
                     }
                 }
             }
         }
         return 0
     }
-    
+
     func urlReceived(data: UnsafePointer<Int8>?, length: Int) -> Int32 {
         processCurrentCallback(.urlReceived)
         guard let data = data else { return 0 }
         data.withMemoryRebound(to: UInt8.self, capacity: length) { (ptr) -> Void in
-            self.parserBuffer == nil ? self.parserBuffer = Data(bytes:data, count:length) : self.parserBuffer?.append(ptr, count:length)
+            if var parserBuffer = parserBuffer {
+                parserBuffer.append(ptr, count: length)
+            } else {
+                parserBuffer = Data(bytes: data, count: length)
+            }
         }
         return 0
     }
-    
+
     static func getSelf(parser: UnsafeMutablePointer<http_parser>?) -> StreamingParser? {
         guard let pointee = parser?.pointee.data else { return nil }
         return Unmanaged<StreamingParser>.fromOpaque(pointee).takeUnretainedValue()
     }
-    
+
     var headersWritten = false
     var isChunked = false
-    
+
     /// Create a `HTTPRequest` struct from the parsed information 
     public func createRequest() -> HTTPRequest {
-        return HTTPRequest(method: parsedHTTPMethod!, target: parsedURL!, httpVersion: parsedHTTPVersion!, headers: parsedHeaders)
+        return HTTPRequest(method: parsedHTTPMethod!,
+                           target: parsedURL!,
+                           httpVersion: parsedHTTPVersion!,
+                           headers: parsedHeaders)
     }
-    
+
     public func writeHeader(status: HTTPResponseStatus, headers: HTTPHeaders, completion: @escaping (Result) -> Void) {
         // TODO call completion()
         guard !headersWritten else {
             return
         }
-        
+
         var header = "HTTP/1.1 \(status.code) \(status.reasonPhrase)\r\n"
 
         let isContinue = status == .continue
@@ -333,13 +348,13 @@ public class StreamingParser: HTTPResponseWriter {
         if !isContinue {
             adjustHeaders(status: status, headers: &headers)
         }
-        
+
         for (key, value) in headers {
             // TODO encode value using [RFC5987]
             header += "\(key): \(value)\r\n"
         }
         header.append("\r\n")
-        
+
         // FIXME headers are US-ASCII, anything else should be encoded using [RFC5987] some lines above
         // TODO use requested encoding if specified
         if let data = header.data(using: .utf8) {
@@ -384,22 +399,22 @@ public class StreamingParser: HTTPResponseWriter {
             headers[.connection] = "Close"
         }
     }
-    
+
     public func writeTrailer(_ trailers: HTTPHeaders, completion: @escaping (Result) -> Void) {
         fatalError("Not implemented")
     }
-    
+
     public func writeBody(_ data: UnsafeHTTPResponseBody, completion: @escaping (Result) -> Void) {
         guard headersWritten else {
             //TODO error or default headers?
             return
         }
-        
+
         guard data.withUnsafeBytes({ $0.count > 0 }) else {
             completion(.ok)
             return
         }
-        
+
         let dataToWrite: Data
         if isChunked {
             dataToWrite = data.withUnsafeBytes {
@@ -410,25 +425,25 @@ public class StreamingParser: HTTPResponseWriter {
                 dataToWrite.append(chunkEnd)
                 return dataToWrite
             }
-        } else if let d = data as? Data {
-            dataToWrite = d
+        } else if let data = data as? Data {
+            dataToWrite = data
         } else {
             dataToWrite = data.withUnsafeBytes { Data($0) }
         }
-        
+
         self.parserConnector?.queueSocketWrite(dataToWrite)
-        
+
         completion(.ok)
     }
-    
+
     public func done(completion: @escaping (Result) -> Void) {
         if isChunked {
             let chunkTerminate = "0\r\n\r\n".data(using: .utf8)!
             self.parserConnector?.queueSocketWrite(chunkTerminate)
         }
-        
+
         self.parsedHTTPMethod = nil
-        self.parsedURL=nil
+        self.parsedURL = nil
         self.parsedHeaders = HTTPHeaders()
         self.lastHeaderName = nil
         self.parserBuffer = nil
@@ -438,16 +453,16 @@ public class StreamingParser: HTTPResponseWriter {
         self.headersWritten = false
         self.httpBodyProcessingCallback = nil
         self.upgradeRequested = false
-        
+
         let closeAfter = {
             if self.clientRequestedKeepAlive {
-                self.keepAliveUntil = Date(timeIntervalSinceNow:StreamingParser.keepAliveTimeout).timeIntervalSinceReferenceDate
+                self.keepAliveUntil = Date(timeIntervalSinceNow: StreamingParser.keepAliveTimeout).timeIntervalSinceReferenceDate
                 self.parserConnector?.responseComplete()
             } else {
                 self.parserConnector?.closeWriter()
             }
         }
-        
+
         // FIXME I do not understand what code written here before was meant to do
         // If it was about delayed closure invocation then it couldn't work either
         // Here is the equivalent code
@@ -458,7 +473,7 @@ public class StreamingParser: HTTPResponseWriter {
     public func abort() {
         fatalError("abort called, not sure what to do with it")
     }
-    
+
     deinit {
         httpParser.data = nil
     }
@@ -468,18 +483,17 @@ public class StreamingParser: HTTPResponseWriter {
 /// Protocol implemented by the thing that sits in between us and the network layer
 /// :nodoc:
 public protocol ParserConnecting: class {
-    
     /// Send data to the network do be written to the client
-    func queueSocketWrite(_ from: Data) -> Void
-    
+    func queueSocketWrite(_ from: Data)
+
     /// Let the network know that a response has started to avoid closing a connection during a slow write
-    func responseBeginning() -> Void
-    
+    func responseBeginning()
+
     /// Let the network know that a response is complete, so it can be closed after timeout
-    func responseComplete() -> Void
-    
+    func responseComplete()
+
     /// Used to let the network know we're ready to close the connection
-    func closeWriter() -> Void
+    func closeWriter()
 }
 
 /// Delegate that can tell us how many connections are in-flight so we can set the Keep-Alive header

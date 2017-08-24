@@ -7,10 +7,8 @@
 //
 
 /*
- 
- This file isn't part of the API per se, but it's the easiest way to get started- just supply a completion block.
+ This file isn't part of the API per se, but it's the easiest way to get started - just supply a completion block.
  It's also really handy for building up `HTTPRequestHandler`s to use when writing tests.
- 
  */
 
 import Foundation
@@ -24,21 +22,21 @@ public class SimpleResponseCreator: HTTPRequestHandling {
         public let headers: HTTPHeaders
         public let body: Data
     }
-    
+
     typealias SimpleHandlerBlock = (_ req: HTTPRequest, _ body: Data) -> Response
     let completionHandler: SimpleHandlerBlock
-    
+
     public init(completionHandler:@escaping (_ req: HTTPRequest, _ body: Data) -> Response) {
         self.completionHandler = completionHandler
     }
-    
+
     var buffer = Data()
-    
+
     public func handle(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {
         return .processBody { (chunk, stop) in
             switch chunk {
             case .chunk(let data, let finishedProcessing):
-                if (data.count > 0) {
+                if data.count > 0 {
                     self.buffer.append(Data(data))
                 }
                 finishedProcessing()
