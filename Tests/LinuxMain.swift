@@ -8,7 +8,6 @@
 
 import XCTest
 @testable import HTTPTests
-@testable import BlueSocketHTTPTests
 
 XCTMain([
     // HTTPTests
