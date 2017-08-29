@@ -390,14 +390,16 @@ public class StreamingParser: HTTPResponseWriter {
             headers[.transferEncoding] = nil
         }
 
-        let availableConnections = maxRequests - (self.connectionCounter?.connectionCount ?? 0)
 
-        if clientRequestedKeepAlive && (availableConnections > 0) {
-            headers[.connection] = "Keep-Alive"
-            headers[.keepAlive] = "timeout=\(Int(StreamingParser.keepAliveTimeout)), max=\(availableConnections)"
-        } else {
-            headers[.connection] = "Close"
+        if clientRequestedKeepAlive {
+            let availableConnections = maxRequests - (self.connectionCounter?.connectionCount ?? 0)
+            if availableConnections > 0 {
+                headers[.connection] = "Keep-Alive"
+                headers[.keepAlive] = "timeout=\(Int(StreamingParser.keepAliveTimeout)), max=\(availableConnections)"
+                return
+            }
         }
+        headers[.connection] = "Close"
     }
 
     public func writeTrailer(_ trailers: HTTPHeaders, completion: @escaping (Result) -> Void) {
