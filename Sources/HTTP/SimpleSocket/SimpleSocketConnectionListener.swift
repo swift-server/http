@@ -7,27 +7,21 @@
 //
 
 import Foundation
-import Socket
-
-#if os(Linux)
-import Signals
 import Dispatch
-#endif
 
-/// The Interface between the StreamingParser class and IBM's BlueSocket wrapper around socket(2).
-/// You hopefully should be able to replace this with any network library/engine.
-public class BlueSocketConnectionListener: ParserConnecting {
-    var socket: Socket?
+public class SimpleSocketConnectionListener: ParserConnecting {
+    var socket: SimpleServerSocket?
 
     ///ivar for the thing that manages the CHTTP Parser
     var parser: StreamingParser?
 
     ///Save the socket file descriptor so we can loook at it for debugging purposes
     var socketFD: Int32
+    var shouldShutdown: Bool = false
 
     /// Queues for managing access to the socket without blocking the world
-    weak var socketReaderQueue: DispatchQueue?
-    weak var socketWriterQueue: DispatchQueue?
+    let socketReaderQueue: DispatchQueue
+    let socketWriterQueue: DispatchQueue
 
     ///Event handler for reading from the socket
     private var readerSource: DispatchSourceRead?
@@ -75,9 +69,9 @@ public class BlueSocketConnectionListener: ParserConnecting {
     /// initializer
     ///
     /// - Parameters:
-    ///   - socket: Socket object from BlueSocket library wrapping a socket(2)
+    ///   - socket: SimpleServerSocket object from SimpleServerSocket library wrapping a socket(2)
     ///   - parser: Manager of the CHTTPParser library
-    public init(socket: Socket, parser: StreamingParser, readQueue: DispatchQueue, writeQueue: DispatchQueue) {
+    internal init(socket: SimpleServerSocket, parser: StreamingParser, readQueue: DispatchQueue, writeQueue: DispatchQueue) {
         self.socket = socket
         socketFD = socket.socketfd
         socketReaderQueue = readQueue
@@ -91,7 +85,7 @@ public class BlueSocketConnectionListener: ParserConnecting {
         guard let socket = self.socket else {
             return false
         }
-        return (socket.isActive || socket.isConnected)
+        return socket.isOpen()
     }
 
     /// Close the socket and free up memory unless we're in the middle of a request
@@ -100,29 +94,33 @@ public class BlueSocketConnectionListener: ParserConnecting {
             return
         }
         if (self.socket?.socketfd ?? -1) > 0 {
-            self.socket?.close()
+            self.socket?.shutdownAndClose()
         }
 
         //In a perfect world, we wouldn't have to clean this all up explicitly,
         // but KDE/heaptrack informs us we're in far from a perfect world
 
         if !(self.readerSource?.isCancelled ?? true) {
-            self.readerSource?.cancel()
+            #if os(Linux)
+                // Fallback on Linux
+                self.readerSource?.cancel()
+                self.cleanup()
+            #else
+                if #available(OSX 10.12, *) {
+                    self.shouldShutdown = true
+                    self.readerSource?.activate()
+                } else {
+                    // Fallback on earlier versions
+                    self.readerSource?.cancel()
+                    self.cleanup()
+                }
+            #endif
         }
-        self.readerSource?.setEventHandler(handler: nil)
-        self.readerSource?.setCancelHandler(handler: nil)
-
-        self.readerSource = nil
-        self.socket = nil
-        self.parser?.parserConnector = nil //allows for memory to be reclaimed
-        self.parser = nil
-        self.socketReaderQueue = nil
-        self.socketWriterQueue = nil
     }
 
     /// Called by the parser to let us know that it's done with this socket
     public func closeWriter() {
-        self.socketWriterQueue?.async { [weak self] in
+        self.socketWriterQueue.async { [weak self] in
             if self?.readerSource?.isCancelled ?? true {
                 self?.close()
             }
@@ -137,17 +135,27 @@ public class BlueSocketConnectionListener: ParserConnecting {
             close()
         }
     }
+    
+    func cleanup() {
+        self.readerSource?.setEventHandler(handler: nil)
+        self.readerSource?.setCancelHandler(handler: nil)
+        
+        self.readerSource = nil
+        self.socket = nil
+        self.parser?.parserConnector = nil //allows for memory to be reclaimed
+        self.parser = nil
+    }
 
     /// Called by the parser to let us know that a response has started being created
     public func responseBeginning() {
-        self.socketWriterQueue?.async { [weak self] in
+        self.socketWriterQueue.async { [weak self] in
             self?.responseCompleted = false
         }
     }
 
     /// Called by the parser to let us know that a response is complete, and we can close after timeout
     public func responseComplete() {
-        self.socketWriterQueue?.async { [weak self] in
+        self.socketWriterQueue.async { [weak self] in
             self?.responseCompleted = true
             if self?.readerSource?.isCancelled ?? true {
                 self?.close()
@@ -157,11 +165,7 @@ public class BlueSocketConnectionListener: ParserConnecting {
 
     /// Starts reading from the socket and feeding that data to the parser
     public func process() {
-        do {
-            try socket?.setBlocking(mode: true)
-        } catch {
-            fatalError("Failed to set socket as non-blocking")
-        }
+        socket?.setBlocking(mode: true)
 
         let tempReaderSource = DispatchSource.makeReadSource(fileDescriptor: socket?.socketfd ?? -1,
                                                              queue: socketReaderQueue)
@@ -171,31 +175,36 @@ public class BlueSocketConnectionListener: ParserConnecting {
                 return
             }
             guard strongSelf.socket?.socketfd ?? -1 > 0 else {
-                self?.readerSource?.cancel()
+                strongSelf.readerSource?.cancel()
+                strongSelf.cleanup()
                 return
             }
+	    guard !strongSelf.shouldShutdown else {
+                strongSelf.readerSource?.cancel()
+                strongSelf.cleanup()
+                return
+	    }
 
             var length = 1 //initial value
             do {
-                repeat {
-                    if strongSelf.socket?.socketfd ?? -1 > 0 {
-                        let readBuffer = NSMutableData()
-                        length = try strongSelf.socket?.read(into: readBuffer) ?? -1
-                        if length > 0 {
-                            self?.responseCompleted = false
-                        }
-                        let data = Data(bytes: readBuffer.bytes.assumingMemoryBound(to: Int8.self), count: readBuffer.length)
+                if strongSelf.socket?.socketfd ?? -1 > 0 {
+                    let maxLength: Int = Int(strongSelf.readerSource?.data ?? 10000)
+                    var readBuffer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: maxLength)
+                    length = try strongSelf.socket?.socketRead(into: &readBuffer, maxLength:maxLength) ?? -1
+                    if length > 0 {
+                        self?.responseCompleted = false
+                        
+                        let data = Data(bytes: readBuffer, count: length)
                         let numberParsed = strongSelf.parser?.readStream(data:data) ?? 0
-
+                        
                         if numberParsed != data.count {
                             print("Error: wrong number of bytes consumed by parser (\(numberParsed) instead of \(data.count)")
                         }
-                    } else {
-                        print("bad socket FD while reading")
-                        length = -1
                     }
-
-                } while length > 0
+                } else {
+                    print("bad socket FD while reading")
+                    length = -1
+                }
             } catch {
                 print("ReaderSource Event Error: \(error)")
                 self?.readerSource?.cancel()
@@ -224,7 +233,7 @@ public class BlueSocketConnectionListener: ParserConnecting {
     ///
     /// - Parameter bytes: Data object to be queued to be written to the socket
     public func queueSocketWrite(_ bytes: Data) {
-        self.socketWriterQueue?.async { [weak self] in
+        self.socketWriterQueue.async { [weak self] in
             self?.write(bytes)
         }
     }
@@ -239,7 +248,7 @@ public class BlueSocketConnectionListener: ParserConnecting {
 
             while written < data.count && !errorOccurred {
                 try data.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) in
-                    let result = try socket?.write(from: ptr + offset, bufSize:
+                    let result = try socket?.socketWrite(from: ptr + offset, bufSize:
                         data.count - offset) ?? -1
                     if result < 0 {
                         print("Received broken write socket indication")
