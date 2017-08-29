@@ -301,7 +301,7 @@ class ServerTests: XCTestCase {
                 XCTAssertNotNil(response)
                 let headers = response?.allHeaderFields ?? ["": ""]
                 let connectionHeader: String = headers["Connection"] as? String ?? ""
-                let keepAliveHeader = headers["Keep-Alive"]
+                let keepAliveHeader = headers["Connection"]
                 XCTAssertEqual(connectionHeader, "Keep-Alive", "No Keep-Alive Connection")
                 XCTAssertNotNil(keepAliveHeader)
                 XCTAssertNotNil(responseBody, "No Keep-Alive Header")
@@ -320,7 +320,7 @@ class ServerTests: XCTestCase {
                     XCTAssertNotNil(response2)
                     let headers = response2?.allHeaderFields ?? ["": ""]
                     let connectionHeader: String = headers["Connection"] as? String ?? ""
-                    let keepAliveHeader = headers["Keep-Alive"]
+                    let keepAliveHeader = headers["Connection"]
                     XCTAssertEqual(connectionHeader, "Keep-Alive", "No Keep-Alive Connection")
                     XCTAssertNotNil(keepAliveHeader, "No Keep-Alive Header")
                     XCTAssertEqual(server.connectionCount, 2)
@@ -339,7 +339,7 @@ class ServerTests: XCTestCase {
                         XCTAssertNotNil(response)
                         let headers = response?.allHeaderFields ?? ["": ""]
                         let connectionHeader: String = headers["Connection"] as? String ?? ""
-                        let keepAliveHeader = headers["Keep-Alive"]
+                        let keepAliveHeader = headers["Connection"]
                         XCTAssertEqual(connectionHeader, "Keep-Alive", "No Keep-Alive Connection")
                         XCTAssertNotNil(keepAliveHeader, "No Keep-Alive Header")
                         XCTAssertEqual(server.connectionCount, 3)
@@ -371,6 +371,9 @@ class ServerTests: XCTestCase {
     func testRequestLargeEchoEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
 
+        //Use a small chunk size to make sure that we're testing multiple HTTPBodyHandler calls
+        let chunkSize = 1024
+
         // Get a file we know exists
         let executableURL = URL(fileURLWithPath: CommandLine.arguments[0])
         let testExecutableData: Data
@@ -392,9 +395,9 @@ class ServerTests: XCTestCase {
 
         let testData = Data(testDataLong)
 
-        let server = HTTPServer()
+        let server = PoCSocketSimpleServer()
         do {
-            try server.start(port: 0, handler: EchoHandler().handle)
+            try server.start(port: 0, maxReadLength: chunkSize, handler: EchoHandler().handle)
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
@@ -421,6 +424,62 @@ class ServerTests: XCTestCase {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
     }
+    
+    func testRequestLargePostHelloWorld() {
+        let receivedExpectation = self.expectation(description: "Received web response \(#function)")
+        
+        //Use a small chunk size to make sure that we stop after one HTTPBodyHandler call
+        let chunkSize = 1024
+        
+        // Get a file we know exists
+        let executableURL = URL(fileURLWithPath: CommandLine.arguments[0])
+        let testExecutableData: Data
+        
+        do {
+            testExecutableData = try Data(contentsOf: executableURL)
+        } catch {
+            XCTFail("Could not create Data from contents of \(executableURL)")
+            return
+        }
+        
+        //Make sure there's data there
+        XCTAssertNotNil(testExecutableData)
+        
+        let executableLength = testExecutableData.count
+                
+        let server = PoCSocketSimpleServer()
+        do {
+            let testHandler = AbortAndSendHelloHandler()
+            try server.start(port: 0, maxReadLength: chunkSize, handler: testHandler.handle)
+            let session = URLSession(configuration: URLSessionConfiguration.default)
+            let url = URL(string: "http://localhost:\(server.port)/echo")!
+            print("Test \(#function) on port \(server.port)")
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            let uploadTask = session.uploadTask(with: request, fromFile: executableURL) { (responseBody, rawResponse, error) in
+                let response = rawResponse as? HTTPURLResponse
+                XCTAssertNil(error, "\(error!.localizedDescription)")
+                XCTAssertNotNil(response)
+                XCTAssertNotNil(responseBody)
+                XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
+                XCTAssertEqual("Hello, World!", String(data: responseBody ?? Data(), encoding: .utf8) ?? "Nil")
+                XCTAssertEqual(Int(testHandler.chunkCalledCount), 1)
+                XCTAssertLessThan(testHandler.chunkLength, executableLength, "Should have written less than the length of the file")
+                XCTAssertEqual(Int(testHandler.chunkLength), chunkSize)
+                receivedExpectation.fulfill()
+            }
+            uploadTask.resume()
+            self.waitForExpectations(timeout: 10) { (error) in
+                if let error = error {
+                    XCTFail("\(error)")
+                }
+            }
+            server.stop()
+        } catch {
+            XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
+        }
+    }
+
 
     static var allTests = [
         ("testEcho", testEcho),
@@ -433,5 +492,6 @@ class ServerTests: XCTestCase {
         ("testRequestEchoEndToEnd", testRequestEchoEndToEnd),
         ("testRequestKeepAliveEchoEndToEnd", testRequestKeepAliveEchoEndToEnd),
         ("testRequestLargeEchoEndToEnd", testRequestLargeEchoEndToEnd),
+        ("testRequestLargePostHelloWorld", testRequestLargePostHelloWorld),
     ]
 }
