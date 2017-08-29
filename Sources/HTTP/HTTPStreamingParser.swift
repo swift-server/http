@@ -290,15 +290,22 @@ public class StreamingParser: HTTPResponseWriter {
             if let chunkHandler = self.httpBodyProcessingCallback {
                 var stop = false
                 var finished = false
-                while !stop && !finished {
-                    switch chunkHandler {
+                let completionSemaphore = DispatchSemaphore(value: 1)
+                switch chunkHandler {
                     case .processBody(let handler):
                         handler(.chunk(data: chunk, finishedProcessing: {
                             finished = true
+                            completionSemaphore.signal()
                         }), &stop)
                     case .discardBody:
                         finished = true
-                    }
+                        completionSemaphore.signal()
+                }
+                //Wait until the chunk handler completes. This allows the caller to notice backpressure.
+                // See discussion on https://github.com/swift-server/http/issues/36
+                completionSemaphore.wait()
+                if !finished {
+                    print ("Warning: httpBodyProcessingCallback did not complete.")
                 }
             }
         }
@@ -335,7 +342,7 @@ public class StreamingParser: HTTPResponseWriter {
     }
 
     public func writeHeader(status: HTTPResponseStatus, headers: HTTPHeaders, completion: @escaping (Result) -> Void) {
-        // TODO call completion()
+
         guard !headersWritten else {
             return
         }
@@ -358,7 +365,7 @@ public class StreamingParser: HTTPResponseWriter {
         // FIXME headers are US-ASCII, anything else should be encoded using [RFC5987] some lines above
         // TODO use requested encoding if specified
         if let data = header.data(using: .utf8) {
-            self.parserConnector?.queueSocketWrite(data)
+            self.parserConnector?.queueSocketWrite(data, completion:completion)
             if !isContinue {
                 headersWritten = true
             }
@@ -433,15 +440,13 @@ public class StreamingParser: HTTPResponseWriter {
             dataToWrite = data.withUnsafeBytes { Data($0) }
         }
 
-        self.parserConnector?.queueSocketWrite(dataToWrite)
-
-        completion(.ok)
+        self.parserConnector?.queueSocketWrite(dataToWrite, completion:completion)
     }
 
     public func done(completion: @escaping (Result) -> Void) {
         if isChunked {
             let chunkTerminate = "0\r\n\r\n".data(using: .utf8)!
-            self.parserConnector?.queueSocketWrite(chunkTerminate)
+            self.parserConnector?.queueSocketWrite(chunkTerminate, completion: completion)
         }
 
         self.parsedHTTPMethod = nil
@@ -486,7 +491,7 @@ public class StreamingParser: HTTPResponseWriter {
 /// :nodoc:
 public protocol ParserConnecting: class {
     /// Send data to the network do be written to the client
-    func queueSocketWrite(_ from: Data)
+    func queueSocketWrite(_ from: Data, completion: @escaping (Result) -> Void)
 
     /// Let the network know that a response has started to avoid closing a connection during a slow write
     func responseBeginning()
