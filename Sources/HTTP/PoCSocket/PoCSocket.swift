@@ -9,7 +9,7 @@
 import Foundation
 import Dispatch
 
-public enum SimpleServerSocketError: Error {
+public enum PoCSocketError: Error {
     case SocketOSError(errno: Int32)
     case InvalidSocketError
     case InvalidReadLengthError
@@ -21,7 +21,7 @@ public enum SimpleServerSocketError: Error {
 ///  Intentionally a thin layer over `recv(2)`/`send(2)` so uses the same argument types.
 ///  Note that no method names here are the same as any system call names.
 ///   This is because we expect the caller might need functionality we haven't implemented here.
-internal class SimpleServerSocket {
+internal class PoCSocket {
     
     /// hold the file descriptor for the socket supplied by the OS. `-1` is invalid socket
     internal var socketfd: Int32 = -1
@@ -61,19 +61,19 @@ internal class SimpleServerSocket {
     ///   - readBuffer: Buffer to read into. Note this needs to be `inout` because we're modfying it and we want Swift4+'s ownership checks to make sure no one else is at the same time
     ///   - maxLength: Max length that can be read. Buffer *must* be at least this big!!!
     /// - Returns: Number of bytes read or -1 on failure as per `recv(2)`
-    /// - Throws: SimpleServerSocketError if sanity checks fail
+    /// - Throws: PoCSocketError if sanity checks fail
     internal func socketRead(into readBuffer: inout UnsafeMutablePointer<Int8>, maxLength:Int) throws -> Int {
         if maxLength <= 0 || maxLength > Int(Int32.max) {
-            throw SimpleServerSocketError.InvalidReadLengthError
+            throw PoCSocketError.InvalidReadLengthError
         }
         if socketfd <= 0 {
-            throw SimpleServerSocketError.InvalidSocketError
+            throw PoCSocketError.InvalidSocketError
         }
 
         //Make sure no one passed a nil pointer to us
         let readBufferPointer: UnsafeMutablePointer<Int8>! = readBuffer
         if readBufferPointer == nil {
-            throw SimpleServerSocketError.InvalidBufferError
+            throw PoCSocketError.InvalidBufferError
         }
         
         //Make sure data isn't re-used
@@ -90,19 +90,19 @@ internal class SimpleServerSocket {
     ///   - buffer: buffer containing data to write.
     ///   - bufSize: number of bytes to write. Buffer must be this long
     /// - Returns: number of bytes written or -1. See `send(2)`
-    /// - Throws: SimpleServerSocketError if sanity checks fail
+    /// - Throws: PoCSocketError if sanity checks fail
     @discardableResult internal func socketWrite(from buffer: UnsafeRawPointer, bufSize: Int) throws -> Int {
         if socketfd <= 0 {
-            throw SimpleServerSocketError.InvalidSocketError
+            throw PoCSocketError.InvalidSocketError
         }
         if bufSize < 0 || bufSize > Int(Int32.max) {
-            throw SimpleServerSocketError.InvalidWriteLengthError
+            throw PoCSocketError.InvalidWriteLengthError
         }
         
         //Make sure we weren't handed a nil buffer
         let writeBufferPointer: UnsafeRawPointer! = buffer
         if writeBufferPointer == nil {
-            throw SimpleServerSocketError.InvalidBufferError
+            throw PoCSocketError.InvalidBufferError
         }
 
         let sent = send(self.socketfd, buffer, Int(bufSize), Int32(0))
@@ -129,14 +129,14 @@ internal class SimpleServerSocket {
         
     /// Thin wrapper around `accept(2)`
     ///
-    /// - Returns: SimpleServerSocket object for newly connected socket or nil if we've been told to shutdown
-    /// - Throws: SimpleServerSocketError on sanity check fails or if accept fails after several retries
-    internal func acceptClientConnection() throws -> SimpleServerSocket? {
+    /// - Returns: PoCSocket object for newly connected socket or nil if we've been told to shutdown
+    /// - Throws: PoCSocketError on sanity check fails or if accept fails after several retries
+    internal func acceptClientConnection() throws -> PoCSocket? {
         if socketfd <= 0 || !isListening {
-            throw SimpleServerSocketError.InvalidSocketError
+            throw PoCSocketError.InvalidSocketError
         }
 
-        let retVal = SimpleServerSocket()
+        let retVal = PoCSocket()
         
         var maxRetryCount = 100
         
@@ -160,7 +160,7 @@ internal class SimpleServerSocket {
         while acceptFD < 0 && maxRetryCount > 0
         
         if acceptFD < 0 {
-            throw SimpleServerSocketError.SocketOSError(errno: errno)
+            throw PoCSocketError.SocketOSError(errno: errno)
         }
         
         retVal.isConnected = true
@@ -174,7 +174,7 @@ internal class SimpleServerSocket {
     /// - Parameters:
     ///   - port: `sin_port` value, see `bind(2)`
     ///   - maxBacklogSize: backlog argument to `listen(2)`
-    /// - Throws: SimpleServerSocketError
+    /// - Throws: PoCSocketError
     internal func bindAndListen(on port: Int = 0, maxBacklogSize: Int32 = 100) throws {
         #if os(Linux)
             socketfd = socket(Int32(AF_INET), Int32(SOCK_STREAM.rawValue), Int32(IPPROTO_TCP))
@@ -183,18 +183,18 @@ internal class SimpleServerSocket {
         #endif
         
         if socketfd <= 0 {
-            throw SimpleServerSocketError.InvalidSocketError
+            throw PoCSocketError.InvalidSocketError
         }
         
         var on: Int32 = 1
         // Allow address reuse
         if setsockopt(self.socketfd, SOL_SOCKET, SO_REUSEADDR, &on, socklen_t(MemoryLayout<Int32>.size)) < 0 {
-            throw SimpleServerSocketError.SocketOSError(errno: errno)
+            throw PoCSocketError.SocketOSError(errno: errno)
         }
         
         // Allow port reuse
         if setsockopt(self.socketfd, SOL_SOCKET, SO_REUSEPORT, &on, socklen_t(MemoryLayout<Int32>.size)) < 0 {
-            throw SimpleServerSocketError.SocketOSError(errno: errno)
+            throw PoCSocketError.SocketOSError(errno: errno)
         }
 
         #if os(Linux)
@@ -229,7 +229,7 @@ internal class SimpleServerSocket {
         listeningPort = try withUnsafePointer(to: &addr_in) { pointer in
             var len = socklen_t(MemoryLayout<sockaddr_in>.size)
             if getsockname(socketfd, UnsafeMutablePointer(OpaquePointer(pointer)), &len) != 0 {
-                throw SimpleServerSocketError.SocketOSError(errno: errno)
+                throw PoCSocketError.SocketOSError(errno: errno)
             }
             #if os(Linux)
                 return Int32(ntohs(addr_in.sin_port))
@@ -252,12 +252,12 @@ internal class SimpleServerSocket {
     ///
     /// - Parameter mode: true for blocking, false for nonBlocking
     /// - Returns: `fcntl(2)` flags
-    /// - Throws: SimpleServerSocketError if `fcntl` fails
+    /// - Throws: PoCSocketError if `fcntl` fails
     @discardableResult internal func setBlocking(mode: Bool) throws -> Int32 {
         let flags = fcntl(self.socketfd, F_GETFL)
         if flags < 0 {
             //Failed
-            throw SimpleServerSocketError.SocketOSError(errno: errno)
+            throw PoCSocketError.SocketOSError(errno: errno)
         }
         
         let newFlags = mode ? flags & ~O_NONBLOCK : flags | O_NONBLOCK
@@ -265,7 +265,7 @@ internal class SimpleServerSocket {
         let result = fcntl(self.socketfd, F_SETFL, newFlags)
         if result < 0 {
             //Failed
-            throw SimpleServerSocketError.SocketOSError(errno: errno)
+            throw PoCSocketError.SocketOSError(errno: errno)
         }
         return result
     }

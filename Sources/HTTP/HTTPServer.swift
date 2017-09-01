@@ -22,11 +22,11 @@ public protocol HTTPServing : class {
     var connectionCount: Int { get }
 }
 
-/// A basic HTTP server. Currently this is implemented using the SimpleServerSocket
+/// A basic HTTP server. Currently this is implemented using the PoCSocket
 /// abstraction, but the intention is to remove this dependency and reimplement
 /// the class using transport APIs provided by the Server APIs working group.
 public class HTTPServer: HTTPServing {
-    private let server = SimpleSocketSimpleServer()
+    private let server = PoCSocketSimpleServer()
 
     public init() {
     }

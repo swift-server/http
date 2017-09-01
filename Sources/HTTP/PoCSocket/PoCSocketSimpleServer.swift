@@ -13,9 +13,9 @@ import Foundation
 // MARK: Server
 
 /// An HTTP server that listens for connections on a TCP socket and spawns Listeners to handle them.
-public class SimpleSocketSimpleServer: CurrentConnectionCounting {
-    /// SimpleServerSocket to listen on for connections
-    private let serverSocket: SimpleServerSocket = SimpleServerSocket()
+public class PoCSocketSimpleServer: CurrentConnectionCounting {
+    /// PoCSocket to listen on for connections
+    private let serverSocket: PoCSocket = PoCSocket()
 
     /// Collection of listeners of sockets. Used to kill connections on timeout or shutdown
     private var connectionListenerList = ConnectionListenerCollection()
@@ -110,7 +110,7 @@ public class SimpleSocketSimpleServer: CurrentConnectionCounting {
                     let streamingParser = StreamingParser(handler: handler, connectionCounter: self)
                     let readQueue = readQueues[listenerCount % self.queueMax]
                     let writeQueue = writeQueues[listenerCount % self.queueMax]
-                    let listener = SimpleSocketConnectionListener(socket: clientSocket, parser: streamingParser, readQueue:readQueue, writeQueue: writeQueue)
+                    let listener = PoCSocketConnectionListener(socket: clientSocket, parser: streamingParser, readQueue:readQueue, writeQueue: writeQueue)
                     listenerCount += 1
                     acceptSemaphore.wait()
                     acceptQueue.async { [weak listener] in
@@ -151,12 +151,12 @@ class ConnectionListenerCollection {
     let lock = DispatchSemaphore(value: 1)
 
     /// Storage for weak connection listeners
-    var storage = [WeakConnectionListener<SimpleSocketConnectionListener>]()
+    var storage = [WeakConnectionListener<PoCSocketConnectionListener>]()
 
     /// Add a new connection to the collection
     ///
     /// - Parameter listener: socket manager object
-    func add(_ listener: SimpleSocketConnectionListener) {
+    func add(_ listener: PoCSocketConnectionListener) {
         lock.wait()
         storage.append(WeakConnectionListener(listener))
         lock.signal()

@@ -9,10 +9,10 @@
 import Foundation
 import Dispatch
 
-public class SimpleSocketConnectionListener: ParserConnecting {
+public class PoCSocketConnectionListener: ParserConnecting {
     
     ///socket(2) wrapper object
-    var socket: SimpleServerSocket?
+    var socket: PoCSocket?
 
     ///ivar for the thing that manages the CHTTP Parser
     var parser: StreamingParser?
@@ -71,9 +71,9 @@ public class SimpleSocketConnectionListener: ParserConnecting {
     /// initializer
     ///
     /// - Parameters:
-    ///   - socket: thin SimpleServerSocket wrapper around system calls
+    ///   - socket: thin PoCSocket wrapper around system calls
     ///   - parser: Manager of the CHTTPParser library
-    internal init(socket: SimpleServerSocket, parser: StreamingParser, readQueue: DispatchQueue, writeQueue: DispatchQueue) {
+    internal init(socket: PoCSocket, parser: StreamingParser, readQueue: DispatchQueue, writeQueue: DispatchQueue) {
         self.socket = socket
         socketFD = socket.socketfd
         socketReaderQueue = readQueue
