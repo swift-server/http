@@ -19,6 +19,8 @@ public enum SimpleServerSocketError: Error {
 
 /// Simple Wrapper around the `socket(2)` functions we need for Proof of Concept testing
 ///  Intentionally a thin layer over `recv(2)`/`send(2)` so uses the same argument types.
+///  Note that no method names here are the same as any system call names.
+///   This is because we expect the caller might need functionality we haven't implemented here.
 internal class SimpleServerSocket {
     
     /// hold the file descriptor for the socket supplied by the OS. `-1` is invalid socket
@@ -32,6 +34,26 @@ internal class SimpleServerSocket {
     
     /// Track state between `accept(2)/bind(2)` and `close(2)`
     internal private(set) var isConnected = false
+    
+    /// track whether a shutdown is in progress so we can suppress error messages
+    private let _isShuttingDownLock = DispatchSemaphore(value: 1)
+    private var _isShuttingDown: Bool = false
+    private var isShuttingDown: Bool {
+        get {
+            _isShuttingDownLock.wait()
+            defer {
+                _isShuttingDownLock.signal()
+            }
+            return _isShuttingDown
+        }
+        set {
+            _isShuttingDownLock.wait()
+            defer {
+                _isShuttingDownLock.signal()
+            }
+            _isShuttingDown = newValue
+        }
+    }
 
     /// Call recv(2) with buffer allocated by our caller and return the output
     ///
@@ -41,7 +63,7 @@ internal class SimpleServerSocket {
     /// - Returns: Number of bytes read or -1 on failure as per `recv(2)`
     /// - Throws: SimpleServerSocketError if sanity checks fail
     internal func socketRead(into readBuffer: inout UnsafeMutablePointer<Int8>, maxLength:Int) throws -> Int {
-        if maxLength <= 0 || maxLength > Int32.max {
+        if maxLength <= 0 || maxLength > Int(Int32.max) {
             throw SimpleServerSocketError.InvalidReadLengthError
         }
         if socketfd <= 0 {
@@ -73,7 +95,7 @@ internal class SimpleServerSocket {
         if socketfd <= 0 {
             throw SimpleServerSocketError.InvalidSocketError
         }
-        if bufSize < 0 || bufSize > Int32.max {
+        if bufSize < 0 || bufSize > Int(Int32.max) {
             throw SimpleServerSocketError.InvalidWriteLengthError
         }
         
@@ -83,13 +105,14 @@ internal class SimpleServerSocket {
             throw SimpleServerSocketError.InvalidBufferError
         }
 
-        return send(self.socketfd, buffer, Int(bufSize), Int32(0))
+        let sent = send(self.socketfd, buffer, Int(bufSize), Int32(0))
         //Leave this as a local variable to facilitate Setting a Watchpoint in lldb
-       //return sent
+       return sent
     }
     
     /// Calls `shutdown(2)` and `close(2)` on a socket
     internal func shutdownAndClose() {
+        self.isShuttingDown = true
         if socketfd < 1 {
             //Nothing to do. Maybe it was closed already
             return
@@ -106,14 +129,16 @@ internal class SimpleServerSocket {
         
     /// Thin wrapper around `accept(2)`
     ///
-    /// - Returns: SimpleServerSocket object for newly connected socket
-    /// - Throws: SimpleServerSocketError if sanity checks
-    internal func acceptClientConnection() throws -> SimpleServerSocket {
+    /// - Returns: SimpleServerSocket object for newly connected socket or nil if we've been told to shutdown
+    /// - Throws: SimpleServerSocketError on sanity check fails or if accept fails after several retries
+    internal func acceptClientConnection() throws -> SimpleServerSocket? {
         if socketfd <= 0 || !isListening {
             throw SimpleServerSocketError.InvalidSocketError
         }
 
         let retVal = SimpleServerSocket()
+        
+        var maxRetryCount = 100
         
         var acceptFD: Int32 = -1
         repeat {
@@ -125,10 +150,18 @@ internal class SimpleServerSocket {
             }
             if acceptFD < 0 && errno != EINTR {
                 //fail
+                if (isShuttingDown) {
+                    return nil
+                }
+                maxRetryCount = maxRetryCount - 1
                 print("Could not accept on socket \(socketfd). Error is \(errno). Will retry.")
             }
         }
-        while acceptFD < 0
+        while acceptFD < 0 && maxRetryCount > 0
+        
+        if acceptFD < 0 {
+            throw SimpleServerSocketError.SocketOSError(errno: errno)
+        }
         
         retVal.isConnected = true
         retVal.socketfd = acceptFD
@@ -136,7 +169,13 @@ internal class SimpleServerSocket {
         return retVal
     }
     
-    internal func bindAndListen(on port: Int, maxBacklogSize: Int32 = 10000) throws {
+    /// call `bind(2)` and `listen(2)`
+    ///
+    /// - Parameters:
+    ///   - port: `sin_port` value, see `bind(2)`
+    ///   - maxBacklogSize: backlog argument to `listen(2)`
+    /// - Throws: SimpleServerSocketError
+    internal func bindAndListen(on port: Int = 0, maxBacklogSize: Int32 = 100) throws {
         #if os(Linux)
             socketfd = socket(Int32(AF_INET), Int32(SOCK_STREAM.rawValue), Int32(IPPROTO_TCP))
         #else
@@ -202,10 +241,18 @@ internal class SimpleServerSocket {
         //print("listeningPort is \(listeningPort)")
     }
     
+    /// Check to see if socket is being used
+    ///
+    /// - Returns: whether socket is listening or connected
     internal func isOpen() -> Bool {
         return isListening || isConnected
     }
     
+    /// Sets the socket to Blocking or non-blocking mode.
+    ///
+    /// - Parameter mode: true for blocking, false for nonBlocking
+    /// - Returns: `fcntl(2)` flags
+    /// - Throws: SimpleServerSocketError if `fcntl` fails
     @discardableResult internal func setBlocking(mode: Bool) throws -> Int32 {
         let flags = fcntl(self.socketfd, F_GETFL)
         if flags < 0 {

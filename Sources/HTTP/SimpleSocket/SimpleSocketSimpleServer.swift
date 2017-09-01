@@ -34,6 +34,26 @@ public class SimpleSocketSimpleServer: CurrentConnectionCounting {
     /// Tuning parameter to set the number of sockets we can accept at one time
     private var acceptMax: Int = 8 //sensible default
 
+    ///Used to stop `accept(2)`ing while shutdown in progress to avoid spurious logs
+    private let _isShuttingDownLock = DispatchSemaphore(value: 1)
+    private var _isShuttingDown: Bool = false
+    var isShuttingDown: Bool {
+        get {
+            _isShuttingDownLock.wait()
+            defer {
+                _isShuttingDownLock.signal()
+            }
+            return _isShuttingDown
+        }
+        set {
+            _isShuttingDownLock.wait()
+            defer {
+                _isShuttingDownLock.signal()
+            }
+            _isShuttingDown = newValue
+        }
+    }
+    
     /// Starts the server listening on a given port
     ///
     /// - Parameters:
@@ -54,7 +74,7 @@ public class SimpleSocketSimpleServer: CurrentConnectionCounting {
         if acceptCount > 0 {
             acceptMax = acceptCount
         }
-        try self.serverSocket.bindAndListen(on: port, maxBacklogSize: 100)
+        try self.serverSocket.bindAndListen(on: port)
 
         pruneSocketTimer.setEventHandler { [weak self] in
             self?.connectionListenerList.prune()
@@ -80,7 +100,13 @@ public class SimpleSocketSimpleServer: CurrentConnectionCounting {
         DispatchQueue.global().async {
             repeat {
                 do {
-                    let clientSocket = try self.serverSocket.acceptClientConnection()
+                    let acceptedClientSocket = try self.serverSocket.acceptClientConnection()
+                    guard let clientSocket = acceptedClientSocket else {
+                        if self.isShuttingDown {
+                            print("Received nil client socket - exiting accept loop")
+                        }
+                        break
+                    }
                     let streamingParser = StreamingParser(handler: handler, connectionCounter: self)
                     let readQueue = readQueues[listenerCount % self.queueMax]
                     let writeQueue = writeQueues[listenerCount % self.queueMax]
@@ -95,12 +121,13 @@ public class SimpleSocketSimpleServer: CurrentConnectionCounting {
                 } catch let error {
                     print("Error accepting client connection: \(error)")
                 }
-            } while self.serverSocket.isListening
+            } while !self.isShuttingDown && self.serverSocket.isListening
         }
     }
 
     /// Stop the server and close the sockets
     public func stop() {
+        isShuttingDown = true
         connectionListenerList.closeAll()
         serverSocket.shutdownAndClose()
     }

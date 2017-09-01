@@ -92,6 +92,8 @@ public class SimpleSocketConnectionListener: ParserConnecting {
 
     /// Close the socket and free up memory unless we're in the middle of a request
     func close() {
+        self.shouldShutdown = true
+        
         if !self.responseCompleted && !self.errorOccurred {
             return
         }
@@ -103,12 +105,22 @@ public class SimpleSocketConnectionListener: ParserConnecting {
         // but KDE/heaptrack informs us we're in far from a perfect world
 
         if !(self.readerSource?.isCancelled ?? true) {
+            /*
+             OK, so later macOS wants `cancel()` to be called from inside the readerSource,
+             otherwise, there's a very intermittent thread-dependent crash, (ask me how I know)
+             so in that case, we set a Bool variable and call `activate()`.  Older macOS doesn't
+             have `activate()` so we call back to calling `cancel()` directly.
+             
+             Linux *DOES* have activate(), but it doesn't seem to do anything at present, so we call `cancel()`
+             directly in that case, too (Although I suspect that might need to change in future releases).
+             */
             #if os(Linux)
-                // Fallback on Linux
+                // Call Cancel directory on Linux
                 self.readerSource?.cancel()
                 self.cleanup()
             #else
                 if #available(OSX 10.12, *) {
+                    //Set Flag and Activate the readerSource so it can run `cancel()` for us
                     self.shouldShutdown = true
                     self.readerSource?.activate()
                 } else {
@@ -186,7 +198,7 @@ public class SimpleSocketConnectionListener: ParserConnecting {
                 strongSelf.cleanup()
                 return
             }
-            
+
             var length = 1 //initial value
             
             ///Largest number of bytes we're willing to allocate for a Read
