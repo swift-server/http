@@ -10,6 +10,8 @@ import Foundation
 import Dispatch
 
 public class SimpleSocketConnectionListener: ParserConnecting {
+    
+    ///socket(2) wrapper object
     var socket: SimpleServerSocket?
 
     ///ivar for the thing that manages the CHTTP Parser
@@ -69,7 +71,7 @@ public class SimpleSocketConnectionListener: ParserConnecting {
     /// initializer
     ///
     /// - Parameters:
-    ///   - socket: SimpleServerSocket object from SimpleServerSocket library wrapping a socket(2)
+    ///   - socket: thin SimpleServerSocket wrapper around system calls
     ///   - parser: Manager of the CHTTPParser library
     internal init(socket: SimpleServerSocket, parser: StreamingParser, readQueue: DispatchQueue, writeQueue: DispatchQueue) {
         self.socket = socket
@@ -165,7 +167,7 @@ public class SimpleSocketConnectionListener: ParserConnecting {
 
     /// Starts reading from the socket and feeding that data to the parser
     public func process() {
-        socket?.setBlocking(mode: true)
+        try! socket?.setBlocking(mode: true)
 
         let tempReaderSource = DispatchSource.makeReadSource(fileDescriptor: socket?.socketfd ?? -1,
                                                              queue: socketReaderQueue)
@@ -179,16 +181,24 @@ public class SimpleSocketConnectionListener: ParserConnecting {
                 strongSelf.cleanup()
                 return
             }
-	    guard !strongSelf.shouldShutdown else {
+            guard !strongSelf.shouldShutdown else {
                 strongSelf.readerSource?.cancel()
                 strongSelf.cleanup()
                 return
-	    }
-
+            }
+            
             var length = 1 //initial value
+            
+            ///Largest number of bytes we're willing to allocate for a Read
+                // it's an anti-heartbleed-type paranoia check
+            let maxReadCount: Int = 1048576
+
             do {
                 if strongSelf.socket?.socketfd ?? -1 > 0 {
-                    let maxLength: Int = Int(strongSelf.readerSource?.data ?? 10000)
+                    var maxLength: Int = Int(strongSelf.readerSource?.data ?? 0)
+                    if (maxLength > maxReadCount) || (maxLength <= 0) {
+                            maxLength = maxReadCount
+                    }
                     var readBuffer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: maxLength)
                     length = try strongSelf.socket?.socketRead(into: &readBuffer, maxLength:maxLength) ?? -1
                     if length > 0 {
@@ -220,11 +230,11 @@ public class SimpleSocketConnectionListener: ParserConnecting {
                 self?.close()
             }
         }
-
+        
         tempReaderSource.setCancelHandler { [weak self] in
             self?.close() //close if we can
         }
-
+        
         self.readerSource = tempReaderSource
         self.readerSource?.resume()
     }
