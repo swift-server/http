@@ -28,21 +28,26 @@ public protocol HTTPServing : class {
 public class HTTPServer: HTTPServing {
     private let server = PoCSocketSimpleServer()
 
+    /// Create an instance of the server. This needs to be followed with a call to `start()`
     public init() {
     }
 
+    /// Start the HTTP server on the given `port`, using `handler` to process incoming requests
     public func start(port: Int = 0, handler: @escaping HTTPRequestHandler) throws {
         try server.start(handler: handler)
     }
 
+    /// Stop the server
     public func stop() {
         server.stop()
     }
 
+    /// The port the server is listening on
     public var port: Int {
         return server.port
     }
 
+    /// The number of current connections
     public var connectionCount: Int {
         return server.connectionCount
     }

@@ -18,6 +18,8 @@ custom_categories:
 
   - name: HTTP Server
     children:
+    - HTTPServer
+    - HTTPServing
     - HTTPRequestHandling
     - HTTPRequestHandler
 

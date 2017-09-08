@@ -12,6 +12,7 @@ import Foundation
 /// - Parameter req: the incoming HTTP request.
 /// - Parameter res: a writer providing functions to create an HTTP reponse to the request.
 /// - Returns HTTPBodyProcessing: a enum that either discards the request data, or provides a closure to process it.
+/// - See: `HTTPRequestHandling` for more information
 public typealias HTTPRequestHandler = (HTTPRequest, HTTPResponseWriter) -> HTTPBodyProcessing
 
 /// Class protocol containing the HTTPRequestHandler that responds to the incoming HTTP requests.

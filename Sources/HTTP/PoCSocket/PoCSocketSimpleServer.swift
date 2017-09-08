@@ -13,6 +13,7 @@ import Foundation
 // MARK: Server
 
 /// An HTTP server that listens for connections on a TCP socket and spawns Listeners to handle them.
+///:nodoc:
 public class PoCSocketSimpleServer: CurrentConnectionCounting {
     /// PoCSocket to listen on for connections
     private let serverSocket: PoCSocket = PoCSocket()

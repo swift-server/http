@@ -9,6 +9,7 @@
 import Foundation
 import Dispatch
 
+///:nodoc:
 public class PoCSocketConnectionListener: ParserConnecting {
     
     ///socket(2) wrapper object
