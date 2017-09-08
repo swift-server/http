@@ -32,7 +32,7 @@ public class HTTPServer: HTTPServing {
     }
 
     public func start(port: Int = 0, handler: @escaping HTTPRequestHandler) throws {
-        try server.start(handler: handler)
+        try server.start(port: port, handler: handler)
     }
 
     public func stop() {

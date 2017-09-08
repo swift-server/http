@@ -200,14 +200,14 @@ internal class PoCSocket {
         #if os(Linux)
             var addr = sockaddr_in(
                 sin_family: sa_family_t(AF_INET),
-                sin_port: UInt16(port),
+                sin_port: htons(UInt16(port)),
                 sin_addr: in_addr(s_addr: in_addr_t(0)),
                 sin_zero:(0, 0, 0, 0, 0, 0, 0, 0))
         #else
             var addr = sockaddr_in(
                 sin_len: UInt8(MemoryLayout<sockaddr_in>.stride),
                 sin_family: UInt8(AF_INET),
-                sin_port: UInt16(port),
+                sin_port: (Int(OSHostByteOrder()) != OSLittleEndian ? UInt16(port) : _OSSwapInt16(UInt16(port))),
                 sin_addr: in_addr(s_addr: in_addr_t(0)),
                 sin_zero:(0, 0, 0, 0, 0, 0, 0, 0))
         #endif
