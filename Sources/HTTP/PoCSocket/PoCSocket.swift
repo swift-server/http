@@ -9,6 +9,7 @@
 import Foundation
 import Dispatch
 
+///:nodoc:
 public enum PoCSocketError: Error {
     case SocketOSError(errno: Int32)
     case InvalidSocketError
