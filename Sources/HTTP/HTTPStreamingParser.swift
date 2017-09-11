@@ -334,7 +334,7 @@ public class StreamingParser: HTTPResponseWriter {
                            headers: parsedHeaders)
     }
 
-    public func writeHeader(status: HTTPResponseStatus, headers: HTTPHeaders, completion: @escaping (Result) -> Void) {
+    public func write(headers: HTTPHeaders, status: HTTPResponseStatus, completion: @escaping (Result) -> Void) {
         // TODO call completion()
         guard !headersWritten else {
             return
@@ -402,24 +402,24 @@ public class StreamingParser: HTTPResponseWriter {
         headers[.connection] = "Close"
     }
 
-    public func writeTrailer(_ trailers: HTTPHeaders, completion: @escaping (Result) -> Void) {
+    public func write(trailers: HTTPHeaders, completion: @escaping (Result) -> Void) {
         fatalError("Not implemented")
     }
 
-    public func writeBody(_ data: UnsafeHTTPResponseBody, completion: @escaping (Result) -> Void) {
+    public func write(body: UnsafeHTTPResponseBody, completion: @escaping (Result) -> Void) {
         guard headersWritten else {
             //TODO error or default headers?
             return
         }
 
-        guard data.withUnsafeBytes({ $0.count > 0 }) else {
+        guard body.withUnsafeBytes({ $0.count > 0 }) else {
             completion(.ok)
             return
         }
 
         let dataToWrite: Data
         if isChunked {
-            dataToWrite = data.withUnsafeBytes {
+            dataToWrite = body.withUnsafeBytes {
                 let chunkStart = (String($0.count, radix: 16) + "\r\n").data(using: .utf8)!
                 var dataToWrite = chunkStart
                 dataToWrite.append(UnsafeBufferPointer(start: $0.baseAddress?.assumingMemoryBound(to: UInt8.self), count: $0.count))
@@ -427,10 +427,10 @@ public class StreamingParser: HTTPResponseWriter {
                 dataToWrite.append(chunkEnd)
                 return dataToWrite
             }
-        } else if let data = data as? Data {
+        } else if let data = body as? Data {
             dataToWrite = data
         } else {
-            dataToWrite = data.withUnsafeBytes { Data($0) }
+            dataToWrite = body.withUnsafeBytes { Data($0) }
         }
 
         self.parserConnector?.queueSocketWrite(dataToWrite)

@@ -42,20 +42,20 @@ class TestResponseResolver: HTTPResponseWriter {
         }
     }
 
-    func writeHeader(status: HTTPResponseStatus, headers: HTTPHeaders, completion: @escaping (Result) -> Void) {
+    func write(headers: HTTPHeaders, status: HTTPResponseStatus, completion: @escaping (Result) -> Void) {
         self.response = (status: status, headers: headers)
         completion(.ok)
     }
 
-    func writeTrailer(_ trailers: HTTPHeaders, completion: @escaping (Result) -> Void) {
+    func write(trailers: HTTPHeaders, completion: @escaping (Result) -> Void) {
         fatalError("Not implemented")
     }
 
-    func writeBody(_ data: UnsafeHTTPResponseBody, completion: @escaping (Result) -> Void) {
-        if let data = data as? HTTPResponseBody {
+    func write(body: UnsafeHTTPResponseBody, completion: @escaping (Result) -> Void) {
+        if let data = body as? HTTPResponseBody {
             self.responseBody = data
         } else {
-            self.responseBody = data.withUnsafeBytes { Data($0) }
+            self.responseBody = body.withUnsafeBytes { Data($0) }
         }
         completion(.ok)
     }
