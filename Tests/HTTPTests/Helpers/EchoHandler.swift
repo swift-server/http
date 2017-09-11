@@ -13,11 +13,11 @@ import HTTP
 class EchoHandler: HTTPRequestHandling {
     func handle(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {
         //Assume the router gave us the right request - at least for now
-        response.writeHeader(status: .ok, headers: ["Transfer-Encoding": "chunked", "X-foo": "bar"])
+        response.write(headers: ["Transfer-Encoding": "chunked", "X-foo": "bar"], status: .ok)
         return .processBody { (chunk, stop) in
             switch chunk {
             case .chunk(let data, let finishedProcessing):
-                response.writeBody(data) { _ in
+                response.write(body: data) { _ in
                     finishedProcessing()
                 }
             case .end:

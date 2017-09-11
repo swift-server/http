@@ -13,13 +13,13 @@ import HTTP
 class HelloWorldHandler: HTTPRequestHandling {
     func handle(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {
         //Assume the router gave us the right request - at least for now
-        response.writeHeader(status: .ok, headers: [.transferEncoding: "chunked", "X-foo": "bar"])
+        response.write(headers: [.transferEncoding: "chunked", "X-foo": "bar"], status: .ok)
         return .processBody { (chunk, stop) in
             switch chunk {
             case .chunk(_, let finishedProcessing):
                 finishedProcessing()
             case .end:
-                response.writeBody("Hello, World!")
+                response.write(body: "Hello, World!")
                 response.done()
             default:
                 stop = true /* don't call us anymore */

@@ -13,17 +13,18 @@ import HTTP
 class HelloWorldKeepAliveHandler: HTTPRequestHandling {
     func handle(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {
         //Assume the router gave us the right request - at least for now
-        response.writeHeader(status: .ok, headers: [
-            "Transfer-Encoding": "chunked",
-            "Connection": "Keep-Alive",
-            "Keep-Alive": "timeout=5, max=10",
-        ])
+        response.write(headers: [
+                        "Transfer-Encoding": "chunked",
+                        "Connection": "Keep-Alive",
+                        "Keep-Alive": "timeout=5, max=10",
+                        ],
+                       status: .ok)
         return .processBody { (chunk, stop) in
             switch chunk {
             case .chunk(_, let finishedProcessing):
                 finishedProcessing()
             case .end:
-                response.writeBody("Hello, World!")
+                response.write(body: "Hello, World!")
                 response.done()
             default:
                 stop = true /* don't call us anymore */

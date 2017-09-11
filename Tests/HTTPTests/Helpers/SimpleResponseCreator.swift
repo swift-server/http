@@ -44,8 +44,8 @@ public class SimpleResponseCreator: HTTPRequestHandling {
                 let responseResult = self.completionHandler(request, self.buffer)
                 var headers = responseResult.headers
                 headers.replace([.transferEncoding: "chunked"])
-                response.writeHeader(status: responseResult.status, headers: headers)
-                response.writeBody(responseResult.body) { _ in
+                response.write(headers: headers, status: responseResult.status)
+                response.write(body: responseResult.body) { _ in
                         response.done()
                 }
             default:
