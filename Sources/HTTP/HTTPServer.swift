@@ -34,7 +34,7 @@ public class HTTPServer: HTTPServing {
 
     /// Start the HTTP server on the given `port`, using `handler` to process incoming requests
     public func start(port: Int = 0, handler: @escaping HTTPRequestHandler) throws {
-        try server.start(handler: handler)
+        try server.start(port: port, handler: handler)
     }
 
     /// Stop the server
