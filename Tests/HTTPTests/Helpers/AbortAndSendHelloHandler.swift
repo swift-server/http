@@ -18,10 +18,10 @@ class AbortAndSendHelloHandler: HTTPRequestHandling {
         //Assume the router gave us the right request - at least for now
         response.writeHeader(status: .ok, headers: [.transferEncoding: "chunked", "X-foo": "bar"])
         return .processBody { (chunk, stop) in
-            stop = true
-            self.chunkCalledCount += 1
             switch chunk {
             case .chunk(_, let finishedProcessing):
+                stop = true
+                self.chunkCalledCount += 1
                 finishedProcessing()
             case .end:
                 response.writeBody("Hello, World!")

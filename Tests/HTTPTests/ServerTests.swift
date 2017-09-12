@@ -57,7 +57,7 @@ class ServerTests: XCTestCase {
         XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
         XCTAssertEqual("Hello, World!", resolver.responseBody?.withUnsafeBytes { String(bytes: $0, encoding: .utf8) } ?? "Nil")
     }
-
+    
     func testOkEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
 
@@ -157,6 +157,41 @@ class ServerTests: XCTestCase {
         }
         server.stop()
         print("\(#function) stopping server")
+    }
+    
+    func testUnchunkedEndToEnd() {
+        let receivedExpectation = self.expectation(description: "Received web response \(#function)")
+        
+        let server = HTTPServer()
+        do {
+            try server.start(port: 0, handler: UnchunkedHelloWorldHandler().handle)
+            let session = URLSession(configuration: URLSessionConfiguration.default)
+            let url = URL(string: "http://localhost:\(server.port)/helloworld")!
+            print("Test \(#function) on port \(server.port)")
+            let dataTask = session.dataTask(with: url) { (responseBody, rawResponse, error) in
+                let response = rawResponse as? HTTPURLResponse
+                XCTAssertNil(error, "\(error!.localizedDescription)")
+                XCTAssertNotNil(response)
+                XCTAssertNotNil(responseBody)
+                XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
+                XCTAssertEqual("Hello, World!", String(data: responseBody ?? Data(), encoding: .utf8) ?? "Nil")
+                let headers = response?.allHeaderFields ?? ["": ""]
+                let lengthHeader: String = headers["Content-Length"] as? String ?? ""
+                XCTAssertNotNil(lengthHeader, "Missing Content-Length header")
+                XCTAssertEqual(lengthHeader, "13", "Incorrect Content-Length header")
+
+                receivedExpectation.fulfill()
+            }
+            dataTask.resume()
+            self.waitForExpectations(timeout: 10) { (error) in
+                if let error = error {
+                    XCTFail("\(error)")
+                }
+            }
+            server.stop()
+        } catch {
+            XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
+        }
     }
 
     func testRequestEchoEndToEnd() {
@@ -442,16 +477,9 @@ class ServerTests: XCTestCase {
             return
         }
         
-        var testDataLong = testExecutableData + testExecutableData + testExecutableData + testExecutableData
-        let length = testDataLong.count
-        let keep = 16385
-        let remove = length - keep
-        if remove > 0 {
-            testDataLong.removeLast(remove)
-        }
-        
-        let testData = Data(testDataLong)
-        
+        //Make sure there's data there
+        XCTAssertNotNil(testExecutableData)
+                
         let server = HTTPServer()
         do {
             let testHandler = AbortAndSendHelloHandler()
@@ -461,8 +489,7 @@ class ServerTests: XCTestCase {
             print("Test \(#function) on port \(server.port)")
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
-            request.httpBody = testData
-            let dataTask = session.dataTask(with: request) { (responseBody, rawResponse, error) in
+            let uploadTask = session.uploadTask(with: request, fromFile: executableURL) { (responseBody, rawResponse, error) in
                 let response = rawResponse as? HTTPURLResponse
                 XCTAssertNil(error, "\(error!.localizedDescription)")
                 XCTAssertNotNil(response)
@@ -472,7 +499,7 @@ class ServerTests: XCTestCase {
                 XCTAssertEqual(Int(testHandler.chunkCalledCount), 1)
                 receivedExpectation.fulfill()
             }
-            dataTask.resume()
+            uploadTask.resume()
             self.waitForExpectations(timeout: 10) { (error) in
                 if let error = error {
                     XCTFail("\(error)")

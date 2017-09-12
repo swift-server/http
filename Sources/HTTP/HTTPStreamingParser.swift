@@ -70,6 +70,7 @@ public class StreamingParser: HTTPResponseWriter {
     var parsedHTTPMethod: HTTPMethod?
     var parsedHTTPVersion: HTTPVersion?
     var parsedURL: String?
+    var stopProcessingBody = false
 
     /// Is the currently parsed request an upgrade request?
     public private(set) var upgradeRequested = false
@@ -228,13 +229,17 @@ public class StreamingParser: HTTPResponseWriter {
     func messageCompleted() -> Int32 {
         let didChangeState = processCurrentCallback(.messageCompleted)
         if let chunkHandler = self.httpBodyProcessingCallback, didChangeState {
-            var stop = false
-            switch chunkHandler {
-            case .processBody(let handler):
-                handler(.end, &stop)
-            case .discardBody:
-                done()
-            }
+//            if stopProcessingBody {
+//                done()
+//            } else {
+                var stop = false
+                switch chunkHandler {
+                case .processBody(let handler):
+                    handler(.end, &stop)
+                case .discardBody:
+                    done()
+                }
+            //}
         }
         return 0
     }
@@ -284,6 +289,9 @@ public class StreamingParser: HTTPResponseWriter {
     func bodyReceived(data: UnsafePointer<Int8>?, length: Int) -> Int32 {
         processCurrentCallback(.bodyReceived)
         guard let data = data else { return 0 }
+        if stopProcessingBody {
+            return 0
+        }
         data.withMemoryRebound(to: UInt8.self, capacity: length) { (ptr) -> Void in
             let buff = UnsafeBufferPointer<UInt8>(start: ptr, count: length)
             let chunk = DispatchData(bytes: buff)
@@ -306,6 +314,9 @@ public class StreamingParser: HTTPResponseWriter {
                 completionSemaphore.wait()
                 if !finished {
                     print ("Warning: httpBodyProcessingCallback did not complete.")
+                }
+                if stop {
+                    self.stopProcessingBody = true
                 }
             }
         }
@@ -440,7 +451,9 @@ public class StreamingParser: HTTPResponseWriter {
             dataToWrite = data.withUnsafeBytes { Data($0) }
         }
 
-        self.parserConnector?.queueSocketWrite(dataToWrite, completion:completion)
+        //self.parserConnector?.queueSocketWrite(dataToWrite, completion:completion)
+        self.parserConnector?.queueSocketWrite(dataToWrite, completion:{_ in })
+        completion(.ok)
     }
 
     public func done(completion: @escaping (Result) -> Void) {
@@ -460,20 +473,16 @@ public class StreamingParser: HTTPResponseWriter {
         self.headersWritten = false
         self.httpBodyProcessingCallback = nil
         self.upgradeRequested = false
+        self.stopProcessingBody = false
 
-        let closeAfter = {
-            if self.clientRequestedKeepAlive {
-                self.keepAliveUntil = Date(timeIntervalSinceNow: StreamingParser.keepAliveTimeout).timeIntervalSinceReferenceDate
-                self.parserConnector?.responseComplete()
-            } else {
-                self.parserConnector?.closeWriter()
-            }
+        //Note: This used to be passed into the completion block that `Result` used to have
+        //  But since that block was removed, we're calling it directly
+        if self.clientRequestedKeepAlive {
+            self.keepAliveUntil = Date(timeIntervalSinceNow: StreamingParser.keepAliveTimeout).timeIntervalSinceReferenceDate
+            self.parserConnector?.responseComplete()
+        } else {
+            self.parserConnector?.closeWriter()
         }
-
-        // FIXME I do not understand what code written here before was meant to do
-        // If it was about delayed closure invocation then it couldn't work either
-        // Here is the equivalent code
-        closeAfter()
         completion(.ok)
     }
 
