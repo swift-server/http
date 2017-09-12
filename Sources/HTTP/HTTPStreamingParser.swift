@@ -229,17 +229,13 @@ public class StreamingParser: HTTPResponseWriter {
     func messageCompleted() -> Int32 {
         let didChangeState = processCurrentCallback(.messageCompleted)
         if let chunkHandler = self.httpBodyProcessingCallback, didChangeState {
-//            if stopProcessingBody {
-//                done()
-//            } else {
-                var stop = false
-                switch chunkHandler {
-                case .processBody(let handler):
-                    handler(.end, &stop)
-                case .discardBody:
-                    done()
-                }
-            //}
+            var dummy = false //We're sending `.end`, which means processing is stopping anyway, so the bool here is pointless
+            switch chunkHandler {
+            case .processBody(let handler):
+                handler(.end, &dummy)
+            case .discardBody:
+                done()
+            }
         }
         return 0
     }
@@ -296,27 +292,11 @@ public class StreamingParser: HTTPResponseWriter {
             let buff = UnsafeBufferPointer<UInt8>(start: ptr, count: length)
             let chunk = DispatchData(bytes: buff)
             if let chunkHandler = self.httpBodyProcessingCallback {
-                var stop = false
-                var finished = false
-                let completionSemaphore = DispatchSemaphore(value: 1)
                 switch chunkHandler {
                     case .processBody(let handler):
-                        handler(.chunk(data: chunk, finishedProcessing: {
-                            finished = true
-                            completionSemaphore.signal()
-                        }), &stop)
+                        handler(.chunk(data: chunk, finishedProcessing: {}), &stopProcessingBody)
                     case .discardBody:
-                        finished = true
-                        completionSemaphore.signal()
-                }
-                //Wait until the chunk handler completes. This allows the caller to notice backpressure.
-                // See discussion on https://github.com/swift-server/http/issues/36
-                completionSemaphore.wait()
-                if !finished {
-                    print ("Warning: httpBodyProcessingCallback did not complete.")
-                }
-                if stop {
-                    self.stopProcessingBody = true
+                        break
                 }
             }
         }

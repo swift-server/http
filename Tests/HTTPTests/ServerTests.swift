@@ -340,12 +340,6 @@ class ServerTests: XCTestCase {
                 let response = rawResponse as? HTTPURLResponse
                 XCTAssertNil(error, "\(error!.localizedDescription)")
                 XCTAssertNotNil(response)
-                let headers = response?.allHeaderFields ?? ["": ""]
-                let connectionHeader: String = headers["Connection"] as? String ?? ""
-                let keepAliveHeader = headers["Keep-Alive"]
-                XCTAssertEqual(connectionHeader, "Keep-Alive", "No Keep-Alive Connection")
-                XCTAssertNotNil(keepAliveHeader)
-                XCTAssertNotNil(responseBody, "No Keep-Alive Header")
                 XCTAssertEqual(server.connectionCount, 1)
                 XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
                 XCTAssertEqual(testString1, String(data: responseBody ?? Data(), encoding: .utf8) ?? "Nil")
@@ -359,11 +353,6 @@ class ServerTests: XCTestCase {
                     let response2 = rawResponse2 as? HTTPURLResponse
                     XCTAssertNil(error2, "\(error2!.localizedDescription)")
                     XCTAssertNotNil(response2)
-                    let headers = response2?.allHeaderFields ?? ["": ""]
-                    let connectionHeader: String = headers["Connection"] as? String ?? ""
-                    let keepAliveHeader = headers["Keep-Alive"]
-                    XCTAssertEqual(connectionHeader, "Keep-Alive", "No Keep-Alive Connection")
-                    XCTAssertNotNil(keepAliveHeader, "No Keep-Alive Header")
                     XCTAssertEqual(server.connectionCount, 2)
                     XCTAssertNotNil(responseBody2)
                     XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response2?.statusCode ?? 0)
@@ -378,11 +367,6 @@ class ServerTests: XCTestCase {
                         let response = rawResponse as? HTTPURLResponse
                         XCTAssertNil(error, "\(error!.localizedDescription)")
                         XCTAssertNotNil(response)
-                        let headers = response?.allHeaderFields ?? ["": ""]
-                        let connectionHeader: String = headers["Connection"] as? String ?? ""
-                        let keepAliveHeader = headers["Keep-Alive"]
-                        XCTAssertEqual(connectionHeader, "Keep-Alive", "No Keep-Alive Connection")
-                        XCTAssertNotNil(keepAliveHeader, "No Keep-Alive Header")
                         XCTAssertEqual(server.connectionCount, 3)
                         XCTAssertNotNil(responseBody)
                         XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
@@ -412,6 +396,9 @@ class ServerTests: XCTestCase {
     func testRequestLargeEchoEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
 
+        //Use a small chunk size to make sure that we're testing multiple HTTPBodyHandler calls
+        let chunkSize = 1024
+
         // Get a file we know exists
         let executableURL = URL(fileURLWithPath: CommandLine.arguments[0])
         let testExecutableData: Data
@@ -433,9 +420,9 @@ class ServerTests: XCTestCase {
 
         let testData = Data(testDataLong)
 
-        let server = HTTPServer()
+        let server = PoCSocketSimpleServer()
         do {
-            try server.start(port: 0, handler: EchoHandler().handle)
+            try server.start(port: 0, maxReadLength: chunkSize, handler: EchoHandler().handle)
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
@@ -466,6 +453,9 @@ class ServerTests: XCTestCase {
     func testRequestLargePostHelloWorld() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
         
+        //Use a small chunk size to make sure that we stop after one HTTPBodyHandler call
+        let chunkSize = 1024
+        
         // Get a file we know exists
         let executableURL = URL(fileURLWithPath: CommandLine.arguments[0])
         let testExecutableData: Data
@@ -479,11 +469,13 @@ class ServerTests: XCTestCase {
         
         //Make sure there's data there
         XCTAssertNotNil(testExecutableData)
+        
+        let executableLength = testExecutableData.count
                 
-        let server = HTTPServer()
+        let server = PoCSocketSimpleServer()
         do {
             let testHandler = AbortAndSendHelloHandler()
-            try server.start(port: 0, handler: testHandler.handle)
+            try server.start(port: 0, maxReadLength: chunkSize, handler: testHandler.handle)
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
@@ -497,6 +489,8 @@ class ServerTests: XCTestCase {
                 XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
                 XCTAssertEqual("Hello, World!", String(data: responseBody ?? Data(), encoding: .utf8) ?? "Nil")
                 XCTAssertEqual(Int(testHandler.chunkCalledCount), 1)
+                XCTAssertLessThan(testHandler.chunkLength, executableLength, "Should have written less than the length of the file")
+                XCTAssertEqual(Int(testHandler.chunkLength), chunkSize)
                 receivedExpectation.fulfill()
             }
             uploadTask.resume()
@@ -513,14 +507,16 @@ class ServerTests: XCTestCase {
 
 
     static var allTests = [
+        ("testResponseOK", testResponseOK),
         ("testEcho", testEcho),
         ("testHello", testHello),
         ("testSimpleHello", testSimpleHello),
-        ("testResponseOK", testResponseOK),
         ("testOkEndToEnd", testOkEndToEnd),
         ("testHelloEndToEnd", testHelloEndToEnd),
         ("testSimpleHelloEndToEnd", testSimpleHelloEndToEnd),
+        ("testUnchunkedEndToEnd", testUnchunkedEndToEnd),
         ("testRequestEchoEndToEnd", testRequestEchoEndToEnd),
+        ("testMultipleRequestWithoutKeepAliveEchoEndToEnd", testMultipleRequestWithoutKeepAliveEchoEndToEnd),
         ("testRequestKeepAliveEchoEndToEnd", testRequestKeepAliveEchoEndToEnd),
         ("testRequestLargeEchoEndToEnd", testRequestLargeEchoEndToEnd),
         ("testRequestLargePostHelloWorld", testRequestLargePostHelloWorld),

@@ -13,15 +13,17 @@ import HTTP
 class AbortAndSendHelloHandler: HTTPRequestHandling {
     
     var chunkCalledCount=0
+    var chunkLength=0
     
     func handle(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {
         //Assume the router gave us the right request - at least for now
         response.writeHeader(status: .ok, headers: [.transferEncoding: "chunked", "X-foo": "bar"])
         return .processBody { (chunk, stop) in
             switch chunk {
-            case .chunk(_, let finishedProcessing):
+            case .chunk(let data, let finishedProcessing):
                 stop = true
                 self.chunkCalledCount += 1
+                self.chunkLength += data.count
                 finishedProcessing()
             case .end:
                 response.writeBody("Hello, World!")
