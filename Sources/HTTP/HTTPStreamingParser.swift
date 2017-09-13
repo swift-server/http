@@ -64,13 +64,32 @@ public class StreamingParser: HTTPResponseWriter {
     /// Protocol that we use to send data (and status info) back to the Network layer
     public var parserConnector: ParserConnecting?
 
+    ///Flag to track whether our handler has told us not to call it anymore
+    private let _shouldStopProcessingBodyLock = DispatchSemaphore(value: 1)
+    private var _shouldStopProcessingBody: Bool = false
+    private var shouldStopProcessingBody: Bool {
+        get {
+            _shouldStopProcessingBodyLock.wait()
+            defer {
+                _shouldStopProcessingBodyLock.signal()
+            }
+            return _shouldStopProcessingBody
+        }
+        set {
+            _shouldStopProcessingBodyLock.wait()
+            defer {
+                _shouldStopProcessingBodyLock.signal()
+            }
+            _shouldStopProcessingBody = newValue
+        }
+    }
+
     var lastCallBack = CallbackRecord.idle
     var lastHeaderName: String?
     var parsedHeaders = HTTPHeaders()
     var parsedHTTPMethod: HTTPMethod?
     var parsedHTTPVersion: HTTPVersion?
     var parsedURL: String?
-    var stopProcessingBody = false
 
     /// Is the currently parsed request an upgrade request?
     public private(set) var upgradeRequested = false
@@ -285,7 +304,7 @@ public class StreamingParser: HTTPResponseWriter {
     func bodyReceived(data: UnsafePointer<Int8>?, length: Int) -> Int32 {
         processCurrentCallback(.bodyReceived)
         guard let data = data else { return 0 }
-        if stopProcessingBody {
+        if shouldStopProcessingBody {
             return 0
         }
         data.withMemoryRebound(to: UInt8.self, capacity: length) { (ptr) -> Void in
@@ -294,7 +313,14 @@ public class StreamingParser: HTTPResponseWriter {
             if let chunkHandler = self.httpBodyProcessingCallback {
                 switch chunkHandler {
                     case .processBody(let handler):
-                        handler(.chunk(data: chunk, finishedProcessing: {}), &stopProcessingBody)
+                        //OK, this sucks.  We can't access the value of the `inout` inside this block
+                        //  due to exclusivity. Which means that if we were to pass a local variable, we'd
+                        //  have to put a semaphore or something up here to wait for the block to be done before
+                        //  we could get its value and pass that on to the instance variable. So instead, we're
+                        //  just passing in a pointer to the internal ivar. But that ivar can't be modified in
+                        //  more than one place, so we have to put a semaphore around it to prevent that.
+                        _shouldStopProcessingBodyLock.wait()
+                        handler(.chunk(data: chunk, finishedProcessing: {self._shouldStopProcessingBodyLock.signal()}), &_shouldStopProcessingBody)
                     case .discardBody:
                         break
                 }
@@ -431,9 +457,7 @@ public class StreamingParser: HTTPResponseWriter {
             dataToWrite = data.withUnsafeBytes { Data($0) }
         }
 
-        //self.parserConnector?.queueSocketWrite(dataToWrite, completion:completion)
-        self.parserConnector?.queueSocketWrite(dataToWrite, completion:{_ in })
-        completion(.ok)
+        self.parserConnector?.queueSocketWrite(dataToWrite, completion:completion)
     }
 
     public func done(completion: @escaping (Result) -> Void) {
@@ -453,7 +477,7 @@ public class StreamingParser: HTTPResponseWriter {
         self.headersWritten = false
         self.httpBodyProcessingCallback = nil
         self.upgradeRequested = false
-        self.stopProcessingBody = false
+        self.shouldStopProcessingBody = false
 
         //Note: This used to be passed into the completion block that `Result` used to have
         //  But since that block was removed, we're calling it directly
