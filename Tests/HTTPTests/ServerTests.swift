@@ -220,10 +220,8 @@ class ServerTests: XCTestCase {
                 XCTAssertNotNil(response)
                 let headers = response?.allHeaderFields ?? ["": ""]
                 let connectionHeader: String = headers["Connection"] as? String ?? ""
-                let keepAliveHeader = headers["Keep-Alive"]
                 XCTAssertEqual(connectionHeader, "Keep-Alive", "No Keep-Alive Connection")
-                XCTAssertNotNil(keepAliveHeader)
-                XCTAssertNotNil(responseBody, "No Keep-Alive Header")
+                XCTAssertNotNil(responseBody, "No Response Body")
                 XCTAssertEqual(server.connectionCount, 1)
                 XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
                 XCTAssertEqual(testString1, String(data: responseBody ?? Data(), encoding: .utf8) ?? "Nil")
@@ -237,9 +235,7 @@ class ServerTests: XCTestCase {
                     XCTAssertNotNil(response2)
                     let headers = response2?.allHeaderFields ?? ["": ""]
                     let connectionHeader: String = headers["Connection"] as? String ?? ""
-                    let keepAliveHeader = headers["Keep-Alive"]
                     XCTAssertEqual(connectionHeader, "Keep-Alive", "No Keep-Alive Connection")
-                    XCTAssertNotNil(keepAliveHeader, "No Keep-Alive Header")
                     XCTAssertEqual(server.connectionCount, 1)
                     XCTAssertNotNil(responseBody2)
                     XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response2?.statusCode ?? 0)
@@ -254,9 +250,7 @@ class ServerTests: XCTestCase {
                         XCTAssertNotNil(response)
                         let headers = response?.allHeaderFields ?? ["": ""]
                         let connectionHeader: String = headers["Connection"] as? String ?? ""
-                        let keepAliveHeader = headers["Keep-Alive"]
                         XCTAssertEqual(connectionHeader, "Keep-Alive", "No Keep-Alive Connection")
-                        XCTAssertNotNil(keepAliveHeader, "No Keep-Alive Header")
                         XCTAssertEqual(server.connectionCount, 1)
                         XCTAssertNotNil(responseBody)
                         XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)

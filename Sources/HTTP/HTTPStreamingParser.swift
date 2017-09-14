@@ -42,9 +42,6 @@ public class StreamingParser: HTTPResponseWriter {
         }
     }
 
-    /// Limit on the number of consecutive requests on a single connection. Used in Keep-Alive Header
-    private(set) var requestsRemaining: UInt = 100
-
     /// Optional delegate that can tell us how many connections are in-flight.
     public weak var connectionCounter: CurrentConnectionCounting?
 
@@ -390,14 +387,10 @@ public class StreamingParser: HTTPResponseWriter {
 
 
         if clientRequestedKeepAlive {
-            requestsRemaining -= 1
-            if requestsRemaining > 0 {
-                headers[.connection] = "Keep-Alive"
-                headers[.keepAlive] = "timeout=\(Int(StreamingParser.keepAliveTimeout)), max=\(requestsRemaining)"
-                return
-            }
+            headers[.connection] = "Keep-Alive"
+        } else {
+            headers[.connection] = "Close"
         }
-        headers[.connection] = "Close"
     }
 
     public func writeTrailer(_ trailers: HTTPHeaders, completion: @escaping (Result) -> Void) {
