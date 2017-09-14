@@ -308,7 +308,11 @@ public class StreamingParser: HTTPResponseWriter {
             return 0
         }
         data.withMemoryRebound(to: UInt8.self, capacity: length) { (ptr) -> Void in
-            let buff = UnsafeBufferPointer<UInt8>(start: ptr, count: length)
+            #if swift(>=4.0)
+                let buff = UnsafeRawBufferPointer(start: ptr, count: length)
+            #else
+                let buff = UnsafeBufferPointer<UInt8>(start: ptr, count: length)
+            #endif
             let chunk = DispatchData(bytes: buff)
             if let chunkHandler = self.httpBodyProcessingCallback {
                 switch chunkHandler {
