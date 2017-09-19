@@ -19,7 +19,7 @@ public class StreamingParser: HTTPResponseWriter {
     /// Time to leave socket open waiting for next request to start
     public static let keepAliveTimeout: TimeInterval = 5
 
-    /// Flag to track if the client wants to send multiple requests on the same TCP connection
+    /// Flag to track if the client wants to send consecutive requests on the same TCP connection
     var clientRequestedKeepAlive = false
 
     /// Tracks when socket should be closed. Needs to have a lock, since it's updated often
@@ -42,12 +42,7 @@ public class StreamingParser: HTTPResponseWriter {
         }
     }
 
-    /// Theoretical limit of how many open requests we can have. Used in Keep-Alive Header
-    let maxRequests = 100
-
-    /// Optional delegate that can tell us how many connections are in-flight so we can set the Keep-Alive header
-    ///  to the correct number of available connections. If not present, the client will not be limited in number of 
-    ///  connections that can be made simultaneously
+    /// Optional delegate that can tell us how many connections are in-flight.
     public weak var connectionCounter: CurrentConnectionCounting?
 
     /// Holds the bytes that come from the CHTTPParser until we have enough of them to do something with it
@@ -392,14 +387,10 @@ public class StreamingParser: HTTPResponseWriter {
 
 
         if clientRequestedKeepAlive {
-            let availableConnections = maxRequests - (self.connectionCounter?.connectionCount ?? 0)
-            if availableConnections > 0 {
-                headers[.connection] = "Keep-Alive"
-                headers[.keepAlive] = "timeout=\(Int(StreamingParser.keepAliveTimeout)), max=\(availableConnections)"
-                return
-            }
+            headers[.connection] = "Keep-Alive"
+        } else {
+            headers[.connection] = "Close"
         }
-        headers[.connection] = "Close"
     }
 
     public func writeTrailer(_ trailers: HTTPHeaders, completion: @escaping (Result) -> Void) {
