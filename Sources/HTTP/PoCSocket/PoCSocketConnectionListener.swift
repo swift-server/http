@@ -68,19 +68,26 @@ public class PoCSocketConnectionListener: ParserConnecting {
             _errorOccurred = newValue
         }
     }
+    
+    ///Largest number of bytes we're willing to allocate for a Read
+    // it's an anti-heartbleed-type paranoia check
+    private var maxReadLength: Int = 1048576
 
     /// initializer
     ///
     /// - Parameters:
     ///   - socket: thin PoCSocket wrapper around system calls
     ///   - parser: Manager of the CHTTPParser library
-    internal init(socket: PoCSocket, parser: StreamingParser, readQueue: DispatchQueue, writeQueue: DispatchQueue) {
+    internal init(socket: PoCSocket, parser: StreamingParser, readQueue: DispatchQueue, writeQueue: DispatchQueue, maxReadLength: Int = 0) {
         self.socket = socket
         socketFD = socket.socketfd
         socketReaderQueue = readQueue
         socketWriterQueue = writeQueue
         self.parser = parser
         parser.parserConnector = self
+        if maxReadLength > 0 {
+            self.maxReadLength = maxReadLength
+        }
     }
 
     /// Check if socket is still open. Used to decide whether it should be closed/pruned after timeout
@@ -202,15 +209,11 @@ public class PoCSocketConnectionListener: ParserConnecting {
 
             var length = 1 //initial value
             
-            ///Largest number of bytes we're willing to allocate for a Read
-                // it's an anti-heartbleed-type paranoia check
-            let maxReadCount: Int = 1048576
-
             do {
                 if strongSelf.socket?.socketfd ?? -1 > 0 {
                     var maxLength: Int = Int(strongSelf.readerSource?.data ?? 0)
-                    if (maxLength > maxReadCount) || (maxLength <= 0) {
-                            maxLength = maxReadCount
+                    if (maxLength > strongSelf.maxReadLength) || (maxLength <= 0) {
+                            maxLength = strongSelf.maxReadLength
                     }
                     var readBuffer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: maxLength)
                     length = try strongSelf.socket?.socketRead(into: &readBuffer, maxLength:maxLength) ?? -1
@@ -255,9 +258,10 @@ public class PoCSocketConnectionListener: ParserConnecting {
     /// Called by the parser to give us data to send back out of the socket
     ///
     /// - Parameter bytes: Data object to be queued to be written to the socket
-    public func queueSocketWrite(_ bytes: Data) {
+    public func queueSocketWrite(_ bytes: Data, completion:@escaping (Result) -> Void) {
         self.socketWriterQueue.async { [weak self] in
             self?.write(bytes)
+            completion(.ok)
         }
     }
 
