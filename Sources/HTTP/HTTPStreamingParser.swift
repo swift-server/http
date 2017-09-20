@@ -452,7 +452,7 @@ public class StreamingParser: HTTPResponseWriter {
                 self.keepAliveUntil = Date(timeIntervalSinceNow: StreamingParser.keepAliveTimeout).timeIntervalSinceReferenceDate
                 self.parserConnector?.responseComplete()
             } else {
-                self.parserConnector?.closeWriter()
+                self.parserConnector?.responseCompleteCloseWriter()
             }
         }
 
@@ -484,6 +484,9 @@ public protocol ParserConnecting: class {
 
     /// Let the network know that a response is complete, so it can be closed after timeout
     func responseComplete()
+    
+    /// Let the network know that a response is complete and we're ready to close the connection
+    func responseCompleteCloseWriter()
 
     /// Used to let the network know we're ready to close the connection
     func closeWriter()

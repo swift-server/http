@@ -7,6 +7,7 @@
 //
 
 import XCTest
+import Dispatch
 
 @testable import HTTP
 
@@ -301,10 +302,8 @@ class ServerTests: XCTestCase {
                 XCTAssertNotNil(response)
                 let headers = response?.allHeaderFields ?? ["": ""]
                 let connectionHeader: String = headers["Connection"] as? String ?? ""
-                let keepAliveHeader = headers["Keep-Alive"]
                 XCTAssertEqual(connectionHeader, "Keep-Alive", "No Keep-Alive Connection")
-                XCTAssertNotNil(keepAliveHeader)
-                XCTAssertNotNil(responseBody, "No Keep-Alive Header")
+                XCTAssertNotNil(responseBody, "No Response Body")
                 XCTAssertEqual(server.connectionCount, 1)
                 XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
                 XCTAssertEqual(testString1, String(data: responseBody ?? Data(), encoding: .utf8) ?? "Nil")
@@ -320,9 +319,8 @@ class ServerTests: XCTestCase {
                     XCTAssertNotNil(response2)
                     let headers = response2?.allHeaderFields ?? ["": ""]
                     let connectionHeader: String = headers["Connection"] as? String ?? ""
-                    let keepAliveHeader = headers["Keep-Alive"]
                     XCTAssertEqual(connectionHeader, "Keep-Alive", "No Keep-Alive Connection")
-                    XCTAssertNotNil(keepAliveHeader, "No Keep-Alive Header")
+                    XCTAssertNotNil(responseBody, "No Response Body")
                     XCTAssertEqual(server.connectionCount, 2)
                     XCTAssertNotNil(responseBody2)
                     XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response2?.statusCode ?? 0)
@@ -339,9 +337,7 @@ class ServerTests: XCTestCase {
                         XCTAssertNotNil(response)
                         let headers = response?.allHeaderFields ?? ["": ""]
                         let connectionHeader: String = headers["Connection"] as? String ?? ""
-                        let keepAliveHeader = headers["Keep-Alive"]
                         XCTAssertEqual(connectionHeader, "Keep-Alive", "No Keep-Alive Connection")
-                        XCTAssertNotNil(keepAliveHeader, "No Keep-Alive Header")
                         XCTAssertEqual(server.connectionCount, 3)
                         XCTAssertNotNil(responseBody)
                         XCTAssertEqual(Int(HTTPResponseStatus.ok.code), response?.statusCode ?? 0)
@@ -422,6 +418,45 @@ class ServerTests: XCTestCase {
         }
     }
 
+    func testExplicitCloseConnections() {
+        let expectation = self.expectation(description: "0 Open Connection")
+        let server = HTTPServer()
+        do {
+            try server.start(port: 0, handler: OkHandler().handle)
+            
+            let session = URLSession(configuration: URLSessionConfiguration.default)
+            let url1 = URL(string: "http://localhost:\(server.port)")!
+            var request = URLRequest(url: url1)
+            request.httpMethod = "POST"
+            request.setValue("close", forHTTPHeaderField: "Connection")
+            
+            let dataTask1 = session.dataTask(with: request) { (responseBody, rawResponse, error) in
+                XCTAssertNil(error, "\(error!.localizedDescription)")
+                #if os(Linux)
+                    XCTAssertEqual(server.connectionCount, 0)
+                    expectation.fulfill()
+                
+                    // Darwin's URLSession replaces the `Connection: close` header with `Connection: keep-alive`, so allow it to expire
+                #else
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                        XCTAssertEqual(server.connectionCount, 0)
+                        expectation.fulfill()
+                    }
+                #endif
+            }
+            dataTask1.resume()
+            
+            self.waitForExpectations(timeout: 30) { (error) in
+                if let error = error {
+                    XCTFail("\(error)")
+                }
+            }
+            server.stop()
+        } catch {
+            XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
+        }
+    }
+
     static var allTests = [
         ("testEcho", testEcho),
         ("testHello", testHello),
@@ -433,5 +468,6 @@ class ServerTests: XCTestCase {
         ("testRequestEchoEndToEnd", testRequestEchoEndToEnd),
         ("testRequestKeepAliveEchoEndToEnd", testRequestKeepAliveEchoEndToEnd),
         ("testRequestLargeEchoEndToEnd", testRequestLargeEchoEndToEnd),
+        ("testExplicitCloseConnections", testExplicitCloseConnections),
     ]
 }
