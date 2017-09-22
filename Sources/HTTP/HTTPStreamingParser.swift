@@ -59,6 +59,26 @@ public class StreamingParser: HTTPResponseWriter {
     /// Protocol that we use to send data (and status info) back to the Network layer
     public var parserConnector: ParserConnecting?
 
+    ///Flag to track whether our handler has told us not to call it anymore
+    private let _shouldStopProcessingBodyLock = DispatchSemaphore(value: 1)
+    private var _shouldStopProcessingBody: Bool = false
+    private var shouldStopProcessingBody: Bool {
+        get {
+            _shouldStopProcessingBodyLock.wait()
+            defer {
+                _shouldStopProcessingBodyLock.signal()
+            }
+            return _shouldStopProcessingBody
+        }
+        set {
+            _shouldStopProcessingBodyLock.wait()
+            defer {
+                _shouldStopProcessingBodyLock.signal()
+            }
+            _shouldStopProcessingBody = newValue
+        }
+    }
+
     var lastCallBack = CallbackRecord.idle
     var lastHeaderName: String?
     var parsedHeaders = HTTPHeaders()
@@ -223,10 +243,10 @@ public class StreamingParser: HTTPResponseWriter {
     func messageCompleted() -> Int32 {
         let didChangeState = processCurrentCallback(.messageCompleted)
         if let chunkHandler = self.httpBodyProcessingCallback, didChangeState {
-            var stop = false
+            var dummy = false //We're sending `.end`, which means processing is stopping anyway, so the bool here is pointless
             switch chunkHandler {
             case .processBody(let handler):
-                handler(.end, &stop)
+                handler(.end, &dummy)
             case .discardBody:
                 done()
             }
@@ -279,21 +299,25 @@ public class StreamingParser: HTTPResponseWriter {
     func bodyReceived(data: UnsafePointer<Int8>?, length: Int) -> Int32 {
         processCurrentCallback(.bodyReceived)
         guard let data = data else { return 0 }
+        if shouldStopProcessingBody {
+            return 0
+        }
         data.withMemoryRebound(to: UInt8.self, capacity: length) { (ptr) -> Void in
             let buff = UnsafeBufferPointer<UInt8>(start: ptr, count: length)
             let chunk = DispatchData(bytes: buff)
             if let chunkHandler = self.httpBodyProcessingCallback {
-                var stop = false
-                var finished = false
-                while !stop && !finished {
-                    switch chunkHandler {
+                switch chunkHandler {
                     case .processBody(let handler):
-                        handler(.chunk(data: chunk, finishedProcessing: {
-                            finished = true
-                        }), &stop)
+                        //OK, this sucks.  We can't access the value of the `inout` inside this block
+                        //  due to exclusivity. Which means that if we were to pass a local variable, we'd
+                        //  have to put a semaphore or something up here to wait for the block to be done before
+                        //  we could get its value and pass that on to the instance variable. So instead, we're
+                        //  just passing in a pointer to the internal ivar. But that ivar can't be modified in
+                        //  more than one place, so we have to put a semaphore around it to prevent that.
+                        _shouldStopProcessingBodyLock.wait()
+                        handler(.chunk(data: chunk, finishedProcessing: {self._shouldStopProcessingBodyLock.signal()}), &_shouldStopProcessingBody)
                     case .discardBody:
-                        finished = true
-                    }
+                        break
                 }
             }
         }
@@ -330,7 +354,7 @@ public class StreamingParser: HTTPResponseWriter {
     }
 
     public func writeHeader(status: HTTPResponseStatus, headers: HTTPHeaders, completion: @escaping (Result) -> Void) {
-        // TODO call completion()
+
         guard !headersWritten else {
             return
         }
@@ -425,7 +449,6 @@ public class StreamingParser: HTTPResponseWriter {
         }
 
         self.parserConnector?.queueSocketWrite(dataToWrite)
-
         completion(.ok)
     }
 
@@ -446,20 +469,16 @@ public class StreamingParser: HTTPResponseWriter {
         self.headersWritten = false
         self.httpBodyProcessingCallback = nil
         self.upgradeRequested = false
+        self.shouldStopProcessingBody = false
 
-        let closeAfter = {
-            if self.clientRequestedKeepAlive {
+        //Note: This used to be passed into the completion block that `Result` used to have
+        //  But since that block was removed, we're calling it directly
+        if self.clientRequestedKeepAlive {
                 self.keepAliveUntil = Date(timeIntervalSinceNow: StreamingParser.keepAliveTimeout).timeIntervalSinceReferenceDate
                 self.parserConnector?.responseComplete()
             } else {
                 self.parserConnector?.responseCompleteCloseWriter()
             }
-        }
-
-        // FIXME I do not understand what code written here before was meant to do
-        // If it was about delayed closure invocation then it couldn't work either
-        // Here is the equivalent code
-        closeAfter()
         completion(.ok)
     }
 
