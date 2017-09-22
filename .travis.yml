@@ -1,4 +1,6 @@
-
+branches:
+  except:
+  - gh-pages
 matrix:
   include:
     - os: linux
