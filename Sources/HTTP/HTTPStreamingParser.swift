@@ -474,11 +474,11 @@ public class StreamingParser: HTTPResponseWriter {
         //Note: This used to be passed into the completion block that `Result` used to have
         //  But since that block was removed, we're calling it directly
         if self.clientRequestedKeepAlive {
-                self.keepAliveUntil = Date(timeIntervalSinceNow: StreamingParser.keepAliveTimeout).timeIntervalSinceReferenceDate
-                self.parserConnector?.responseComplete()
-            } else {
-                self.parserConnector?.responseCompleteCloseWriter()
-            }
+            self.keepAliveUntil = Date(timeIntervalSinceNow: StreamingParser.keepAliveTimeout).timeIntervalSinceReferenceDate
+            self.parserConnector?.responseComplete()
+        } else {
+            self.parserConnector?.responseCompleteCloseWriter()
+        }
         completion(.ok)
     }
 
