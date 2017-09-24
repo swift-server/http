@@ -184,6 +184,14 @@ public class PoCSocketConnectionListener: ParserConnecting {
             }
         }
     }
+    
+    /// Called by the parser to let us know that a response is complete and we should close the socket
+    public func responseCompleteCloseWriter() {
+        self.socketWriterQueue.async { [weak self] in
+            self?.responseCompleted = true
+            self?.close()
+        }
+    }
 
     /// Starts reading from the socket and feeding that data to the parser
     public func process() {
