@@ -17,7 +17,7 @@ public class StreamingParser: HTTPResponseWriter {
     let handle: HTTPRequestHandler
 
     /// Time to leave socket open waiting for next request to start
-    public static let keepAliveTimeout: TimeInterval = 5
+    public let keepAliveTimeout: TimeInterval
 
     /// Flag to track if the client wants to send consecutive requests on the same TCP connection
     var clientRequestedKeepAlive = false
@@ -92,9 +92,10 @@ public class StreamingParser: HTTPResponseWriter {
     /// Class that wraps the CHTTPParser and calls the `HTTPRequestHandler` to get the response
     ///
     /// - Parameter handler: function that is used to create the response
-    public init(handler: @escaping HTTPRequestHandler, connectionCounter: CurrentConnectionCounting? = nil) {
+    public init(handler: @escaping HTTPRequestHandler, connectionCounter: CurrentConnectionCounting? = nil, keepAliveTimeout: Double = 5.0) {
         self.handle = handler
         self.connectionCounter = connectionCounter
+        self.keepAliveTimeout = keepAliveTimeout
 
         //Set up all the callbacks for the CHTTPParser library
         httpParserSettings.on_message_begin = { parser -> Int32 in
@@ -265,7 +266,7 @@ public class StreamingParser: HTTPResponseWriter {
 
         //This needs to be set here and not messageCompleted if it's going to work here
         self.clientRequestedKeepAlive = keepAlive
-        self.keepAliveUntil = Date(timeIntervalSinceNow: StreamingParser.keepAliveTimeout).timeIntervalSinceReferenceDate
+        self.keepAliveUntil = Date(timeIntervalSinceNow: keepAliveTimeout).timeIntervalSinceReferenceDate
         self.upgradeRequested = upgrade
         return 0
     }
@@ -477,7 +478,7 @@ public class StreamingParser: HTTPResponseWriter {
         //Note: This used to be passed into the completion block that `Result` used to have
         //  But since that block was removed, we're calling it directly
         if self.clientRequestedKeepAlive {
-            self.keepAliveUntil = Date(timeIntervalSinceNow: StreamingParser.keepAliveTimeout).timeIntervalSinceReferenceDate
+            self.keepAliveUntil = Date(timeIntervalSinceNow: keepAliveTimeout).timeIntervalSinceReferenceDate
             self.parserConnector?.responseComplete()
         } else {
             self.parserConnector?.responseCompleteCloseWriter()
