@@ -377,7 +377,7 @@ public class StreamingParser: HTTPResponseWriter {
         // FIXME headers are US-ASCII, anything else should be encoded using [RFC5987] some lines above
         // TODO use requested encoding if specified
         if let data = header.data(using: .utf8) {
-            self.parserConnector?.queueSocketWrite(data)
+            self.parserConnector?.queueSocketWrite(data, completion: completion)
             if !isContinue {
                 headersWritten = true
             }
@@ -448,14 +448,13 @@ public class StreamingParser: HTTPResponseWriter {
             dataToWrite = data.withUnsafeBytes { Data($0) }
         }
 
-        self.parserConnector?.queueSocketWrite(dataToWrite)
-        completion(.ok)
+        self.parserConnector?.queueSocketWrite(dataToWrite, completion: completion)
     }
 
     public func done(completion: @escaping (Result) -> Void) {
         if isChunked {
             let chunkTerminate = "0\r\n\r\n".data(using: .utf8)!
-            self.parserConnector?.queueSocketWrite(chunkTerminate)
+            self.parserConnector?.queueSocketWrite(chunkTerminate, completion: completion)
         }
 
         self.parsedHTTPMethod = nil
@@ -496,7 +495,7 @@ public class StreamingParser: HTTPResponseWriter {
 /// :nodoc:
 public protocol ParserConnecting: class {
     /// Send data to the network do be written to the client
-    func queueSocketWrite(_ from: Data)
+    func queueSocketWrite(_ from: Data, completion: @escaping (Result) -> Void)
 
     /// Let the network know that a response has started to avoid closing a connection during a slow write
     func responseBeginning()
