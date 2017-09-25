@@ -466,7 +466,7 @@ class ServerTests: XCTestCase {
                 XCTAssertEqual("Hello, World!", String(data: responseBody ?? Data(), encoding: .utf8) ?? "Nil")
                 XCTAssertEqual(Int(testHandler.chunkCalledCount), 1)
                 XCTAssertLessThan(testHandler.chunkLength, executableLength, "Should have written less than the length of the file")
-                XCTAssertEqual(Int(testHandler.chunkLength), chunkSize)
+                XCTAssertLessThanOrEqual(Int(testHandler.chunkLength), chunkSize)
                 receivedExpectation.fulfill()
             }
             uploadTask.resume()
