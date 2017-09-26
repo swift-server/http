@@ -266,9 +266,10 @@ public class PoCSocketConnectionListener: ParserConnecting {
     /// Called by the parser to give us data to send back out of the socket
     ///
     /// - Parameter bytes: Data object to be queued to be written to the socket
-    public func queueSocketWrite(_ bytes: Data) {
+    public func queueSocketWrite(_ bytes: Data, completion:@escaping (Result) -> Void) {
         self.socketWriterQueue.async { [weak self] in
             self?.write(bytes)
+            completion(.ok)
         }
     }
 
