@@ -81,8 +81,13 @@ public class PoCSocketSimpleServer: CurrentConnectionCounting {
         pruneSocketTimer.setEventHandler { [weak self] in
             self?.connectionListenerList.prune()
         }
-        pruneSocketTimer.scheduleRepeating(deadline: .now() + StreamingParser.keepAliveTimeout,
-                                           interval: .seconds(Int(StreamingParser.keepAliveTimeout)))
+        #if swift(>=4.0)
+            pruneSocketTimer.schedule(deadline: .now() + StreamingParser.keepAliveTimeout,
+                                     repeating: .seconds(Int(StreamingParser.keepAliveTimeout)))
+        #else
+            pruneSocketTimer.scheduleRepeating(deadline: .now() + StreamingParser.keepAliveTimeout,
+                                               interval: .seconds(Int(StreamingParser.keepAliveTimeout)))
+        #endif
         pruneSocketTimer.resume()
 
         var readQueues = [DispatchQueue]()
