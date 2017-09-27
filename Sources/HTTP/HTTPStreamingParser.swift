@@ -323,7 +323,7 @@ public class StreamingParser: HTTPResponseWriter {
         
         // TODO use requested encoding if specified
         let data = Data(status.utf8)
-        self.parserConnector?.queueSocketWrite(data)
+        self.parserConnector?.queueSocketWrite(data, completion: completion)
 
     }
     
