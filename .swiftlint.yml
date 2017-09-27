@@ -1,0 +1,36 @@
+included:
+        - Sources
+        - Tests
+
+opt_in_rules:
+        - closure_end_indentation
+        - closure_spacing
+        - fatal_error_message
+        - operator_usage_whitespace
+        - redundant_nil_coalescing
+        - switch_case_on_newline
+        - attributes
+        - no_extension_access_modifier
+
+disabled_rules:
+        - trailing_comma
+        - line_length
+        - file_length
+        - function_body_length
+        - type_body_length
+        - todo
+
+identifier_name:
+  excluded: 
+        - i
+        - ok
+        - im
+        - if
+        - te
+
+large_tuple: 4
+
+cyclomatic_complexity: 15
+
+nesting:
+  type_level: 2

@@ -1,0 +1,43 @@
+clean: true
+module: HTTP 
+author: Swift Server API project 
+github_url: https://github.com/swift-server/http/
+
+theme: fullwidth
+clean: true
+exclude: [Packages]
+
+readme: README.md
+
+skip_undocumented: false
+hide_documentation_coverage: false
+
+xcodebuild_arguments: [-project, SwiftServerHTTP.xcodeproj, -target, HTTP]
+
+custom_categories:
+
+  - name: HTTP Server
+    children:
+    - HTTPServer
+    - HTTPServing
+    - HTTPRequestHandling
+    - HTTPRequestHandler
+
+  - name: HTTP Headers
+    children:
+    - HTTPHeaders
+    - HTTPVersion
+    
+  - name: HTTP Request
+    children:
+    - HTTPRequest
+    - HTTPMethod
+    - HTTPBodyHandler
+    - HTTPBodyProcessing
+    - HTTPBodyChunk
+
+  - name: HTTP Response
+    children:
+    - HTTPResponse
+    - HTTPResponseStatus
+    - HTTPResponseWriter

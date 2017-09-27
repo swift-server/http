@@ -21,20 +21,24 @@ public struct HTTPVersion {
 }
 
 extension HTTPVersion : Hashable {
+    /// :nodoc:
     public var hashValue: Int {
         return (major << 8) | minor
     }
 
+    /// :nodoc:
     public static func == (lhs: HTTPVersion, rhs: HTTPVersion) -> Bool {
         return lhs.major == rhs.major && lhs.minor == rhs.minor
     }
-    
+
+    /// :nodoc:
     public static func ~= (match: HTTPVersion, version: HTTPVersion) -> Bool {
         return match == version
     }
 }
 
-extension HTTPVersion : Comparable {    
+extension HTTPVersion : Comparable {
+    /// :nodoc:
     public static func < (lhs: HTTPVersion, rhs: HTTPVersion) -> Bool {
         if lhs.major != rhs.major {
             return lhs.major < rhs.major
@@ -46,6 +50,7 @@ extension HTTPVersion : Comparable {
 }
 
 extension HTTPVersion : CustomStringConvertible {
+    /// :nodoc:
     public var description: String {
         return "HTTP/" + major.description + "." + minor.description
     }

@@ -9,24 +9,25 @@
 import Foundation
 import HTTP
 
-/// `HelloWorldWebApp` that sets the keep alive header for XCTest purposes
-class HelloWorldKeepAliveWebApp: WebAppContaining {
-    func serve(req: HTTPRequest, res: HTTPResponseWriter ) -> HTTPBodyProcessing {
+/// `HelloWorldRequestHandler` that sets the keep alive header for XCTest purposes
+class HelloWorldKeepAliveHandler: HTTPRequestHandling {
+    func handle(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {
         //Assume the router gave us the right request - at least for now
-        res.writeResponse(HTTPResponse(httpVersion: req.httpVersion,
-                                       status: .ok,
-                                       transferEncoding: .chunked,
-                                       headers: ["Connection": "Keep-Alive", "Keep-Alive": "timeout=5, max=10"]))
+        response.writeHeader(status: .ok, headers: [
+            "Transfer-Encoding": "chunked",
+            "Connection": "Keep-Alive",
+            "Keep-Alive": "timeout=5, max=10",
+        ])
         return .processBody { (chunk, stop) in
             switch chunk {
             case .chunk(_, let finishedProcessing):
                 finishedProcessing()
             case .end:
-                res.writeBody(data: "Hello, World!".data(using: .utf8)!) { _ in }
-                res.done()
+                response.writeBody("Hello, World!")
+                response.done()
             default:
                 stop = true /* don't call us anymore */
-                res.abort()
+                response.abort()
             }
         }
     }

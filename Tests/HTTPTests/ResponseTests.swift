@@ -14,13 +14,13 @@ class ResponseTests: XCTestCase {
 
     func testOkay() {
         let okay = HTTPResponseStatus.ok
-        XCTAssertEqual(200,okay.code)
-        XCTAssertEqual("OK",okay.reasonPhrase)
+        XCTAssertEqual(200, okay.code)
+        XCTAssertEqual("OK", okay.reasonPhrase)
         XCTAssertEqual("\(okay)", "200 OK")
     }
 
     func testContinue() {
-        XCTAssertEqual("Continue",HTTPResponseStatus.continue.reasonPhrase)
+        XCTAssertEqual("Continue", HTTPResponseStatus.continue.reasonPhrase)
     }
 
     func testNotFound() {

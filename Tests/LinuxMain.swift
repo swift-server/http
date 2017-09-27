@@ -8,14 +8,11 @@
 
 import XCTest
 @testable import HTTPTests
-@testable import BlueSocketHTTPTests
 
 XCTMain([
     // HTTPTests
     testCase(VersionTests.allTests),
     testCase(HeadersTests.allTests),
     testCase(ResponseTests.allTests),
-
-	// BlueSocketHTTPTests
     testCase(ServerTests.allTests),
 ])
