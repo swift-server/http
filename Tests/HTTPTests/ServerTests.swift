@@ -484,9 +484,11 @@ class ServerTests: XCTestCase {
 
     func testExplicitCloseConnections() {
         let expectation = self.expectation(description: "0 Open Connection")
-        let server = HTTPServer()
+        let server = PoCSocketSimpleServer()
+        let keepAliveTimeout = 0.1
+
         do {
-            try server.start(port: 0, handler: OkHandler().handle)
+            try server.start(port: 0, keepAliveTimeout: keepAliveTimeout, handler: OkHandler().handle)
             
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let url1 = URL(string: "http://localhost:\(server.port)")!
@@ -502,7 +504,7 @@ class ServerTests: XCTestCase {
                 
                     // Darwin's URLSession replaces the `Connection: close` header with `Connection: keep-alive`, so allow it to expire
                 #else
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + keepAliveTimeout) {
                         XCTAssertEqual(server.connectionCount, 0)
                         expectation.fulfill()
                     }
