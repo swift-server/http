@@ -17,6 +17,26 @@ class TestResponseResolver: HTTPResponseWriter {
 
     var response: (status: HTTPResponseStatus, headers: HTTPHeaders)?
     var responseBody: HTTPResponseBody?
+    
+    ///Flag to track whether our handler has told us not to call it anymore
+    private let _shouldStopProcessingBodyLock = DispatchSemaphore(value: 1)
+    private var _shouldStopProcessingBody: Bool = false
+    private var shouldStopProcessingBody: Bool {
+        get {
+            _shouldStopProcessingBodyLock.wait()
+            defer {
+                _shouldStopProcessingBodyLock.signal()
+            }
+            return _shouldStopProcessingBody
+        }
+        set {
+            _shouldStopProcessingBodyLock.wait()
+            defer {
+                _shouldStopProcessingBodyLock.signal()
+            }
+            _shouldStopProcessingBody = newValue
+        }
+    }
 
     init(request: HTTPRequest, requestBody: Data) {
         self.request = request
@@ -31,18 +51,17 @@ class TestResponseResolver: HTTPResponseWriter {
 
     func resolveHandler(_ handler: HTTPRequestHandler) {
         let chunkHandler = handler(request, self)
-        var stop = false
-        var finished = false
-        while !stop && !finished {
-            switch chunkHandler {
+        if shouldStopProcessingBody {
+            return
+        }
+        switch chunkHandler {
             case .processBody(let handler):
-                handler(.chunk(data: self.requestBody, finishedProcessing: {
-                    finished = true
-                }), &stop)
-                handler(.end, &stop)
+                _shouldStopProcessingBodyLock.wait()
+                handler(.chunk(data: self.requestBody, finishedProcessing: {self._shouldStopProcessingBodyLock.signal()}), &_shouldStopProcessingBody)
+                var dummy = false
+                handler(.end, &dummy)
             case .discardBody:
-                finished = true
-            }
+                break
         }
     }
 
