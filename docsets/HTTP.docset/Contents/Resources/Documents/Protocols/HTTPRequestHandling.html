@@ -8,6 +8,9 @@
     <script src="../js/jquery.min.js" defer></script>
     <script src="../js/jazzy.js" defer></script>
     
+    <script src="../js/lunr.min.js" defer></script>
+    <script src="../js/typeahead.jquery.js" defer></script>
+    <script src="../js/jazzy.search.js" defer></script>
   </head>
   <body>
 
@@ -20,7 +23,13 @@
         <a class="header-link" href="../index.html">
           HTTP Docs
         </a>
-         (99% documented)
+         (100% documented)
+      </p>
+    
+      <p class="header-col--secondary">
+        <form role="search" action="../search.json">
+          <input type="text" placeholder="Search documentation" data-typeahead>
+        </form>
       </p>
     
         <p class="header-col header-col--secondary">
@@ -45,10 +54,16 @@
             <a class="nav-group-name-link" href="../HTTP Server.html">HTTP Server</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../Protocols/HTTPRequestHandling.html">HTTPRequestHandling</a>
+                <a class="nav-group-task-link" href="../Classes/HTTPServer.html">HTTPServer</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Protocols/HTTPServing.html">HTTPServing</a>
               </li>
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="../HTTP Server.html#/s:4HTTP18HTTPRequestHandlera">HTTPRequestHandler</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Protocols/HTTPRequestHandling.html">HTTPRequestHandling</a>
               </li>
             </ul>
           </li>
@@ -104,40 +119,10 @@
             </ul>
           </li>
           <li class="nav-group-name">
-            <a class="nav-group-name-link" href="../Other Classes.html">Other Classes</a>
-            <ul class="nav-group-tasks">
-              <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../Classes/BlueSocketConnectionListener.html">BlueSocketConnectionListener</a>
-              </li>
-              <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../Classes/BlueSocketSimpleServer.html">BlueSocketSimpleServer</a>
-              </li>
-              <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../Classes/HTTPServer.html">HTTPServer</a>
-              </li>
-            </ul>
-          </li>
-          <li class="nav-group-name">
             <a class="nav-group-name-link" href="../Other Enums.html">Other Enums</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="../Enums/Result.html">Result</a>
-              </li>
-            </ul>
-          </li>
-          <li class="nav-group-name">
-            <a class="nav-group-name-link" href="../Other Extensions.html">Other Extensions</a>
-            <ul class="nav-group-tasks">
-              <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../Extensions/UnsafeRawBufferPointer.html">UnsafeRawBufferPointer</a>
-              </li>
-            </ul>
-          </li>
-          <li class="nav-group-name">
-            <a class="nav-group-name-link" href="../Other Protocols.html">Other Protocols</a>
-            <ul class="nav-group-tasks">
-              <li class="nav-group-task">
-                <a class="nav-group-task-link" href="../Protocols/HTTPServing.html">HTTPServing</a>
               </li>
             </ul>
           </li>
@@ -154,28 +139,12 @@
 
                 </div>
               </div>
-            <p>Class protocol containing the HTTPRequestHandler that responds to the incoming HTTP requests.
-The following is an example of a HTTPRequestHandler that returns the request as a response:</p>
+            <p>Class protocol containing a <code>handle()</code> function that implements <code><a href="../HTTP Server.html#/s:4HTTP18HTTPRequestHandlera">HTTPRequestHandler</a></code> to respond to incoming HTTP requests.</p>
+<div class="aside aside-see">
+    <p class="aside-title">See</p>
+    <code><a href="../HTTP Server.html#/s:4HTTP18HTTPRequestHandlera">HTTPRequestHandler</a></code> for more information
 
-<pre class="highlight swift"><code>   <span class="kd">class</span> <span class="kt">EchoHandler</span><span class="p">:</span> <span class="kt">HTTPRequestHandling</span> <span class="p">{</span>
-       <span class="kd">func</span> <span class="nf">handle</span><span class="p">(</span><span class="nv">request</span><span class="p">:</span> <span class="kt">HTTPRequest</span><span class="p">,</span> <span class="nv">response</span><span class="p">:</span> <span class="kt">HTTPResponseWriter</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">HTTPBodyProcessing</span> <span class="p">{</span>
-           <span class="n">res</span><span class="o">.</span><span class="nf">writeHeader</span><span class="p">(</span><span class="nv">status</span><span class="p">:</span> <span class="o">.</span><span class="n">ok</span><span class="p">,</span> <span class="nv">headers</span><span class="p">:</span> <span class="p">[:])</span>
-           <span class="k">return</span> <span class="o">.</span><span class="n">processBody</span> <span class="p">{</span> <span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span> <span class="k">in</span>
-               <span class="k">switch</span> <span class="n">chunk</span> <span class="p">{</span>
-               <span class="k">case</span> <span class="o">.</span><span class="nf">chunk</span><span class="p">(</span><span class="k">let</span> <span class="nv">data</span><span class="p">,</span> <span class="k">let</span> <span class="nv">finishedProcessing</span><span class="p">):</span>
-                   <span class="n">res</span><span class="o">.</span><span class="nf">writeBody</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="p">{</span> <span class="n">_</span> <span class="k">in</span>
-                       <span class="nf">finishedProcessing</span><span class="p">()</span>
-                   <span class="p">}</span>
-               <span class="k">case</span> <span class="o">.</span><span class="nv">end</span><span class="p">:</span>
-                   <span class="n">res</span><span class="o">.</span><span class="nf">done</span><span class="p">()</span>
-               <span class="k">default</span><span class="p">:</span>
-                   <span class="n">stop</span> <span class="o">=</span> <span class="kc">true</span>
-                   <span class="n">res</span><span class="o">.</span><span class="nf">abort</span><span class="p">()</span>
-               <span class="p">}</span>
-           <span class="p">}</span>
-       <span class="p">}</span>
-   <span class="p">}</span>
-</code></pre>
+</div>
 
           </div>
         </section>
@@ -197,10 +166,12 @@ The following is an example of a HTTPRequestHandler that returns the request as 
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>handle: function called when a new HTTP request is received by the HTTP server.
-- Parameter request: the incoming HTTP request.
-- Parameter response: a writer providing functions to create an HTTP response to the request.
-- Returns HTTPBodyProcessing: a enum that either discards the request data, or provides a closure to process it.</p>
+                        <p>handle: function that implements <code><a href="../HTTP Server.html#/s:4HTTP18HTTPRequestHandlera">HTTPRequestHandler</a></code> and is called when a new HTTP request is received by the HTTP server.</p>
+<div class="aside aside-see">
+    <p class="aside-title">See</p>
+    <code><a href="../HTTP Server.html#/s:4HTTP18HTTPRequestHandlera">HTTPRequestHandler</a></code> for more information
+
+</div>
 
                       </div>
                       <div class="declaration">
@@ -210,6 +181,37 @@ The following is an example of a HTTPRequestHandler that returns the request as 
                           <pre class="highlight"><code><span class="kd">func</span> <span class="nf">handle</span><span class="p">(</span><span class="nv">request</span><span class="p">:</span> <span class="kt"><a href="../Structs/HTTPRequest.html">HTTPRequest</a></span><span class="p">,</span> <span class="nv">response</span><span class="p">:</span> <span class="kt"><a href="../Protocols/HTTPResponseWriter.html">HTTPResponseWriter</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Enums/HTTPBodyProcessing.html">HTTPBodyProcessing</a></span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>request</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>the incoming HTTP request.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>response</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>a writer providing functions to create an HTTP response to the request.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </section>
                   </div>
@@ -222,8 +224,8 @@ The following is an example of a HTTPRequestHandler that returns the request as 
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift Server API project</a>. All rights reserved. (Last updated: 2017-08-23)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift Server API project</a>. All rights reserved. (Last updated: 2017-10-02)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>

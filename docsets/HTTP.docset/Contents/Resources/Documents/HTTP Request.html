@@ -8,6 +8,9 @@
     <script src="js/jquery.min.js" defer></script>
     <script src="js/jazzy.js" defer></script>
     
+    <script src="js/lunr.min.js" defer></script>
+    <script src="js/typeahead.jquery.js" defer></script>
+    <script src="js/jazzy.search.js" defer></script>
   </head>
   <body>
 
@@ -19,7 +22,13 @@
         <a class="header-link" href="index.html">
           HTTP Docs
         </a>
-         (99% documented)
+         (100% documented)
+      </p>
+    
+      <p class="header-col--secondary">
+        <form role="search" action="search.json">
+          <input type="text" placeholder="Search documentation" data-typeahead>
+        </form>
       </p>
     
         <p class="header-col header-col--secondary">
@@ -44,10 +53,16 @@
             <a class="nav-group-name-link" href="HTTP Server.html">HTTP Server</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="Protocols/HTTPRequestHandling.html">HTTPRequestHandling</a>
+                <a class="nav-group-task-link" href="Classes/HTTPServer.html">HTTPServer</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/HTTPServing.html">HTTPServing</a>
               </li>
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="HTTP Server.html#/s:4HTTP18HTTPRequestHandlera">HTTPRequestHandler</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/HTTPRequestHandling.html">HTTPRequestHandling</a>
               </li>
             </ul>
           </li>
@@ -103,40 +118,10 @@
             </ul>
           </li>
           <li class="nav-group-name">
-            <a class="nav-group-name-link" href="Other Classes.html">Other Classes</a>
-            <ul class="nav-group-tasks">
-              <li class="nav-group-task">
-                <a class="nav-group-task-link" href="Classes/BlueSocketConnectionListener.html">BlueSocketConnectionListener</a>
-              </li>
-              <li class="nav-group-task">
-                <a class="nav-group-task-link" href="Classes/BlueSocketSimpleServer.html">BlueSocketSimpleServer</a>
-              </li>
-              <li class="nav-group-task">
-                <a class="nav-group-task-link" href="Classes/HTTPServer.html">HTTPServer</a>
-              </li>
-            </ul>
-          </li>
-          <li class="nav-group-name">
             <a class="nav-group-name-link" href="Other Enums.html">Other Enums</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="Enums/Result.html">Result</a>
-              </li>
-            </ul>
-          </li>
-          <li class="nav-group-name">
-            <a class="nav-group-name-link" href="Other Extensions.html">Other Extensions</a>
-            <ul class="nav-group-tasks">
-              <li class="nav-group-task">
-                <a class="nav-group-task-link" href="Extensions/UnsafeRawBufferPointer.html">UnsafeRawBufferPointer</a>
-              </li>
-            </ul>
-          </li>
-          <li class="nav-group-name">
-            <a class="nav-group-name-link" href="Other Protocols.html">Other Protocols</a>
-            <ul class="nav-group-tasks">
-              <li class="nav-group-task">
-                <a class="nav-group-task-link" href="Protocols/HTTPServing.html">HTTPServing</a>
               </li>
             </ul>
           </li>
@@ -196,9 +181,7 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Method that takes a chunk of request body and is expected to write to the ResponseWriter
-- Parameter HTTPBodyChunk: <code><a href="Enums/HTTPBodyChunk.html">HTTPBodyChunk</a></code> representing some or all of the incoming request body
-- Parameter Bool: Bool that can be set to true in order to prevent further processing</p>
+                        <p>Method that takes a chunk of request body and is expected to write to the <code><a href="Protocols/HTTPResponseWriter.html">HTTPResponseWriter</a></code></p>
 
                       </div>
                       <div class="declaration">
@@ -208,6 +191,37 @@
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">typealias</span> <span class="kt">HTTPBodyHandler</span> <span class="o">=</span> <span class="p">(</span><span class="kt"><a href="Enums/HTTPBodyChunk.html">HTTPBodyChunk</a></span><span class="p">,</span> <span class="k">inout</span> <span class="kt">Bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span></code></pre>
 
                         </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>HTTPBodyChunk</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p><code>HTTPBodyChunk</code> representing some or all of the incoming request body</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>Bool</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A boolean flag that can be set to true in order to prevent further processing</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </section>
                   </div>
@@ -308,8 +322,8 @@
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift Server API project</a>. All rights reserved. (Last updated: 2017-08-23)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift Server API project</a>. All rights reserved. (Last updated: 2017-10-02)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>
