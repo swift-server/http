@@ -8,6 +8,9 @@
     <script src="js/jquery.min.js" defer></script>
     <script src="js/jazzy.js" defer></script>
     
+    <script src="js/lunr.min.js" defer></script>
+    <script src="js/typeahead.jquery.js" defer></script>
+    <script src="js/jazzy.search.js" defer></script>
   </head>
   <body>
 
@@ -19,7 +22,13 @@
         <a class="header-link" href="index.html">
           HTTP Docs
         </a>
-         (99% documented)
+         (100% documented)
+      </p>
+    
+      <p class="header-col--secondary">
+        <form role="search" action="search.json">
+          <input type="text" placeholder="Search documentation" data-typeahead>
+        </form>
       </p>
     
         <p class="header-col header-col--secondary">
@@ -44,10 +53,16 @@
             <a class="nav-group-name-link" href="HTTP Server.html">HTTP Server</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
-                <a class="nav-group-task-link" href="Protocols/HTTPRequestHandling.html">HTTPRequestHandling</a>
+                <a class="nav-group-task-link" href="Classes/HTTPServer.html">HTTPServer</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/HTTPServing.html">HTTPServing</a>
               </li>
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="HTTP Server.html#/s:4HTTP18HTTPRequestHandlera">HTTPRequestHandler</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/HTTPRequestHandling.html">HTTPRequestHandling</a>
               </li>
             </ul>
           </li>
@@ -103,40 +118,10 @@
             </ul>
           </li>
           <li class="nav-group-name">
-            <a class="nav-group-name-link" href="Other Classes.html">Other Classes</a>
-            <ul class="nav-group-tasks">
-              <li class="nav-group-task">
-                <a class="nav-group-task-link" href="Classes/BlueSocketConnectionListener.html">BlueSocketConnectionListener</a>
-              </li>
-              <li class="nav-group-task">
-                <a class="nav-group-task-link" href="Classes/BlueSocketSimpleServer.html">BlueSocketSimpleServer</a>
-              </li>
-              <li class="nav-group-task">
-                <a class="nav-group-task-link" href="Classes/HTTPServer.html">HTTPServer</a>
-              </li>
-            </ul>
-          </li>
-          <li class="nav-group-name">
             <a class="nav-group-name-link" href="Other Enums.html">Other Enums</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
                 <a class="nav-group-task-link" href="Enums/Result.html">Result</a>
-              </li>
-            </ul>
-          </li>
-          <li class="nav-group-name">
-            <a class="nav-group-name-link" href="Other Extensions.html">Other Extensions</a>
-            <ul class="nav-group-tasks">
-              <li class="nav-group-task">
-                <a class="nav-group-task-link" href="Extensions/UnsafeRawBufferPointer.html">UnsafeRawBufferPointer</a>
-              </li>
-            </ul>
-          </li>
-          <li class="nav-group-name">
-            <a class="nav-group-name-link" href="Other Protocols.html">Other Protocols</a>
-            <ul class="nav-group-tasks">
-              <li class="nav-group-task">
-                <a class="nav-group-task-link" href="Protocols/HTTPServing.html">HTTPServing</a>
               </li>
             </ul>
           </li>
@@ -147,9 +132,74 @@
         <section class="section">
           <div class="section-content">
             
-            <a href='#swiftserverhttp' class='anchor' aria-hidden=true><span class="header-anchor"></span></a><h1 id='swiftserverhttp'>SwiftServerHttp</h1>
+            <h1 id='swift-server-project-http-apis' class='heading'>Swift Server Project HTTP APIs</h1>
 
-<p>Sample prototype implementation of @weissi&rsquo;s HTTP Sketch v2 from <a href="https://lists.swift.org/pipermail/swift-server-dev/Week-of-Mon-20170403/000422.html">https://lists.swift.org/pipermail/swift-server-dev/Week-of-Mon-20170403/000422.html</a> for discussion.</p>
+<p>This is an early implementation of the Swift Server Project&rsquo;s HTTP APIs. This provides simple HTTP server on which rich web application frameworks can be built.</p>
+<h2 id='getting-started' class='heading'>Getting Started</h2>
+<h3 id='hello-world' class='heading'>Hello World</h3>
+
+<p>The following code implements a very simple <q>Hello World!</q> server:</p>
+<pre class="highlight swift"><code><span class="kd">import</span> <span class="kt">Foundation</span>
+<span class="kd">import</span> <span class="kt">HTTP</span>
+
+<span class="kd">func</span> <span class="nf">hello</span><span class="p">(</span><span class="nv">request</span><span class="p">:</span> <span class="kt">HTTPRequest</span><span class="p">,</span> <span class="nv">response</span><span class="p">:</span> <span class="kt">HTTPResponseWriter</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">HTTPBodyProcessing</span> <span class="p">{</span> 
+    <span class="n">response</span><span class="o">.</span><span class="nf">writeHeader</span><span class="p">(</span><span class="nv">status</span><span class="p">:</span> <span class="o">.</span><span class="n">ok</span><span class="p">)</span> 
+    <span class="n">response</span><span class="o">.</span><span class="nf">writeBody</span><span class="p">(</span><span class="s">"Hello, World!"</span><span class="p">)</span> 
+    <span class="n">response</span><span class="o">.</span><span class="nf">done</span><span class="p">()</span> 
+    <span class="k">return</span> <span class="o">.</span><span class="n">discardBody</span> 
+<span class="p">}</span> 
+
+<span class="k">let</span> <span class="nv">server</span> <span class="o">=</span> <span class="kt">HTTPServer</span><span class="p">()</span>
+<span class="k">try!</span> <span class="n">server</span><span class="o">.</span><span class="nf">start</span><span class="p">(</span><span class="nv">port</span><span class="p">:</span> <span class="mi">8080</span><span class="p">,</span> <span class="nv">handler</span><span class="p">:</span> <span class="n">hello</span><span class="p">)</span>
+
+<span class="kt">CFRunLoopRun</span><span class="p">()</span>
+</code></pre>
+
+<p>The <code>hello()</code> function receives a <code>HTTPRequest</code> that describes the request and a <code>HTTPResponseWriter</code> used to write a response. </p>
+
+<p>Data that is received as part of the request body is made available to the closure that is returned by the <code>hello()</code> function. In the <q>Hello World!</q> example the request body is not used, so <code>.discardBody</code> is returned.</p>
+<h3 id='echo-server' class='heading'>Echo Server</h3>
+
+<p>The following code implements a very simple Echo server that responds with the contents of the incoming request:</p>
+<pre class="highlight swift"><code><span class="kd">import</span> <span class="kt">Foundation</span>
+<span class="kd">import</span> <span class="kt">HTTP</span>
+
+<span class="kd">func</span> <span class="nf">echo</span><span class="p">(</span><span class="nv">request</span><span class="p">:</span> <span class="kt">HTTPRequest</span><span class="p">,</span> <span class="nv">response</span><span class="p">:</span> <span class="kt">HTTPResponseWriter</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">HTTPBodyProcessing</span> <span class="p">{</span>
+    <span class="n">response</span><span class="o">.</span><span class="nf">writeHeader</span><span class="p">(</span><span class="nv">status</span><span class="p">:</span> <span class="o">.</span><span class="n">ok</span><span class="p">)</span>
+    <span class="k">return</span> <span class="o">.</span><span class="n">processBody</span> <span class="p">{</span> <span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span> <span class="k">in</span>
+        <span class="k">switch</span> <span class="n">chunk</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="o">.</span><span class="nf">chunk</span><span class="p">(</span><span class="k">let</span> <span class="nv">data</span><span class="p">,</span> <span class="k">let</span> <span class="nv">finishedProcessing</span><span class="p">):</span>
+            <span class="n">response</span><span class="o">.</span><span class="nf">writeBody</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="p">{</span> <span class="n">_</span> <span class="k">in</span>
+                <span class="nf">finishedProcessing</span><span class="p">()</span>
+            <span class="p">}</span>
+        <span class="k">case</span> <span class="o">.</span><span class="nv">end</span><span class="p">:</span>
+            <span class="n">response</span><span class="o">.</span><span class="nf">done</span><span class="p">()</span>
+        <span class="k">default</span><span class="p">:</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="kc">true</span>
+            <span class="n">response</span><span class="o">.</span><span class="nf">abort</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">let</span> <span class="nv">server</span> <span class="o">=</span> <span class="kt">HTTPServer</span><span class="p">()</span>
+<span class="k">try!</span> <span class="n">server</span><span class="o">.</span><span class="nf">start</span><span class="p">(</span><span class="nv">port</span><span class="p">:</span> <span class="mi">8080</span><span class="p">,</span> <span class="nv">handler</span><span class="p">:</span> <span class="n">echo</span><span class="p">)</span>
+
+<span class="kt">CFRunLoopRun</span><span class="p">()</span>
+</code></pre>
+
+<p>As the Echo server needs to process the request body data and return it in the reponse, the <code>echo()</code> function returns a <code>.processBody</code> closure. This closure is called with <code>.chunk</code> when data is available for processing from the request, and <code>.end</code> when no more data is available.</p>
+
+<p>Once any data chunk has been processed, <code>finishedProcessing()</code> should be called to signify that it has been handled.</p>
+
+<p>When the response is complete, <code>response.done()</code> should be called.</p>
+<h2 id='api-documentation' class='heading'>API Documentation</h2>
+
+<p>Full Jazzy documentation of the API is available here:<br>
+<a href="https://swift-server.github.io/http/">https://swift-server.github.io/http/</a></p>
+<h2 id='acknowledgements' class='heading'>Acknowledgements</h2>
+
+<p>This project is based on an inital proposal from @weissi on the swift-server-dev mailing list:<br>
+<a href="https://lists.swift.org/pipermail/swift-server-dev/Week-of-Mon-20170403/000422.html">https://lists.swift.org/pipermail/swift-server-dev/Week-of-Mon-20170403/000422.html</a></p>
 
           </div>
         </section>
@@ -158,8 +208,8 @@
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift Server API project</a>. All rights reserved. (Last updated: 2017-08-23)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2017 <a class="link" href="" target="_blank" rel="external">Swift Server API project</a>. All rights reserved. (Last updated: 2017-10-02)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>
