@@ -21,9 +21,9 @@ public struct HTTPRequest {
     public var headers: HTTPHeaders
 }
 
-/// Method that takes a chunk of request body and is expected to write to the ResponseWriter
+/// Method that takes a chunk of request body and is expected to write to the `HTTPResponseWriter`
 /// - Parameter HTTPBodyChunk: `HTTPBodyChunk` representing some or all of the incoming request body
-/// - Parameter Bool: Bool that can be set to true in order to prevent further processing
+/// - Parameter Bool: A boolean flag that can be set to true in order to prevent further processing
 public typealias HTTPBodyHandler = (HTTPBodyChunk, inout Bool) -> Void
 
 /// Indicates whether the body is going to be processed or ignored
