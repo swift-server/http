@@ -10,6 +10,10 @@ import CHTTPParser
 import Foundation
 import Dispatch
 
+public enum StreamingParserError: Error {
+    case ConnectionAbortedError
+}
+
 /// Class that wraps the CHTTPParser and calls the `HTTPRequestHandler` to get the response
 /// :nodoc:
 public class StreamingParser: HTTPResponseWriter {
@@ -42,11 +46,54 @@ public class StreamingParser: HTTPResponseWriter {
         }
     }
 
+    /// Socket File Descriptor so we can log it for debugging
+    private let _socketDebuggingFDLock = DispatchSemaphore(value: 1)
+    private var _socketDebuggingFD: Int?
+    internal var socketDebuggingFD: Int? {
+        get {
+            _socketDebuggingFDLock.wait()
+            defer {
+                _socketDebuggingFDLock.signal()
+            }
+            return _socketDebuggingFD
+        }
+        set {
+            _socketDebuggingFDLock.wait()
+            defer {
+                _socketDebuggingFDLock.signal()
+            }
+            _socketDebuggingFD = newValue
+        }
+    }
+    
+    /// Tracks when we've been told socket has been closed. Needs to have a lock, since if we get confused, bat things happen
+    private let _abortCalledLock = DispatchSemaphore(value: 1)
+    private var _abortCalled: Bool = false
+    internal var abortCalled: Bool {
+        get {
+            _abortCalledLock.wait()
+            defer {
+                _abortCalledLock.signal()
+            }
+            return _abortCalled
+        }
+        set {
+            _abortCalledLock.wait()
+            defer {
+                _abortCalledLock.signal()
+            }
+            _abortCalled = newValue
+        }
+    }
+
     /// Optional delegate that can tell us how many connections are in-flight.
     public weak var connectionCounter: CurrentConnectionCounting?
 
     /// Holds the bytes that come from the CHTTPParser until we have enough of them to do something with it
     var parserBuffer: Data?
+    
+    /// Lock for parser buffer. TODO: Figure out how to wrap this without copying it
+    private let _parserBufferLock = DispatchSemaphore(value: 1)
 
     /// HTTP Parser
     var httpParser = http_parser()
@@ -189,6 +236,8 @@ public class StreamingParser: HTTPResponseWriter {
         if lastCallBack == currentCallBack {
             return false
         }
+        _parserBufferLock.wait()
+        defer { _parserBufferLock.signal() }
         switch lastCallBack {
         case .headerFieldReceived:
             if let parserBuffer = self.parserBuffer {
@@ -274,6 +323,9 @@ public class StreamingParser: HTTPResponseWriter {
     func headerFieldReceived(data: UnsafePointer<Int8>?, length: Int) -> Int32 {
         processCurrentCallback(.headerFieldReceived)
         guard let data = data else { return 0 }
+        _parserBufferLock.wait()
+        defer { _parserBufferLock.signal() }
+
         data.withMemoryRebound(to: UInt8.self, capacity: length) { (ptr) -> Void in
             if var parserBuffer = parserBuffer {
                 parserBuffer.append(ptr, count: length)
@@ -287,6 +339,9 @@ public class StreamingParser: HTTPResponseWriter {
     func headerValueReceived(data: UnsafePointer<Int8>?, length: Int) -> Int32 {
         processCurrentCallback(.headerValueReceived)
         guard let data = data else { return 0 }
+        _parserBufferLock.wait()
+        defer { _parserBufferLock.signal() }
+
         data.withMemoryRebound(to: UInt8.self, capacity: length) { (ptr) -> Void in
             if var parserBuffer = parserBuffer {
                 parserBuffer.append(ptr, count: length)
@@ -332,6 +387,9 @@ public class StreamingParser: HTTPResponseWriter {
     func urlReceived(data: UnsafePointer<Int8>?, length: Int) -> Int32 {
         processCurrentCallback(.urlReceived)
         guard let data = data else { return 0 }
+        _parserBufferLock.wait()
+        defer { _parserBufferLock.signal() }
+
         data.withMemoryRebound(to: UInt8.self, capacity: length) { (ptr) -> Void in
             if var parserBuffer = parserBuffer {
                 parserBuffer.append(ptr, count: length)
@@ -378,6 +436,10 @@ public class StreamingParser: HTTPResponseWriter {
             header += "\(key): \(value)\r\n"
         }
         header.append("\r\n")
+        guard !abortCalled else {
+            completion(.error(StreamingParserError.ConnectionAbortedError))
+            return
+        }
 
         // FIXME headers are US-ASCII, anything else should be encoded using [RFC5987] some lines above
         // TODO use requested encoding if specified
@@ -451,11 +513,20 @@ public class StreamingParser: HTTPResponseWriter {
         } else {
             dataToWrite = data.withUnsafeBytes { Data($0) }
         }
+        
+        guard !abortCalled else {
+            completion(.error(StreamingParserError.ConnectionAbortedError))
+            return
+        }
 
         self.parserConnector?.queueSocketWrite(dataToWrite, completion: completion)
     }
 
     public func done(completion: @escaping (Result) -> Void) {
+        guard !abortCalled else {
+            completion(.error(StreamingParserError.ConnectionAbortedError))
+            return
+        }
         if isChunked {
             let chunkTerminate = "0\r\n\r\n".data(using: .utf8)!
             self.parserConnector?.queueSocketWrite(chunkTerminate, completion: completion)
@@ -465,7 +536,9 @@ public class StreamingParser: HTTPResponseWriter {
         self.parsedURL = nil
         self.parsedHeaders = HTTPHeaders()
         self.lastHeaderName = nil
+        _parserBufferLock.wait()
         self.parserBuffer = nil
+        _parserBufferLock.signal() 
         self.parsedHTTPMethod = nil
         self.parsedHTTPVersion = nil
         self.lastCallBack = .idle
@@ -478,15 +551,23 @@ public class StreamingParser: HTTPResponseWriter {
         //  But since that block was removed, we're calling it directly
         if self.clientRequestedKeepAlive {
             self.keepAliveUntil = Date(timeIntervalSinceNow: keepAliveTimeout).timeIntervalSinceReferenceDate
+            guard !abortCalled else {
+                completion(.error(StreamingParserError.ConnectionAbortedError))
+                return
+            }
             self.parserConnector?.responseComplete()
         } else {
+            guard !abortCalled else {
+                completion(.error(StreamingParserError.ConnectionAbortedError))
+                return
+            }
             self.parserConnector?.responseCompleteCloseWriter()
         }
         completion(.ok)
     }
 
     public func abort() {
-        fatalError("abort called, not sure what to do with it")
+        abortCalled = true
     }
 
     deinit {

@@ -31,10 +31,44 @@ internal class PoCSocket {
     internal var listeningPort: Int32 = -1
 
     /// Track state between `listen(2)` and `shutdown(2)`
-    internal private(set) var isListening = false
+    private let _isListeningLock = DispatchSemaphore(value: 1)
+    private var _isListening: Bool = false
+    internal private(set) var isListening: Bool {
+        get {
+            _isListeningLock.wait()
+            defer {
+                _isListeningLock.signal()
+            }
+            return _isListening
+        }
+        set {
+            _isListeningLock.wait()
+            defer {
+                _isListeningLock.signal()
+            }
+            _isListening = newValue
+        }
+    }
 
     /// Track state between `accept(2)/bind(2)` and `close(2)`
-    internal private(set) var isConnected = false
+    private let _isConnectedLock = DispatchSemaphore(value: 1)
+    private var _isConnected: Bool = false
+    internal private(set) var isConnected: Bool {
+        get {
+            _isConnectedLock.wait()
+            defer {
+                _isConnectedLock.signal()
+            }
+            return _isConnected
+        }
+        set {
+            _isConnectedLock.wait()
+            defer {
+                _isConnectedLock.signal()
+            }
+            _isConnected = newValue
+        }
+    }
 
     /// track whether a shutdown is in progress so we can suppress error messages
     private let _isShuttingDownLock = DispatchSemaphore(value: 1)
@@ -53,6 +87,26 @@ internal class PoCSocket {
                 _isShuttingDownLock.signal()
             }
             _isShuttingDown = newValue
+        }
+    }
+
+    /// track whether a the socket has already been closed.
+    private let _hasClosedLock = DispatchSemaphore(value: 1)
+    private var _hasClosed: Bool = false
+    private var hasClosed: Bool {
+        get {
+            _hasClosedLock.wait()
+            defer {
+                _hasClosedLock.signal()
+            }
+            return _hasClosed
+        }
+        set {
+            _hasClosedLock.wait()
+            defer {
+                _hasClosedLock.signal()
+            }
+            _hasClosed = newValue
         }
     }
 
@@ -118,12 +172,17 @@ internal class PoCSocket {
             //Nothing to do. Maybe it was closed already
             return
         }
+        if hasClosed {
+            //Nothing to do. It was closed already
+            return
+        }
         if self.isListening || self.isConnected {
             _ = shutdown(self.socketfd, Int32(SHUT_RDWR))
             self.isListening = false
         }
         self.isConnected = false
         close(self.socketfd)
+        self.hasClosed = true
     }
 
     /// Thin wrapper around `accept(2)`
