@@ -68,7 +68,9 @@ When the response is complete, `response.done()` should be called.
 Full Jazzy documentation of the API is available here:  
 <https://swift-server.github.io/http/>
 
- 
+## Contributing Feedback
+We are actively seeking feedback on this prototype and your comments are extremely valuable. If you have any comments on the API design, the implementation, or any other aspects of this project, please email the [`swift-server-dev`](https://lists.swift.org/mailman/listinfo/swift-server-dev) mailing list.
+
 ## Acknowledgements
 This project is based on an inital proposal from @weissi on the swift-server-dev mailing list:  
 <https://lists.swift.org/pipermail/swift-server-dev/Week-of-Mon-20170403/000422.html>
