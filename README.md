@@ -22,7 +22,7 @@ func hello(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProce
 let server = HTTPServer()
 try! server.start(port: 8080, handler: hello)
 
-CFRunLoopRun()
+RunLoop.current.run()
 ```
 
 The `hello()` function receives a `HTTPRequest` that describes the request and a `HTTPResponseWriter` used to write a response. 
@@ -56,7 +56,7 @@ func echo(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProces
 let server = HTTPServer()
 try! server.start(port: 8080, handler: echo)
 
-CFRunLoopRun()
+RunLoop.current.run()
 ```
 As the Echo server needs to process the request body data and return it in the reponse, the `echo()` function returns a `.processBody` closure. This closure is called with `.chunk` when data is available for processing from the request, and `.end` when no more data is available.
 
