@@ -10,6 +10,9 @@ let package = Package(
         .library(
             name: "HTTP",
             targets: ["HTTP"]),
+		        .library(
+		            name: "PoCSocket",
+		            targets: ["PoCSocket"]),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -21,11 +24,17 @@ let package = Package(
         .target(
             name: "CHTTPParser",
             dependencies: []),
-        .target(
-            name: "HTTP",
-            dependencies: ["CHTTPParser"]),
+	        .target(
+	            name: "HTTP",
+	            dependencies: ["CHTTPParser"]),
+	        .target(
+	            name: "PoCSocket",
+	            dependencies: ["HTTP"]),
         .testTarget(
             name: "HTTPTests",
             dependencies: ["HTTP"]),
+        .testTarget(
+            name: "PoCSocketTests",
+            dependencies: ["PoCSocket","HTTP"]),
     ]
 )

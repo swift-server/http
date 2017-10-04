@@ -10,59 +10,15 @@ import XCTest
 import Dispatch
 
 @testable import HTTP
+@testable import PoCSocket
 
-class ServerTests: XCTestCase {
-    func testResponseOK() {
-        let request = HTTPRequest(method: .get, target: "/echo", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
-        let resolver = TestResponseResolver(request: request, requestBody: Data())
-        resolver.resolveHandler(EchoHandler().handle)
-        XCTAssertNotNil(resolver.response)
-        XCTAssertNotNil(resolver.responseBody)
-        XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
-    }
 
-    func testEcho() {
-        let testString="This is a test"
-        let request = HTTPRequest(method: .post, target: "/echo", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
-        let resolver = TestResponseResolver(request: request, requestBody: testString.data(using: .utf8)!)
-        resolver.resolveHandler(EchoHandler().handle)
-        XCTAssertNotNil(resolver.response)
-        XCTAssertNotNil(resolver.responseBody)
-        XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
-        XCTAssertEqual(testString, resolver.responseBody?.withUnsafeBytes { String(bytes: $0, encoding: .utf8) } ?? "Nil")
-    }
-
-    func testHello() {
-        let request = HTTPRequest(method: .get, target: "/helloworld", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
-        let resolver = TestResponseResolver(request: request, requestBody: Data())
-        resolver.resolveHandler(HelloWorldHandler().handle)
-        XCTAssertNotNil(resolver.response)
-        XCTAssertNotNil(resolver.responseBody)
-        XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
-        XCTAssertEqual("Hello, World!", resolver.responseBody?.withUnsafeBytes { String(bytes: $0, encoding: .utf8) } ?? "Nil")
-    }
-
-    func testSimpleHello() {
-        let request = HTTPRequest(method: .get, target: "/helloworld", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
-        let resolver = TestResponseResolver(request: request, requestBody: Data())
-        let simpleHelloWebApp = SimpleResponseCreator { (_, body) -> SimpleResponseCreator.Response in
-            return SimpleResponseCreator.Response(
-                status: .ok,
-                headers: ["X-foo": "bar"],
-                body: "Hello, World!".data(using: .utf8)!
-            )
-        }
-        resolver.resolveHandler(simpleHelloWebApp.handle)
-        XCTAssertNotNil(resolver.response)
-        XCTAssertNotNil(resolver.responseBody)
-        XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
-        XCTAssertEqual("Hello, World!", resolver.responseBody?.withUnsafeBytes { String(bytes: $0, encoding: .utf8) } ?? "Nil")
-    }
+class ServerEndToEndTests: XCTestCase {
 
     func testOkEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
 
-        let server = HTTPServer()
+        let server = PoCSocketSimpleServer()
         do {
             try server.start(port: 0, handler: OkHandler().handle)
             let session = URLSession(configuration: URLSessionConfiguration.default)
@@ -91,7 +47,7 @@ class ServerTests: XCTestCase {
     func testHelloEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
 
-        let server = HTTPServer()
+        let server = PoCSocketSimpleServer()
         do {
             try server.start(port: 0, handler: HelloWorldHandler().handle)
             let session = URLSession(configuration: URLSessionConfiguration.default)
@@ -128,7 +84,7 @@ class ServerTests: XCTestCase {
             )
         }
 
-        let server = HTTPServer()
+        let server = PoCSocketSimpleServer()
         do {
             try server.start(port: 0, handler: simpleHelloWebApp.handle)
         } catch {
@@ -164,7 +120,7 @@ class ServerTests: XCTestCase {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
         let testString="This is a test"
 
-        let server = HTTPServer()
+        let server = PoCSocketSimpleServer()
         do {
             try server.start(port: 0, handler: EchoHandler().handle)
             let session = URLSession(configuration: URLSessionConfiguration.default)
@@ -204,7 +160,7 @@ class ServerTests: XCTestCase {
         let testString2="This is a test, too"
         let testString3="This is also a test"
 
-        let server = HTTPServer()
+        let server = PoCSocketSimpleServer()
         do {
             try server.start(port: 0, handler: EchoHandler().handle)
             let session = URLSession(configuration: URLSessionConfiguration.default)
@@ -285,7 +241,7 @@ class ServerTests: XCTestCase {
         let testString2="This is a test, too"
         let testString3="This is also a test"
         
-        let server = HTTPServer()
+        let server = PoCSocketSimpleServer()
         do {
             try server.start(port: 0, handler: EchoHandler().handle)
             let session = URLSession(configuration: URLSessionConfiguration.default)
@@ -524,10 +480,6 @@ class ServerTests: XCTestCase {
     }
 
     static var allTests = [
-        ("testEcho", testEcho),
-        ("testHello", testHello),
-        ("testSimpleHello", testSimpleHello),
-        ("testResponseOK", testResponseOK),
         ("testOkEndToEnd", testOkEndToEnd),
         ("testHelloEndToEnd", testHelloEndToEnd),
         ("testSimpleHelloEndToEnd", testSimpleHelloEndToEnd),

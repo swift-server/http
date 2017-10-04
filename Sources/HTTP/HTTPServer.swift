@@ -26,10 +26,11 @@ public protocol HTTPServing : class {
 /// abstraction, but the intention is to remove this dependency and reimplement
 /// the class using transport APIs provided by the Server APIs working group.
 public class HTTPServer: HTTPServing {
-    private let server = PoCSocketSimpleServer()
+    private let server: HTTPServing
 
     /// Create an instance of the server. This needs to be followed with a call to `start(port:handler:)`
-    public init() {
+    public init(instance: HTTPServing) {
+        server = instance
     }
 
     /// Start the HTTP server on the given `port` number, using a `HTTPRequestHandler` to process incoming requests.

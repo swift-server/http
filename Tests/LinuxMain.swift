@@ -7,6 +7,7 @@
 //
 
 import XCTest
+@testable import PoCSocketTests
 @testable import HTTPTests
 
 XCTMain([
@@ -14,5 +15,6 @@ XCTMain([
     testCase(VersionTests.allTests),
     testCase(HeadersTests.allTests),
     testCase(ResponseTests.allTests),
+    testCase(ServerEndToEndTests.allTests),
     testCase(ServerTests.allTests),
 ])
