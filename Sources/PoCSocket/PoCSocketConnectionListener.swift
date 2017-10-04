@@ -8,6 +8,7 @@
 
 import Foundation
 import Dispatch
+import HTTP
 
 ///:nodoc:
 public class PoCSocketConnectionListener: ParserConnecting {

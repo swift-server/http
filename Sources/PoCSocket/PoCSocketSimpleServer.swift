@@ -8,7 +8,7 @@
 
 import Dispatch
 import Foundation
-
+import HTTP
 
 // MARK: Server
 
