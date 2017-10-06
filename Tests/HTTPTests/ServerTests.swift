@@ -22,7 +22,7 @@ class ServerTests: XCTestCase {
     }
 
     func testEcho() {
-        let testString="This is a test"
+        let testString = "This is a test"
         let request = HTTPRequest(method: .post, target: "/echo", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
         let resolver = TestResponseResolver(request: request, requestBody: testString.data(using: .utf8)!)
         resolver.resolveHandler(EchoHandler().handle)
