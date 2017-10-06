@@ -108,7 +108,7 @@ internal class PoCSocket {
 
         let sent = send(self.socketfd, buffer, Int(bufSize), Int32(0))
         //Leave this as a local variable to facilitate Setting a Watchpoint in lldb
-       return sent
+        return sent
     }
     
     /// Calls `shutdown(2)` and `close(2)` on a socket
