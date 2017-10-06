@@ -226,7 +226,7 @@ public class PoCSocketConnectionListener: ParserConnecting {
                     var readBuffer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: maxLength)
                     length = try strongSelf.socket?.socketRead(into: &readBuffer, maxLength:maxLength) ?? -1
                     if length > 0 {
-                        self?.responseCompleted = false
+                        strongSelf.responseCompleted = false
                         
                         let data = Data(bytes: readBuffer, count: length)
                         let numberParsed = strongSelf.parser?.readStream(data:data) ?? 0
@@ -241,22 +241,24 @@ public class PoCSocketConnectionListener: ParserConnecting {
                 }
             } catch {
                 print("ReaderSource Event Error: \(error)")
-                self?.readerSource?.cancel()
-                self?.errorOccurred = true
-                self?.close()
+                strongSelf.readerSource?.cancel()
+                strongSelf.errorOccurred = true
+                strongSelf.close()
             }
             if length == 0 {
-                self?.readerSource?.cancel()
+                strongSelf.readerSource?.cancel()
             }
             if length < 0 {
-                self?.errorOccurred = true
-                self?.readerSource?.cancel()
-                self?.close()
+                strongSelf.errorOccurred = true
+                strongSelf.readerSource?.cancel()
+                strongSelf.close()
             }
         }
         
         tempReaderSource.setCancelHandler { [weak self] in
-            self?.close() //close if we can
+            if let strongSelf = self {
+                strongSelf.close() //close if we can
+            }
         }
         
         self.readerSource = tempReaderSource
