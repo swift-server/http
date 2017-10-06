@@ -65,7 +65,7 @@ class ServerTests: XCTestCase {
         let server = HTTPServer()
         do {
             try server.start(port: 0, handler: OkHandler().handle)
-            let session = URLSession(configuration: URLSessionConfiguration.default)
+            let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/")!
             print("Test \(#function) on port \(server.port)")
             let dataTask = session.dataTask(with: url) { (responseBody, rawResponse, error) in
@@ -94,7 +94,7 @@ class ServerTests: XCTestCase {
         let server = HTTPServer()
         do {
             try server.start(port: 0, handler: HelloWorldHandler().handle)
-            let session = URLSession(configuration: URLSessionConfiguration.default)
+            let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/helloworld")!
             print("Test \(#function) on port \(server.port)")
             let dataTask = session.dataTask(with: url) { (responseBody, rawResponse, error) in
@@ -135,7 +135,7 @@ class ServerTests: XCTestCase {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
 
-        let session = URLSession(configuration: URLSessionConfiguration.default)
+        let session = URLSession(configuration: .default)
         let url = URL(string: "http://localhost:\(server.port)/helloworld")!
         print("Test \(#function) on port \(server.port)")
         let dataTask = session.dataTask(with: url) { (responseBody, rawResponse, error) in
@@ -167,7 +167,7 @@ class ServerTests: XCTestCase {
         let server = HTTPServer()
         do {
             try server.start(port: 0, handler: EchoHandler().handle)
-            let session = URLSession(configuration: URLSessionConfiguration.default)
+            let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
             var request = URLRequest(url: url)
@@ -207,7 +207,7 @@ class ServerTests: XCTestCase {
         let server = HTTPServer()
         do {
             try server.start(port: 0, handler: EchoHandler().handle)
-            let session = URLSession(configuration: URLSessionConfiguration.default)
+            let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
             var request1 = URLRequest(url: url)
@@ -288,7 +288,7 @@ class ServerTests: XCTestCase {
         let server = HTTPServer()
         do {
             try server.start(port: 0, handler: EchoHandler().handle)
-            let session = URLSession(configuration: URLSessionConfiguration.default)
+            let session = URLSession(configuration: .default)
             let url1 = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
             var request1 = URLRequest(url: url1)
@@ -399,7 +399,7 @@ class ServerTests: XCTestCase {
         let server = PoCSocketSimpleServer()
         do {
             try server.start(port: 0, maxReadLength: chunkSize, handler: EchoHandler().handle)
-            let session = URLSession(configuration: URLSessionConfiguration.default)
+            let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
             var request = URLRequest(url: url)
@@ -452,7 +452,7 @@ class ServerTests: XCTestCase {
         do {
             let testHandler = AbortAndSendHelloHandler()
             try server.start(port: 0, maxReadLength: chunkSize, handler: testHandler.handle)
-            let session = URLSession(configuration: URLSessionConfiguration.default)
+            let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
             var request = URLRequest(url: url)
@@ -490,7 +490,7 @@ class ServerTests: XCTestCase {
         do {
             try server.start(port: 0, keepAliveTimeout: keepAliveTimeout, handler: OkHandler().handle)
             
-            let session = URLSession(configuration: URLSessionConfiguration.default)
+            let session = URLSession(configuration: .default)
             let url1 = URL(string: "http://localhost:\(server.port)")!
             var request = URLRequest(url: url1)
             request.httpMethod = "POST"
