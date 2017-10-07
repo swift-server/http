@@ -235,6 +235,7 @@ public class PoCSocketConnectionListener: ParserConnecting {
                             print("Error: wrong number of bytes consumed by parser (\(numberParsed) instead of \(data.count)")
                         }
                     }
+                    readBuffer.deallocate(capacity: maxLength)
                 } else {
                     print("bad socket FD while reading")
                     length = -1
