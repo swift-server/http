@@ -40,11 +40,10 @@ extension HTTPVersion : Hashable {
 extension HTTPVersion : Comparable {
     /// :nodoc:
     public static func < (lhs: HTTPVersion, rhs: HTTPVersion) -> Bool {
-        if lhs.major != rhs.major {
+        guard lhs.major == rhs.major else {
             return lhs.major < rhs.major
-        } else {
-            return lhs.minor < rhs.minor
         }
+        return lhs.minor < rhs.minor
     }
 
 }
