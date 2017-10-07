@@ -62,9 +62,28 @@ class VersionTests: XCTestCase {
         XCTAssertFalse(version20 <= version11)
     }
 
+    func testHashValue() {
+        XCTAssertEqual(version10.hashValue, HTTPVersion(major: 1, minor: 0).hashValue)
+        XCTAssertEqual(version11.hashValue, HTTPVersion(major: 1, minor: 1).hashValue)
+        XCTAssertEqual(version20.hashValue, HTTPVersion(major: 2, minor: 0).hashValue)
+
+        XCTAssertNotEqual(version10.hashValue, HTTPVersion(major: 1, minor: 1).hashValue)
+        XCTAssertNotEqual(version11.hashValue, HTTPVersion(major: 1, minor: 0).hashValue)
+        XCTAssertNotEqual(version20.hashValue, HTTPVersion(major: 1, minor: 0).hashValue)
+        XCTAssertNotEqual(version20.hashValue, HTTPVersion(major: 1, minor: 1).hashValue)
+    }
+
+    func testDescription() {
+        XCTAssertEqual(version10.description, "HTTP/1.0")
+        XCTAssertEqual(version11.description, "HTTP/1.1")
+        XCTAssertEqual(version20.description, "HTTP/2.0")
+    }
+
     static var allTests = [
         ("testEquals", testEquals),
         ("testGreater", testGreater),
         ("testLess", testLess),
+        ("testHashValue", testHashValue),
+        ("testDescription", testDescription)
         ]
 }
