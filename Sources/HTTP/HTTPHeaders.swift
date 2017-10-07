@@ -130,13 +130,11 @@ extension HTTPHeaders {
     public struct Name: Hashable, ExpressibleByStringLiteral, CustomStringConvertible {
         let original: String
         let lowercased: String
-        public let hashValue: Int
 
         /// Create a HTTP header name with the provided String.
         public init(_ name: String) {
             original = name
             lowercased = name.lowercased()
-            hashValue = lowercased.hashValue
         }
 
         public init(stringLiteral: String) {
@@ -149,6 +147,11 @@ extension HTTPHeaders {
 
         public init(extendedGraphemeClusterLiteral: String) {
             self.init(extendedGraphemeClusterLiteral)
+        }
+
+        /// :nodoc:
+        public var hashValue: Int {
+            return lowercased.hashValue
         }
 
         /// :nodoc:
