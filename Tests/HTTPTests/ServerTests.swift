@@ -277,7 +277,8 @@ class ServerTests: XCTestCase {
         }
     }
     
-    func testMultipleRequestWithoutKeepAliveEchoEndToEnd() {
+    /// Make sure that the server can handle more than one connection at the same time.
+    func testMultipleSimultaneousRequestsEchoEndToEnd() {
         let receivedExpectation1 = self.expectation(description: "Received web response 1: \(#function)")
         let receivedExpectation2 = self.expectation(description: "Received web response 2: \(#function)")
         let receivedExpectation3 = self.expectation(description: "Received web response 3: \(#function)")
@@ -295,6 +296,7 @@ class ServerTests: XCTestCase {
             request1.httpMethod = "POST"
             request1.httpBody = testString1.data(using: .utf8)
             request1.setValue("text/plain", forHTTPHeaderField: "Content-Type")
+            request1.setValue("Keep-Alive", forHTTPHeaderField: "Connection")
 
             let dataTask1 = session.dataTask(with: request1) { (responseBody, rawResponse, error) in
                 let response = rawResponse as? HTTPURLResponse
@@ -314,7 +316,7 @@ class ServerTests: XCTestCase {
                 request2.httpMethod = "POST"
                 request2.httpBody = testString2.data(using: .utf8)
                 request2.setValue("text/plain", forHTTPHeaderField: "Content-Type")
-                request2.setValue("close", forHTTPHeaderField: "Connection")
+                request2.setValue("Keep-Alive", forHTTPHeaderField: "Connection")
                 let dataTask2 = session.dataTask(with: request2) { (responseBody2, rawResponse2, error2) in
                     let response2 = rawResponse2 as? HTTPURLResponse
                     XCTAssertNil(error2, "\(error2!.localizedDescription)")
@@ -333,7 +335,7 @@ class ServerTests: XCTestCase {
                     request3.httpMethod = "POST"
                     request3.httpBody = testString3.data(using: .utf8)
                     request3.setValue("text/plain", forHTTPHeaderField: "Content-Type")
-                    request3.setValue("close", forHTTPHeaderField: "Connection")
+                    request3.setValue("Keep-Alive", forHTTPHeaderField: "Connection")
                     let dataTask3 = session.dataTask(with: request3) { (responseBody, rawResponse, error) in
                         let response = rawResponse as? HTTPURLResponse
                         XCTAssertNil(error, "\(error!.localizedDescription)")
@@ -533,6 +535,7 @@ class ServerTests: XCTestCase {
         ("testSimpleHelloEndToEnd", testSimpleHelloEndToEnd),
         ("testRequestEchoEndToEnd", testRequestEchoEndToEnd),
         ("testRequestKeepAliveEchoEndToEnd", testRequestKeepAliveEchoEndToEnd),
+        ("testMultipleSimultaneousRequestsEchoEndToEnd",testMultipleSimultaneousRequestsEchoEndToEnd),
         ("testRequestLargeEchoEndToEnd", testRequestLargeEchoEndToEnd),
         ("testExplicitCloseConnections", testExplicitCloseConnections),
         ("testRequestLargePostHelloWorld", testRequestLargePostHelloWorld),
