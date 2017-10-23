@@ -40,7 +40,7 @@ extension HTTPMethod {
     /// LOCK method.
     public static let lock = HTTPMethod("LOCK")
     /// MKCOL method.
-    public static let mkol = HTTPMethod("MKCOL")
+    public static let mkcol = HTTPMethod("MKCOL")
     /// MOVE method.
     public static let move = HTTPMethod("MOVE")
     /// PROPFIND method.
