@@ -385,7 +385,7 @@ public struct HTTPMethod : Hashable, CustomStringConvertible, ExpressibleByInteg
     public static let trace
     public static let copy
     public static let lock
-    public static let mkol
+    public static let mkcol
     public static let move
     public static let propfind
     public static let proppatch
