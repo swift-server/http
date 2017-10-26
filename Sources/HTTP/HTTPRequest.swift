@@ -30,7 +30,7 @@ public typealias HTTPBodyHandler = (HTTPBodyChunk, inout Bool) -> Void
 public enum HTTPBodyProcessing {
     /// Used to discard the body data associated with the incoming HTTP request
     case discardBody
-    /// Used to process the body data associated with the imcoming HTTP request using a `HTTPBodyHandler`
+    /// Used to process the body data associated with the incoming HTTP request using a `HTTPBodyHandler`
     case processBody(handler: HTTPBodyHandler)
 }
 
