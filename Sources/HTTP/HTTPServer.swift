@@ -10,10 +10,10 @@
 public protocol HTTPServing : class {
 
     /// Start the HTTP server on the given `port`, using `handler` to process incoming requests
-    func start(port: Int, handler: @escaping HTTPRequestHandler) throws
+    func resume(port: Int, handler: @escaping HTTPRequestHandler) throws
 
     /// Stop the server
-    func stop()
+    func suspend()
 
     /// The port the server is listening on
     var port: Int { get }
@@ -33,13 +33,13 @@ public class HTTPServer: HTTPServing {
     }
 
     /// Start the HTTP server on the given `port` number, using a `HTTPRequestHandler` to process incoming requests.
-    public func start(port: Int = 0, handler: @escaping HTTPRequestHandler) throws {
-        try server.start(port: port, handler: handler)
+    public func resume(port: Int = 0, handler: @escaping HTTPRequestHandler) throws {
+        try server.resume(port: port, handler: handler)
     }
 
     /// Stop the server
-    public func stop() {
-        server.stop()
+    public func suspend() {
+        server.suspend()
     }
 
     /// The port number the server is listening on

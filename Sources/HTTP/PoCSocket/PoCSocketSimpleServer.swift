@@ -55,13 +55,13 @@ public class PoCSocketSimpleServer: CurrentConnectionCounting {
         }
     }
 
-    /// Starts the server listening on a given port
+    /// Starts/resumes the server listening on a given port
     ///
     /// - Parameters:
     ///   - port: TCP port. See listen(2)
     ///   - handler: Function that creates the HTTP Response from the HTTP Request
     /// - Throws: Error (usually a socket error) generated
-    public func start(port: Int = 0,
+    public func resume(port: Int = 0,
                       queueCount: Int = 0,
                       acceptCount: Int = 0,
                       maxReadLength: Int = 1048576,
@@ -133,8 +133,8 @@ public class PoCSocketSimpleServer: CurrentConnectionCounting {
         }
     }
 
-    /// Stop the server and close the sockets
-    public func stop() {
+    /// Stop/suspend the server and close the sockets
+    public func suspend() {
         isShuttingDown = true
         connectionListenerList.closeAll()
         serverSocket.shutdownAndClose()

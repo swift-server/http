@@ -64,7 +64,7 @@ class ServerTests: XCTestCase {
 
         let server = HTTPServer()
         do {
-            try server.start(port: 0, handler: OkHandler().handle)
+            try server.resume(port: 0, handler: OkHandler().handle)
             let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/")!
             print("Test \(#function) on port \(server.port)")
@@ -82,7 +82,7 @@ class ServerTests: XCTestCase {
                     XCTFail("\(error)")
                 }
             }
-            server.stop()
+            server.suspend()
         } catch {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
@@ -93,7 +93,7 @@ class ServerTests: XCTestCase {
 
         let server = HTTPServer()
         do {
-            try server.start(port: 0, handler: HelloWorldHandler().handle)
+            try server.resume(port: 0, handler: HelloWorldHandler().handle)
             let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/helloworld")!
             print("Test \(#function) on port \(server.port)")
@@ -112,7 +112,7 @@ class ServerTests: XCTestCase {
                     XCTFail("\(error)")
                 }
             }
-            server.stop()
+            server.suspend()
         } catch {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
@@ -130,7 +130,7 @@ class ServerTests: XCTestCase {
 
         let server = HTTPServer()
         do {
-            try server.start(port: 0, handler: simpleHelloWebApp.handle)
+            try server.resume(port: 0, handler: simpleHelloWebApp.handle)
         } catch {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
@@ -156,7 +156,7 @@ class ServerTests: XCTestCase {
                 XCTFail("\(error)")
             }
         }
-        server.stop()
+        server.suspend()
         print("\(#function) stopping server")
     }
 
@@ -166,7 +166,7 @@ class ServerTests: XCTestCase {
 
         let server = HTTPServer()
         do {
-            try server.start(port: 0, handler: EchoHandler().handle)
+            try server.resume(port: 0, handler: EchoHandler().handle)
             let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
@@ -190,7 +190,7 @@ class ServerTests: XCTestCase {
                     XCTFail("\(error)")
                 }
             }
-            server.stop()
+            server.suspend()
         } catch {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
@@ -206,7 +206,7 @@ class ServerTests: XCTestCase {
 
         let server = HTTPServer()
         do {
-            try server.start(port: 0, handler: EchoHandler().handle)
+            try server.resume(port: 0, handler: EchoHandler().handle)
             let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
@@ -271,7 +271,7 @@ class ServerTests: XCTestCase {
                     XCTFail("\(error)")
                 }
             }
-            //server.stop()
+            //server.suspend()
         } catch {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
@@ -287,7 +287,7 @@ class ServerTests: XCTestCase {
         
         let server = HTTPServer()
         do {
-            try server.start(port: 0, handler: EchoHandler().handle)
+            try server.resume(port: 0, handler: EchoHandler().handle)
             let session = URLSession(configuration: .default)
             let url1 = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
@@ -362,7 +362,7 @@ class ServerTests: XCTestCase {
                     XCTFail("\(error)")
                 }
             }
-            //server.stop()
+            //server.suspend()
         } catch {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
@@ -398,7 +398,7 @@ class ServerTests: XCTestCase {
 
         let server = PoCSocketSimpleServer()
         do {
-            try server.start(port: 0, maxReadLength: chunkSize, handler: EchoHandler().handle)
+            try server.resume(port: 0, maxReadLength: chunkSize, handler: EchoHandler().handle)
             let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
@@ -420,7 +420,7 @@ class ServerTests: XCTestCase {
                     XCTFail("\(error)")
                 }
             }
-            server.stop()
+            server.suspend()
         } catch {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
@@ -451,7 +451,7 @@ class ServerTests: XCTestCase {
         let server = PoCSocketSimpleServer()
         do {
             let testHandler = AbortAndSendHelloHandler()
-            try server.start(port: 0, maxReadLength: chunkSize, handler: testHandler.handle)
+            try server.resume(port: 0, maxReadLength: chunkSize, handler: testHandler.handle)
             let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
@@ -475,7 +475,7 @@ class ServerTests: XCTestCase {
                     XCTFail("\(error)")
                 }
             }
-            server.stop()
+            server.suspend()
         } catch {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
@@ -488,7 +488,7 @@ class ServerTests: XCTestCase {
         let keepAliveTimeout = 0.1
 
         do {
-            try server.start(port: 0, keepAliveTimeout: keepAliveTimeout, handler: OkHandler().handle)
+            try server.resume(port: 0, keepAliveTimeout: keepAliveTimeout, handler: OkHandler().handle)
             
             let session = URLSession(configuration: .default)
             let url1 = URL(string: "http://localhost:\(server.port)")!
@@ -517,7 +517,7 @@ class ServerTests: XCTestCase {
                     XCTFail("\(error)")
                 }
             }
-            server.stop()
+            server.suspend()
         } catch {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
