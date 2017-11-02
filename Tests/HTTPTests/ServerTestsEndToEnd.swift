@@ -15,9 +15,10 @@ class ServerTestsEndToEnd: XCTestCase {
     func testOkEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
         
-        let server = HTTPServer()
+        let options = HTTPServer.Options(onPort: 0)
+        let server = HTTPServer(with: options, requestHandler: OkHandler().handle)
         do {
-            try server.start(port: 0, handler: OkHandler().handle)
+            try server.start()
             let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/")!
             print("Test \(#function) on port \(server.port)")
@@ -44,9 +45,10 @@ class ServerTestsEndToEnd: XCTestCase {
     func testHelloEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
         
-        let server = HTTPServer()
+        let options = HTTPServer.Options(onPort: 0)
+        let server = HTTPServer(with: options, requestHandler: HelloWorldHandler().handle)
         do {
-            try server.start(port: 0, handler: HelloWorldHandler().handle)
+            try server.start()
             let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/helloworld")!
             print("Test \(#function) on port \(server.port)")
@@ -81,9 +83,10 @@ class ServerTestsEndToEnd: XCTestCase {
             )
         }
         
-        let server = HTTPServer()
+        let options = HTTPServer.Options(onPort: 0)
+        let server = HTTPServer(with: options, requestHandler: simpleHelloWebApp.handle)
         do {
-            try server.start(port: 0, handler: simpleHelloWebApp.handle)
+            try server.start()
         } catch {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
@@ -117,9 +120,10 @@ class ServerTestsEndToEnd: XCTestCase {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
         let testString="This is a test"
         
-        let server = HTTPServer()
+        let options = HTTPServer.Options(onPort: 0)
+        let server = HTTPServer(with: options, requestHandler: EchoHandler().handle)
         do {
-            try server.start(port: 0, handler: EchoHandler().handle)
+            try server.start()
             let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
@@ -157,9 +161,10 @@ class ServerTestsEndToEnd: XCTestCase {
         let testString2="This is a test, too"
         let testString3="This is also a test"
         
-        let server = HTTPServer()
+        let options = HTTPServer.Options(onPort: 0)
+        let server = HTTPServer(with: options, requestHandler: EchoHandler().handle)
         do {
-            try server.start(port: 0, handler: EchoHandler().handle)
+            try server.start()
             let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
@@ -238,9 +243,10 @@ class ServerTestsEndToEnd: XCTestCase {
         let testString2="This is a test, too"
         let testString3="This is also a test"
         
-        let server = HTTPServer()
+        let options = HTTPServer.Options(onPort: 0)
+        let server = HTTPServer(with: options, requestHandler: EchoHandler().handle)
         do {
-            try server.start(port: 0, handler: EchoHandler().handle)
+            try server.start()
             let session = URLSession(configuration: .default)
             let url1 = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
