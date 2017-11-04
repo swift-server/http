@@ -200,7 +200,7 @@ public class StreamingParser: HTTPResponseWriter {
         case .headerValueReceived:
             if let parserBuffer = self.parserBuffer,
                let lastHeaderName = self.lastHeaderName,
-               let headerValue = String(data:parserBuffer, encoding: .utf8) {
+               let headerValue = String(data: parserBuffer, encoding: .utf8) {
                 self.parsedHeaders.append([HTTPHeaders.Name(lastHeaderName): headerValue])
                 self.lastHeaderName = nil
                 self.parserBuffer = nil
@@ -217,7 +217,7 @@ public class StreamingParser: HTTPResponseWriter {
             if let parserBuffer = self.parserBuffer {
                 //Under heaptrack, this may appear to leak via _CFGetTSDCreateIfNeeded, 
                 //  apparently, that's because it triggers thread metadata to be created
-                self.parsedURL = String(data:parserBuffer, encoding: .utf8)
+                self.parsedURL = String(data: parserBuffer, encoding: .utf8)
                 self.parserBuffer = nil
             } else {
                 print("Missing parserBuffer after \(lastCallBack)")
@@ -414,7 +414,6 @@ public class StreamingParser: HTTPResponseWriter {
             headers[.transferEncoding] = nil
         }
 
-
         if clientRequestedKeepAlive {
             headers[.connection] = "Keep-Alive"
         } else {
@@ -507,7 +506,7 @@ public protocol ParserConnecting: class {
 
     /// Let the network know that a response is complete, so it can be closed after timeout
     func responseComplete()
-    
+
     /// Let the network know that a response is complete and we're ready to close the connection
     func responseCompleteCloseWriter()
 

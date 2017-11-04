@@ -36,7 +36,7 @@ public struct HTTPHeaders {
     }
 }
 
-extension HTTPHeaders : ExpressibleByDictionaryLiteral {
+extension HTTPHeaders: ExpressibleByDictionaryLiteral {
     /// Creates HTTP headers.
     public init(dictionaryLiteral: (Name, String)...) {
         storage = [:]
@@ -92,7 +92,7 @@ extension HTTPHeaders {
     }
 }
 
-extension HTTPHeaders : Sequence {
+extension HTTPHeaders: Sequence {
     /// :nodoc:
     public func makeIterator() -> AnyIterator<(name: Name, value: String)> {
         if let original = original {
