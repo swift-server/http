@@ -11,7 +11,7 @@ import HTTP
 
 /// Simple `HTTPRequestHandler` that prints "Hello, World" as per K&R
 class HelloWorldHandler: HTTPRequestHandling {
-    func handle(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {
+    func handle(request: HTTPRequest, response: HTTPResponseWriter, queue: DispatchQueue? ) -> HTTPBodyProcessing {
         //Assume the router gave us the right request - at least for now
         response.writeHeader(status: .ok, headers: [.transferEncoding: "chunked", "X-foo": "bar"])
         return .processBody { (chunk, stop) in

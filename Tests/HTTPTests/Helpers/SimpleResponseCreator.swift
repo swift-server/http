@@ -32,7 +32,7 @@ public class SimpleResponseCreator: HTTPRequestHandling {
 
     var buffer = Data()
 
-    public func handle(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {
+    public func handle(request: HTTPRequest, response: HTTPResponseWriter, queue: DispatchQueue? ) -> HTTPBodyProcessing {
         return .processBody { (chunk, stop) in
             switch chunk {
             case .chunk(let data, let finishedProcessing):
