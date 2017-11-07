@@ -6,7 +6,7 @@
 // See http://swift.org/LICENSE.txt for license information
 //
 
-import Foundation
+import Dispatch
 
 /// Typealias for a closure that handles an incoming HTTP request
 /// The following is an example of an echo `HTTPRequestHandler` that returns the request it receives as a response:
