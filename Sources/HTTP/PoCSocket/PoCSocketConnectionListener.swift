@@ -11,7 +11,7 @@ import Dispatch
 
 ///:nodoc:
 public class PoCSocketConnectionListener: ParserConnecting {
-    
+
     ///socket(2) wrapper object
     var socket: PoCSocket?
 
@@ -68,7 +68,7 @@ public class PoCSocketConnectionListener: ParserConnecting {
             _errorOccurred = newValue
         }
     }
-    
+
     ///Largest number of bytes we're willing to allocate for a Read
     // it's an anti-heartbleed-type paranoia check
     private var maxReadLength: Int = 1048576
@@ -101,7 +101,7 @@ public class PoCSocketConnectionListener: ParserConnecting {
     /// Close the socket and free up memory unless we're in the middle of a request
     func close() {
         self.shouldShutdown = true
-        
+
         if !self.responseCompleted && !self.errorOccurred {
             return
         }
@@ -161,11 +161,11 @@ public class PoCSocketConnectionListener: ParserConnecting {
             close()
         }
     }
-    
+
     func cleanup() {
         self.readerSource?.setEventHandler(handler: nil)
         self.readerSource?.setCancelHandler(handler: nil)
-        
+
         self.readerSource = nil
         self.socket = nil
         self.parser?.parserConnector = nil //allows for memory to be reclaimed
@@ -186,7 +186,7 @@ public class PoCSocketConnectionListener: ParserConnecting {
             }
         }
     }
-    
+
     /// Called by the parser to let us know that a response is complete and we should close the socket
     public func responseCompleteCloseWriter() {
         self.responseCompleted = true
@@ -218,7 +218,7 @@ public class PoCSocketConnectionListener: ParserConnecting {
             }
 
             var length = 1 //initial value
-            
+
             do {
                 if strongSelf.socket?.socketfd ?? -1 > 0 {
                     var maxLength: Int = Int(strongSelf.readerSource?.data ?? 0)
@@ -226,13 +226,13 @@ public class PoCSocketConnectionListener: ParserConnecting {
                             maxLength = strongSelf.maxReadLength
                     }
                     var readBuffer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: maxLength)
-                    length = try strongSelf.socket?.socketRead(into: &readBuffer, maxLength:maxLength) ?? -1
+                    length = try strongSelf.socket?.socketRead(into: &readBuffer, maxLength: maxLength) ?? -1
                     if length > 0 {
                         self?.responseCompleted = false
-                        
+
                         let data = Data(bytes: readBuffer, count: length)
-                        let numberParsed = strongSelf.parser?.readStream(data:data) ?? 0
-                        
+                        let numberParsed = strongSelf.parser?.readStream(data: data) ?? 0
+
                         if numberParsed != data.count {
                             print("Error: wrong number of bytes consumed by parser (\(numberParsed) instead of \(data.count)")
                         }
@@ -257,11 +257,11 @@ public class PoCSocketConnectionListener: ParserConnecting {
                 self?.close()
             }
         }
-        
+
         tempReaderSource.setCancelHandler { [weak self] in
             self?.close() //close if we can
         }
-        
+
         self.readerSource = tempReaderSource
         self.readerSource?.resume()
     }

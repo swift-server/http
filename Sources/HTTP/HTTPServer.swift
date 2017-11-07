@@ -7,7 +7,7 @@
 //
 
 /// Definition of an HTTP server.
-public protocol HTTPServing : class {
+public protocol HTTPServing: class {
 
     /// Start the HTTP server on the given `port`, using `handler` to process incoming requests
     func start(port: Int, handler: @escaping HTTPRequestHandler) throws

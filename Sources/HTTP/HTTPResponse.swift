@@ -20,7 +20,7 @@ public struct HTTPResponse {
 }
 
 /// HTTPResponseWriter provides functions to create an HTTP response
-public protocol HTTPResponseWriter : class {
+public protocol HTTPResponseWriter: class {
     /// Writer function to create the headers for an HTTP response
     /// - Parameter status: The status code to include in the HTTP response
     /// - Parameter headers: The HTTP headers to include in the HTTP response

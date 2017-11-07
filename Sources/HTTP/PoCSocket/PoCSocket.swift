@@ -23,19 +23,19 @@ public enum PoCSocketError: Error {
 ///  Note that no method names here are the same as any system call names.
 ///   This is because we expect the caller might need functionality we haven't implemented here.
 internal class PoCSocket {
-    
+
     /// hold the file descriptor for the socket supplied by the OS. `-1` is invalid socket
     internal var socketfd: Int32 = -1
-    
+
     /// The TCP port the server is actually listening on. Set after system call completes
     internal var listeningPort: Int32 = -1
-    
+
     /// Track state between `listen(2)` and `shutdown(2)`
     internal private(set) var isListening = false
-    
+
     /// Track state between `accept(2)/bind(2)` and `close(2)`
     internal private(set) var isConnected = false
-    
+
     /// track whether a shutdown is in progress so we can suppress error messages
     private let _isShuttingDownLock = DispatchSemaphore(value: 1)
     private var _isShuttingDown: Bool = false
@@ -63,7 +63,7 @@ internal class PoCSocket {
     ///   - maxLength: Max length that can be read. Buffer *must* be at least this big!!!
     /// - Returns: Number of bytes read or -1 on failure as per `recv(2)`
     /// - Throws: PoCSocketError if sanity checks fail
-    internal func socketRead(into readBuffer: inout UnsafeMutablePointer<Int8>, maxLength:Int) throws -> Int {
+    internal func socketRead(into readBuffer: inout UnsafeMutablePointer<Int8>, maxLength: Int) throws -> Int {
         if maxLength <= 0 || maxLength > Int(Int32.max) {
             throw PoCSocketError.InvalidReadLengthError
         }
@@ -76,15 +76,15 @@ internal class PoCSocket {
         if readBufferPointer == nil {
             throw PoCSocketError.InvalidBufferError
         }
-        
+
         //Make sure data isn't re-used
         readBuffer.initialize(to: 0x0, count: maxLength)
-        
+
         let read = recv(self.socketfd, readBuffer, maxLength, Int32(0))
         //Leave this as a local variable to facilitate Setting a Watchpoint in lldb
         return read
     }
-    
+
     /// Pass buffer passed into to us into send(2).
     ///
     /// - Parameters:
@@ -99,7 +99,7 @@ internal class PoCSocket {
         if bufSize < 0 || bufSize > Int(Int32.max) {
             throw PoCSocketError.InvalidWriteLengthError
         }
-        
+
         //Make sure we weren't handed a nil buffer
         let writeBufferPointer: UnsafeRawPointer! = buffer
         if writeBufferPointer == nil {
@@ -110,7 +110,7 @@ internal class PoCSocket {
         //Leave this as a local variable to facilitate Setting a Watchpoint in lldb
         return sent
     }
-    
+
     /// Calls `shutdown(2)` and `close(2)` on a socket
     internal func shutdownAndClose() {
         self.isShuttingDown = true
@@ -127,7 +127,7 @@ internal class PoCSocket {
         self.isConnected = false
         close(self.socketfd)
     }
-        
+
     /// Thin wrapper around `accept(2)`
     ///
     /// - Returns: PoCSocket object for newly connected socket or nil if we've been told to shutdown
@@ -138,14 +138,14 @@ internal class PoCSocket {
         }
 
         let retVal = PoCSocket()
-        
+
         var maxRetryCount = 100
-        
+
         var acceptFD: Int32 = -1
         repeat {
             var acceptAddr = sockaddr_in()
             var addrSize = socklen_t(MemoryLayout<sockaddr_in>.size)
-            
+
             acceptFD = withUnsafeMutablePointer(to: &acceptAddr) { pointer in
                 return accept(self.socketfd, UnsafeMutableRawPointer(pointer).assumingMemoryBound(to: sockaddr.self), &addrSize)
             }
@@ -159,17 +159,17 @@ internal class PoCSocket {
             }
         }
         while acceptFD < 0 && maxRetryCount > 0
-        
+
         if acceptFD < 0 {
             throw PoCSocketError.SocketOSError(errno: errno)
         }
-        
+
         retVal.isConnected = true
         retVal.socketfd = acceptFD
-        
+
         return retVal
     }
-    
+
     /// call `bind(2)` and `listen(2)`
     ///
     /// - Parameters:
@@ -182,17 +182,17 @@ internal class PoCSocket {
         #else
             socketfd = socket(Int32(AF_INET), Int32(SOCK_STREAM), Int32(IPPROTO_TCP))
         #endif
-        
+
         if socketfd <= 0 {
             throw PoCSocketError.InvalidSocketError
         }
-        
+
         var on: Int32 = 1
         // Allow address reuse
         if setsockopt(self.socketfd, SOL_SOCKET, SO_REUSEADDR, &on, socklen_t(MemoryLayout<Int32>.size)) < 0 {
             throw PoCSocketError.SocketOSError(errno: errno)
         }
-        
+
         // Allow port reuse
         if setsockopt(self.socketfd, SOL_SOCKET, SO_REUSEPORT, &on, socklen_t(MemoryLayout<Int32>.size)) < 0 {
             throw PoCSocketError.SocketOSError(errno: errno)
@@ -203,26 +203,26 @@ internal class PoCSocket {
                 sin_family: sa_family_t(AF_INET),
                 sin_port: htons(UInt16(port)),
                 sin_addr: in_addr(s_addr: in_addr_t(0)),
-                sin_zero:(0, 0, 0, 0, 0, 0, 0, 0))
+                sin_zero: (0, 0, 0, 0, 0, 0, 0, 0))
         #else
             var addr = sockaddr_in(
                 sin_len: UInt8(MemoryLayout<sockaddr_in>.stride),
                 sin_family: UInt8(AF_INET),
                 sin_port: (Int(OSHostByteOrder()) != OSLittleEndian ? UInt16(port) : _OSSwapInt16(UInt16(port))),
                 sin_addr: in_addr(s_addr: in_addr_t(0)),
-                sin_zero:(0, 0, 0, 0, 0, 0, 0, 0))
+                sin_zero: (0, 0, 0, 0, 0, 0, 0, 0))
         #endif
-        
-        let _ = withUnsafePointer(to: &addr) {
+
+        _ = withUnsafePointer(to: &addr) {
             bind(self.socketfd, UnsafePointer<sockaddr>(OpaquePointer($0)), socklen_t(MemoryLayout<sockaddr_in>.size))
         }
 
         //print("bindResult is \(bindResult)")
-        
-        let _ = listen(self.socketfd, maxBacklogSize)
-        
+
+        _ = listen(self.socketfd, maxBacklogSize)
+
         isListening = true
-        
+
         //print("listenResult is \(listenResult)")
 
         var addr_in = sockaddr_in()
@@ -238,17 +238,17 @@ internal class PoCSocket {
                 return Int32(Int(OSHostByteOrder()) != OSLittleEndian ? addr_in.sin_port.littleEndian : addr_in.sin_port.bigEndian)
             #endif
         }
-        
+
         //print("listeningPort is \(listeningPort)")
     }
-    
+
     /// Check to see if socket is being used
     ///
     /// - Returns: whether socket is listening or connected
     internal func isOpen() -> Bool {
         return isListening || isConnected
     }
-    
+
     /// Sets the socket to Blocking or non-blocking mode.
     ///
     /// - Parameter mode: true for blocking, false for nonBlocking
@@ -260,9 +260,9 @@ internal class PoCSocket {
             //Failed
             throw PoCSocketError.SocketOSError(errno: errno)
         }
-        
+
         let newFlags = mode ? flags & ~O_NONBLOCK : flags | O_NONBLOCK
-        
+
         let result = fcntl(self.socketfd, F_SETFL, newFlags)
         if result < 0 {
             //Failed
