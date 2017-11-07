@@ -6,34 +6,44 @@
 // See http://swift.org/LICENSE.txt for license information
 //
 
-/// Version number of the HTTP Protocol
-public struct HTTPVersion {
-    /// Major version component.
-    public private(set) var major: Int
-    /// Minor version component.
-    public private(set) var minor: Int
+public enum HTTPVersion {
+    case v1_0
+    case v1_1
 
-    /// Creates an HTTP version.
-    public init(major: Int, minor: Int) {
-        self.major = major
-        self.minor = minor
+    init?(major: Int, minor: Int) {
+        if major == 1 && minor == 0 {
+            self = .v1_0
+        } else if major == 1 && minor == 1 {
+            self = .v1_1
+        } else {
+            return nil
+        }
     }
 }
 
-extension HTTPVersion : Hashable {
-    /// :nodoc:
+extension HTTPVersion {
+    var major: Int {
+        switch self {
+        case .v1_0:
+            return 1
+        case .v1_1:
+            return 1
+        }
+    }
+
+    var minor: Int {
+        switch self {
+        case .v1_0:
+            return 0
+        case .v1_1:
+            return 1
+        }
+    }
+}
+
+extension HTTPVersion: Hashable {
     public var hashValue: Int {
-        return (major << 8) | minor
-    }
-
-    /// :nodoc:
-    public static func == (lhs: HTTPVersion, rhs: HTTPVersion) -> Bool {
-        return lhs.major == rhs.major && lhs.minor == rhs.minor
-    }
-
-    /// :nodoc:
-    public static func ~= (match: HTTPVersion, version: HTTPVersion) -> Bool {
-        return match == version
+        return self.major << 8 | self.minor
     }
 }
 
@@ -46,12 +56,11 @@ extension HTTPVersion : Comparable {
             return lhs.minor < rhs.minor
         }
     }
-
 }
 
 extension HTTPVersion : CustomStringConvertible {
     /// :nodoc:
     public var description: String {
-        return "HTTP/" + major.description + "." + minor.description
+        return "HTTP/\(self.major).\(self.minor)"
     }
 }

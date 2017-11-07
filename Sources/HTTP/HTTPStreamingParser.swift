@@ -320,7 +320,7 @@ public class StreamingParser: HTTPResponseWriter {
                         //  just passing in a pointer to the internal ivar. But that ivar can't be modified in
                         //  more than one place, so we have to put a semaphore around it to prevent that.
                         _shouldStopProcessingBodyLock.wait()
-                        handler(.chunk(data: chunk, finishedProcessing: {self._shouldStopProcessingBodyLock.signal()}), &_shouldStopProcessingBody)
+                        handler(.chunk(data: chunk, finishedProcessing: { self._shouldStopProcessingBodyLock.signal() }), &_shouldStopProcessingBody)
                     case .discardBody:
                         break
                 }
@@ -398,7 +398,7 @@ public class StreamingParser: HTTPResponseWriter {
 
         if headers[.contentLength] != nil {
             headers[.transferEncoding] = "identity"
-        } else if parsedHTTPVersion! >= HTTPVersion(major: 1, minor: 1) {
+        } else if parsedHTTPVersion! >= HTTPVersion.v1_1 {
             switch headers[.transferEncoding] {
                 case .some("identity"): // identity without content-length
                     clientRequestedKeepAlive = false
