@@ -197,10 +197,23 @@ public class PoCSocketConnectionListener: ParserConnecting {
 
     /// Starts reading from the socket and feeding that data to the parser
     public func process() {
-        try! socket?.setBlocking(mode: true)
-
-        let tempReaderSource = DispatchSource.makeReadSource(fileDescriptor: socket?.socketfd ?? -1,
-                                                             queue: socketReaderQueue)
+        let tempReaderSource: DispatchSourceRead
+        //Make sure we have a socket here.  Don't use guard so that
+        //  we don't encourage strongSocket to be used in the
+        //  event handler, which could cause a leak
+        if let strongSocket = socket {
+            do {
+                try strongSocket.setBlocking(mode: true)
+                tempReaderSource = DispatchSource.makeReadSource(fileDescriptor: strongSocket.socketfd,
+                                                                     queue: socketReaderQueue)
+            } catch {
+                print("Socket cannot be set to Blocking in process(): \(error)")
+                return
+            }
+        } else {
+            print("Socket is nil in process()")
+            return
+        }
 
         tempReaderSource.setEventHandler { [weak self] in
             guard let strongSelf = self else {
