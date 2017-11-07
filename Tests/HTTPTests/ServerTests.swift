@@ -271,7 +271,7 @@ class ServerTests: XCTestCase {
                     XCTFail("\(error)")
                 }
             }
-            //server.stop()
+            server.stop()
         } catch {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
@@ -362,7 +362,7 @@ class ServerTests: XCTestCase {
                     XCTFail("\(error)")
                 }
             }
-            //server.stop()
+            server.stop()
         } catch {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
