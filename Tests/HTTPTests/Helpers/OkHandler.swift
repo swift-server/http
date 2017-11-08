@@ -6,7 +6,7 @@
 // See http://swift.org/LICENSE.txt for license information
 //
 
-import Foundation
+import Dispatch
 import HTTP
 
 /// Simple `HTTPRequestHandler` that returns 200: OK without a body

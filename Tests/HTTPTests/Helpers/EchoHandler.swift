@@ -6,7 +6,7 @@
 // See http://swift.org/LICENSE.txt for license information
 //
 
-import Foundation
+import Dispatch
 import HTTP
 
 /// Simple `HTTPRequestHandler` that just echoes back whatever input it gets

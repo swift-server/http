@@ -6,7 +6,7 @@
 // See http://swift.org/LICENSE.txt for license information
 //
 
-import Foundation
+import Dispatch
 import HTTP
 
 /// Simple `HTTPRequestHandler` that prints "Hello, World" as per K&R
