@@ -211,7 +211,7 @@ public class StreamingParser: HTTPResponseWriter {
             self.parserBuffer = nil
 
             if !upgradeRequested {
-                self.httpBodyProcessingCallback = self.handle(self.createRequest(), self)
+                self.httpBodyProcessingCallback = self.handle(self.createRequest(), self, nil)
             }
         case .urlReceived:
             if let parserBuffer = self.parserBuffer {

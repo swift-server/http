@@ -6,12 +6,12 @@
 // See http://swift.org/LICENSE.txt for license information
 //
 
-import Foundation
+import Dispatch
 
 /// Typealias for a closure that handles an incoming HTTP request
 /// The following is an example of an echo `HTTPRequestHandler` that returns the request it receives as a response:
 /// ```swift
-///    func echo(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {
+///    func echo(request: HTTPRequest, response: HTTPResponseWriter, queue: DispatchQueue? ) -> HTTPBodyProcessing {
 ///        response.writeHeader(status: .ok)
 ///        return .processBody { (chunk, stop) in
 ///            switch chunk {
@@ -29,20 +29,26 @@ import Foundation
 ///    }
 /// ```
 /// This then needs to be registered with the server using `HTTPServer.start(port:handler:)`
-/// - Parameter req: the incoming HTTP request.
-/// - Parameter res: a writer providing functions to create an HTTP reponse to the request.
-/// - Returns HTTPBodyProcessing: a enum that either discards the request data, or provides a closure to process it.
-public typealias HTTPRequestHandler = (HTTPRequest, HTTPResponseWriter) -> HTTPBodyProcessing
+/// - Parameters:
+///   - req: the incoming HTTP request.
+///   - res: a writer providing functions to create an HTTP reponse to the request.
+///   - queue: optional, if set, dispatch done callbacks back to this queue (if
+///            the handler processing escapes the calling queue)
+/// - Returns: HTTPBodyProcessing: a enum that either discards the request data, or provides a closure to process it.
+public typealias HTTPRequestHandler = (HTTPRequest, HTTPResponseWriter, DispatchQueue?) -> HTTPBodyProcessing
 
 /// Class protocol containing a `handle()` function that implements `HTTPRequestHandler` to respond to incoming HTTP requests.
 /// - See: `HTTPRequestHandler` for more information
 public protocol HTTPRequestHandling: class {
     /// handle: function that implements `HTTPRequestHandler` and is called when a new HTTP request is received by the HTTP server.
-    /// - Parameter request: the incoming HTTP request.
-    /// - Parameter response: a writer providing functions to create an HTTP response to the request.
-    /// - Returns HTTPBodyProcessing: a enum that either discards the request data, or provides a closure to process it.
+    /// - Parameters:
+    ///   - request: the incoming HTTP request.
+    ///   - response: a writer providing functions to create an HTTP response to the request.
+    ///   - queue: optional, if set, dispatch done callbacks back to this queue (if
+    ///            the handler processing escapes the calling queue)
+    /// - Returns: HTTPBodyProcessing: a enum that either discards the request data, or provides a closure to process it.
     /// - See: `HTTPRequestHandler` for more information
-    func handle(request: HTTPRequest, response: HTTPResponseWriter) -> HTTPBodyProcessing
+    func handle(request: HTTPRequest, response: HTTPResponseWriter, queue: DispatchQueue?) -> HTTPBodyProcessing
 }
 
 /// The result returned as part of a completion handler

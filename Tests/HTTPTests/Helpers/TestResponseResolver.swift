@@ -50,7 +50,7 @@ class TestResponseResolver: HTTPResponseWriter {
     }
 
     func resolveHandler(_ handler: HTTPRequestHandler) {
-        let chunkHandler = handler(request, self)
+        let chunkHandler = handler(request, self, nil)
         if shouldStopProcessingBody {
             return
         }
