@@ -6,11 +6,13 @@
 // See http://swift.org/LICENSE.txt for license information
 //
 
+import ServerSecurity
+
 /// Definition of an HTTP server.
 public protocol HTTPServing: class {
 
     /// Start the HTTP server on the given `port`, using `handler` to process incoming requests
-    func start(port: Int, handler: @escaping HTTPRequestHandler) throws
+    func start(port: Int, tls: TLSConfiguration?, handler: @escaping HTTPRequestHandler) throws
 
     /// Stop the server
     func stop()
@@ -33,8 +35,8 @@ public class HTTPServer: HTTPServing {
     }
 
     /// Start the HTTP server on the given `port` number, using a `HTTPRequestHandler` to process incoming requests.
-    public func start(port: Int = 0, handler: @escaping HTTPRequestHandler) throws {
-        try server.start(port: port, handler: handler)
+    public func start(port: Int = 0, tls: TLSConfiguration? = nil, handler: @escaping HTTPRequestHandler) throws {
+        try server.start(port: port, tls: tls, handler: handler)
     }
 
     /// Stop the server
