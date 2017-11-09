@@ -53,6 +53,6 @@ extension HTTPVersion: Comparable {
 extension HTTPVersion: CustomStringConvertible {
     /// :nodoc:
     public var description: String {
-        return "HTTP/\(major.description).\(minor.description)"
+        return "HTTP/\(major).\(minor)"
     }
 }
