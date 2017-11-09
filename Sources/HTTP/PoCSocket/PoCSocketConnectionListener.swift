@@ -240,6 +240,9 @@ public class PoCSocketConnectionListener: ParserConnecting {
                     }
                     var readBuffer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: maxLength)
                     length = try strongSelf.socket?.socketRead(into: &readBuffer, maxLength: maxLength) ?? -1
+                    defer {
+                        readBuffer.deallocate(capacity: maxLength)
+                    }
                     if length > 0 {
                         self?.responseCompleted = false
 
@@ -250,7 +253,6 @@ public class PoCSocketConnectionListener: ParserConnecting {
                             print("Error: wrong number of bytes consumed by parser (\(numberParsed) instead of \(data.count)")
                         }
                     }
-                    readBuffer.deallocate(capacity: maxLength)
                 } else {
                     print("bad socket FD while reading")
                     length = -1
