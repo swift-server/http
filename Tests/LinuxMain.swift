@@ -16,4 +16,5 @@ XCTMain([
     testCase(ResponseTests.allTests),
     testCase(ServerTests.allTests),
     testCase(ServerTestsEndToEnd.allTests),
+    testCase(TLSServerTests.allTests),
 ])
