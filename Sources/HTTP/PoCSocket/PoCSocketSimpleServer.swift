@@ -20,7 +20,7 @@ public class PoCSocketSimpleServer: CurrentConnectionCounting {
     /// Collection of listeners of sockets. Used to kill connections on timeout or shutdown
     private var connectionListenerList = ConnectionListenerCollection()
 
-    // Timer that cleans up idle sockets on expire
+    /// Timer that cleans up idle sockets on expire
     private let pruneSocketTimer: DispatchSourceTimer = DispatchSource.makeTimerSource(queue: DispatchQueue(label: "pruneSocketTimer"))
 
     /// The port we're listening on. Used primarily to query a randomly assigned port during XCTests
@@ -34,7 +34,7 @@ public class PoCSocketSimpleServer: CurrentConnectionCounting {
     /// Tuning parameter to set the number of sockets we can accept at one time
     private var acceptMax: Int = 8 //sensible default
 
-    ///Used to stop `accept(2)`ing while shutdown in progress to avoid spurious logs
+    /// Used to stop `accept(2)`ing while shutdown in progress to avoid spurious logs
     private let _isShuttingDownLock = DispatchSemaphore(value: 1)
     private var _isShuttingDown: Bool = false
     var isShuttingDown: Bool {
@@ -155,10 +155,11 @@ class ConnectionListenerCollection {
         }
     }
 
-    let lock = DispatchSemaphore(value: 1)
+    /// Lock around access to storage
+    private let lock = DispatchSemaphore(value: 1)
 
     /// Storage for weak connection listeners
-    var storage = [WeakConnectionListener<PoCSocketConnectionListener>]()
+    private var storage = [WeakConnectionListener<PoCSocketConnectionListener>]()
 
     /// Add a new connection to the collection
     ///
@@ -172,7 +173,7 @@ class ConnectionListenerCollection {
     /// Used when shutting down the server to close all connections
     func closeAll() {
         lock.wait()
-        storage.filter { nil != $0.value }.forEach { $0.value?.close() }
+        storage.filter { $0.value != nil }.forEach { $0.value?.close() }
         lock.signal()
     }
 
@@ -180,14 +181,14 @@ class ConnectionListenerCollection {
     func prune() {
         lock.wait()
         storage.filter { nil != $0.value }.forEach { $0.value?.closeIfIdleSocket() }
-        storage = storage.filter { nil != $0.value }.filter { $0.value?.isOpen ?? false }
+        storage = storage.filter { $0.value != nil }.filter { $0.value?.isOpen ?? false }
         lock.signal()
     }
 
     /// Count of collections
     var count: Int {
         lock.wait()
-        let count = storage.filter { nil != $0.value }.count
+        let count = storage.filter { $0.value != nil }.count
         lock.signal()
         return count
     }
