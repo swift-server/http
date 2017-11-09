@@ -19,9 +19,9 @@ public enum PoCSocketError: Error {
 }
 
 /// Simple Wrapper around the `socket(2)` functions we need for Proof of Concept testing
-///  Intentionally a thin layer over `recv(2)`/`send(2)` so uses the same argument types.
-///  Note that no method names here are the same as any system call names.
-///   This is because we expect the caller might need functionality we haven't implemented here.
+/// Intentionally a thin layer over `recv(2)`/`send(2)` so uses the same argument types.
+/// Note that no method names here are the same as any system call names.
+/// This is because we expect the caller might need functionality we haven't implemented here.
 internal class PoCSocket {
 
     /// hold the file descriptor for the socket supplied by the OS. `-1` is invalid socket
@@ -100,14 +100,14 @@ internal class PoCSocket {
             throw PoCSocketError.InvalidWriteLengthError
         }
 
-        //Make sure we weren't handed a nil buffer
+        // Make sure we weren't handed a nil buffer
         let writeBufferPointer: UnsafeRawPointer! = buffer
         if writeBufferPointer == nil {
             throw PoCSocketError.InvalidBufferError
         }
 
         let sent = send(self.socketfd, buffer, Int(bufSize), Int32(0))
-        //Leave this as a local variable to facilitate Setting a Watchpoint in lldb
+        // Leave this as a local variable to facilitate Setting a Watchpoint in lldb
         return sent
     }
 
@@ -118,9 +118,7 @@ internal class PoCSocket {
             //Nothing to do. Maybe it was closed already
             return
         }
-        //print("Shutting down socket \(self.socketfd)")
         if self.isListening || self.isConnected {
-            //print("Shutting down socket")
             _ = shutdown(self.socketfd, Int32(SHUT_RDWR))
             self.isListening = false
         }
@@ -217,13 +215,9 @@ internal class PoCSocket {
             bind(self.socketfd, UnsafePointer<sockaddr>(OpaquePointer($0)), socklen_t(MemoryLayout<sockaddr_in>.size))
         }
 
-        //print("bindResult is \(bindResult)")
-
         _ = listen(self.socketfd, maxBacklogSize)
 
         isListening = true
-
-        //print("listenResult is \(listenResult)")
 
         var addr_in = sockaddr_in()
 
@@ -238,8 +232,6 @@ internal class PoCSocket {
                 return Int32(Int(OSHostByteOrder()) != OSLittleEndian ? addr_in.sin_port.littleEndian : addr_in.sin_port.bigEndian)
             #endif
         }
-
-        //print("listeningPort is \(listeningPort)")
     }
 
     /// Check to see if socket is being used

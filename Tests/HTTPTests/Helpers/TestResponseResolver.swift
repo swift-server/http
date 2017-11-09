@@ -17,7 +17,7 @@ class TestResponseResolver: HTTPResponseWriter {
 
     var response: (status: HTTPResponseStatus, headers: HTTPHeaders)?
     var responseBody: HTTPResponseBody?
-    
+
     ///Flag to track whether our handler has told us not to call it anymore
     private let _shouldStopProcessingBodyLock = DispatchSemaphore(value: 1)
     private var _shouldStopProcessingBody: Bool = false
@@ -57,7 +57,7 @@ class TestResponseResolver: HTTPResponseWriter {
         switch chunkHandler {
             case .processBody(let handler):
                 _shouldStopProcessingBodyLock.wait()
-                handler(.chunk(data: self.requestBody, finishedProcessing: {self._shouldStopProcessingBodyLock.signal()}), &_shouldStopProcessingBody)
+                handler(.chunk(data: self.requestBody, finishedProcessing: { self._shouldStopProcessingBodyLock.signal() }), &_shouldStopProcessingBody)
                 var dummy = false
                 handler(.end, &dummy)
             case .discardBody:

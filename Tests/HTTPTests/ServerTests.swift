@@ -276,7 +276,7 @@ class ServerTests: XCTestCase {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
     }
-    
+
     func testMultipleRequestWithoutKeepAliveEchoEndToEnd() {
         let receivedExpectation1 = self.expectation(description: "Received web response 1: \(#function)")
         let receivedExpectation2 = self.expectation(description: "Received web response 2: \(#function)")
@@ -284,7 +284,7 @@ class ServerTests: XCTestCase {
         let testString1="This is a test"
         let testString2="This is a test, too"
         let testString3="This is also a test"
-        
+
         let server = HTTPServer()
         do {
             try server.start(port: 0, handler: EchoHandler().handle)
@@ -356,7 +356,7 @@ class ServerTests: XCTestCase {
                 receivedExpectation1.fulfill()
             }
             dataTask1.resume()
-            
+
             self.waitForExpectations(timeout: 10) { (error) in
                 if let error = error {
                     XCTFail("\(error)")
@@ -367,7 +367,6 @@ class ServerTests: XCTestCase {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
     }
-
 
     func testRequestLargeEchoEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
@@ -425,29 +424,29 @@ class ServerTests: XCTestCase {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
     }
-    
+
     func testRequestLargePostHelloWorld() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
-        
+
         //Use a small chunk size to make sure that we stop after one HTTPBodyHandler call
         let chunkSize = 1024
-        
+
         // Get a file we know exists
         let executableURL = URL(fileURLWithPath: CommandLine.arguments[0])
         let testExecutableData: Data
-        
+
         do {
             testExecutableData = try Data(contentsOf: executableURL)
         } catch {
             XCTFail("Could not create Data from contents of \(executableURL)")
             return
         }
-        
+
         //Make sure there's data there
         XCTAssertNotNil(testExecutableData)
-        
+
         let executableLength = testExecutableData.count
-                
+
         let server = PoCSocketSimpleServer()
         do {
             let testHandler = AbortAndSendHelloHandler()
@@ -481,7 +480,6 @@ class ServerTests: XCTestCase {
         }
     }
 
-
     func testExplicitCloseConnections() {
         let expectation = self.expectation(description: "0 Open Connection")
         let server = PoCSocketSimpleServer()
@@ -489,19 +487,19 @@ class ServerTests: XCTestCase {
 
         do {
             try server.start(port: 0, keepAliveTimeout: keepAliveTimeout, handler: OkHandler().handle)
-            
+
             let session = URLSession(configuration: .default)
             let url1 = URL(string: "http://localhost:\(server.port)")!
             var request = URLRequest(url: url1)
             request.httpMethod = "POST"
             request.setValue("close", forHTTPHeaderField: "Connection")
-            
-            let dataTask1 = session.dataTask(with: request) { (responseBody, rawResponse, error) in
+
+            let dataTask1 = session.dataTask(with: request) { (_, _, error) in
                 XCTAssertNil(error, "\(error!.localizedDescription)")
                 #if os(Linux)
                     XCTAssertEqual(server.connectionCount, 0)
                     expectation.fulfill()
-                
+
                     // Darwin's URLSession replaces the `Connection: close` header with `Connection: keep-alive`, so allow it to expire
                 #else
                     DispatchQueue.main.asyncAfter(deadline: .now() + keepAliveTimeout) {
@@ -511,7 +509,7 @@ class ServerTests: XCTestCase {
                 #endif
             }
             dataTask1.resume()
-            
+
             self.waitForExpectations(timeout: 30) { (error) in
                 if let error = error {
                     XCTFail("\(error)")

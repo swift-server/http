@@ -12,13 +12,13 @@ import Dispatch
 ///:nodoc:
 public class PoCSocketConnectionListener: ParserConnecting {
 
-    ///socket(2) wrapper object
+    /// socket(2) wrapper object
     var socket: PoCSocket?
 
-    ///ivar for the thing that manages the CHTTP Parser
+    /// ivar for the thing that manages the CHTTP Parser
     var parser: StreamingParser?
 
-    ///Save the socket file descriptor so we can loook at it for debugging purposes
+    /// Save the socket file descriptor so we can loook at it for debugging purposes
     var socketFD: Int32
     var shouldShutdown: Bool = false
 
@@ -26,10 +26,10 @@ public class PoCSocketConnectionListener: ParserConnecting {
     let socketReaderQueue: DispatchQueue
     let socketWriterQueue: DispatchQueue
 
-    ///Event handler for reading from the socket
+    /// Event handler for reading from the socket
     private var readerSource: DispatchSourceRead?
 
-    ///Flag to track whether we're in the middle of a response or not (with lock)
+    /// Flag to track whether we're in the middle of a response or not (with lock)
     private let _responseCompletedLock = DispatchSemaphore(value: 1)
     private var _responseCompleted: Bool = false
     var responseCompleted: Bool {
@@ -49,7 +49,7 @@ public class PoCSocketConnectionListener: ParserConnecting {
         }
     }
 
-    ///Flag to track whether we've received a socket error or not (with lock)
+    /// Flag to track whether we've received a socket error or not (with lock)
     private let _errorOccurredLock = DispatchSemaphore(value: 1)
     private var _errorOccurred: Bool = false
     var errorOccurred: Bool {
@@ -69,8 +69,8 @@ public class PoCSocketConnectionListener: ParserConnecting {
         }
     }
 
-    ///Largest number of bytes we're willing to allocate for a Read
-    // it's an anti-heartbleed-type paranoia check
+    /// Largest number of bytes we're willing to allocate for a Read
+    /// it's an anti-heartbleed-type paranoia check
     private var maxReadLength: Int = 1048576
 
     /// initializer
@@ -92,10 +92,7 @@ public class PoCSocketConnectionListener: ParserConnecting {
 
     /// Check if socket is still open. Used to decide whether it should be closed/pruned after timeout
     public var isOpen: Bool {
-        guard let socket = self.socket else {
-            return false
-        }
-        return socket.isOpen()
+        return self.socket?.isOpen() ?? false
     }
 
     /// Close the socket and free up memory unless we're in the middle of a request
@@ -109,7 +106,7 @@ public class PoCSocketConnectionListener: ParserConnecting {
             self.socket?.shutdownAndClose()
         }
 
-        //In a perfect world, we wouldn't have to clean this all up explicitly,
+        // In a perfect world, we wouldn't have to clean this all up explicitly,
         // but KDE/heaptrack informs us we're in far from a perfect world
 
         if !(self.readerSource?.isCancelled ?? true) {
@@ -152,7 +149,7 @@ public class PoCSocketConnectionListener: ParserConnecting {
     /// Check if the socket is idle, and if so, call close()
     func closeIfIdleSocket() {
         if !self.responseCompleted {
-            //We're in the middle of a connection - we're not idle
+            // We're in the middle of a connection - we're not idle
             return
         }
         let now = Date().timeIntervalSinceReferenceDate
@@ -198,9 +195,9 @@ public class PoCSocketConnectionListener: ParserConnecting {
     /// Starts reading from the socket and feeding that data to the parser
     public func process() {
         let tempReaderSource: DispatchSourceRead
-        //Make sure we have a socket here.  Don't use guard so that
-        //  we don't encourage strongSocket to be used in the
-        //  event handler, which could cause a leak
+        // Make sure we have a socket here.  Don't use guard so that
+        // we don't encourage strongSocket to be used in the
+        // event handler, which could cause a leak
         if let strongSocket = socket {
             do {
                 try strongSocket.setBlocking(mode: true)
@@ -238,7 +235,7 @@ public class PoCSocketConnectionListener: ParserConnecting {
                     if (maxLength > strongSelf.maxReadLength) || (maxLength <= 0) {
                             maxLength = strongSelf.maxReadLength
                     }
-                    var readBuffer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: maxLength)
+                    var readBuffer = UnsafeMutablePointer<Int8>.allocate(capacity: maxLength)
                     length = try strongSelf.socket?.socketRead(into: &readBuffer, maxLength: maxLength) ?? -1
                     if length > 0 {
                         self?.responseCompleted = false
