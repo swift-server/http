@@ -10,6 +10,25 @@ import Foundation
 import Dispatch
 import HTTP
 
+#if true
+  // FIXME: `HTTPResponseWriter` is not a protocol anymore, hence we can't
+  //        mock it.
+  class TestResponseResolver {
+    // Just to please the compiler. Doesn't actually work.
+    
+    var response: (status: HTTPResponseStatus, headers: HTTPHeaders)?
+    var responseBody: HTTPResponseBody?
+    
+    init(request: HTTPRequest, requestBody: Data) {
+    }
+    
+    func resolveHandler(_ handler: HTTPRequestHandler) {
+    }
+    
+  }
+  
+#else
+
 /// Acts as a fake/mock `HTTPServer` so we can write XCTests without having to worry about Sockets and such
 class TestResponseResolver: HTTPResponseWriter {
     let request: HTTPRequest
@@ -95,3 +114,5 @@ class TestResponseResolver: HTTPResponseWriter {
         fatalError("abort called, not sure what to do with it")
     }
 }
+#endif
+
