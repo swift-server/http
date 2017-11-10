@@ -381,14 +381,9 @@ public class StreamingParser: HTTPResponseWriter {
 
         // FIXME headers are US-ASCII, anything else should be encoded using [RFC5987] some lines above
         // TODO use requested encoding if specified
-        if let data = header.data(using: .utf8) {
-            self.parserConnector?.queueSocketWrite(data, completion: completion)
-            if !isContinue {
-                headersWritten = true
-            }
-        } else {
-            //TODO handle encoding error
-        }
+        let data = Data(status.utf8)
+        self.parserConnector?.queueSocketWrite(data, completion: completion)
+
     }
 
     func adjustHeaders(status: HTTPResponseStatus, headers: inout HTTPHeaders) {
@@ -438,18 +433,13 @@ public class StreamingParser: HTTPResponseWriter {
 
         let dataToWrite: Data
         if isChunked {
-            dataToWrite = data.withUnsafeBytes {
-                let chunkStart = (String($0.count, radix: 16) + "\r\n").data(using: .utf8)!
-                var dataToWrite = chunkStart
-                dataToWrite.append(UnsafeBufferPointer(start: $0.baseAddress?.assumingMemoryBound(to: UInt8.self), count: $0.count))
-                let chunkEnd = "\r\n".data(using: .utf8)!
-                dataToWrite.append(chunkEnd)
-                return dataToWrite
-            }
-        } else if let data = data as? Data {
-            dataToWrite = data
+            let chunkStart = Data((String(data.count, radix: 16) + "\r\n").utf8)
+            dataToWrite = Data(chunkStart)
+            dataToWrite.append(data)
+            let chunkEnd = Data("\r\n".utf8)
+            dataToWrite.append(chunkEnd)
         } else {
-            dataToWrite = data.withUnsafeBytes { Data($0) }
+            dataToWrite = Data(data)
         }
 
         self.parserConnector?.queueSocketWrite(dataToWrite, completion: completion)
@@ -457,7 +447,7 @@ public class StreamingParser: HTTPResponseWriter {
 
     public func done(completion: @escaping (Result) -> Void) {
         if isChunked {
-            let chunkTerminate = "0\r\n\r\n".data(using: .utf8)!
+            let chunkTerminate = Data("0\r\n\r\n".utf8)
             self.parserConnector?.queueSocketWrite(chunkTerminate, completion: completion)
         }
 
