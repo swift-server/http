@@ -8,6 +8,7 @@
 
 import Foundation
 import Dispatch
+import ServerSecurity
 
 ///:nodoc:
 public class PoCSocketConnectionListener: ParserConnecting {
@@ -233,13 +234,22 @@ public class PoCSocketConnectionListener: ParserConnecting {
                 if strongSelf.socket?.socketfd ?? -1 > 0 {
                     var maxLength: Int = Int(strongSelf.readerSource?.data ?? 0)
                     if (maxLength > strongSelf.maxReadLength) || (maxLength <= 0) {
-                            maxLength = strongSelf.maxReadLength
+                        maxLength = strongSelf.maxReadLength
                     }
+                    
+                    // make sure we read all data buffered by TLS layer
+                    if let socket = strongSelf.socket {
+                        if (socket.TLSdelegate != nil && (maxLength < TLSConstants.maxTLSRecordLength)) {
+                            maxLength = TLSConstants.maxTLSRecordLength
+                        }
+                    }
+
                     var readBuffer = UnsafeMutablePointer<Int8>.allocate(capacity: maxLength)
                     length = try strongSelf.socket?.socketRead(into: &readBuffer, maxLength: maxLength) ?? -1
                     defer {
                         readBuffer.deallocate(capacity: maxLength)
                     }
+                    
                     if length > 0 {
                         self?.responseCompleted = false
 
