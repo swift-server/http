@@ -231,8 +231,11 @@ public class HTTPServer {
     // TODO:  We should constraint T to a protocol adopted by sockaddr_in/in6/un
     //        like in Noze.io.
     // FIXME: This doesn't work right for AF_LOCAL/sockaddr_un
+    #if os(Linux)
+      let SOCK_STREAM = Glibc.SOCK_STREAM.rawValue
+    #endif
     
-    let fd    = socket(AF_INET, SOCK_STREAM, 0)
+    let fd    = socket(AF_INET, Int32(SOCK_STREAM), 0)
     var error = errno
     if fd == -1 { throw Error.socketError(.setupFailed(error)) }
     
@@ -307,7 +310,7 @@ fileprivate extension sockaddr_in {
   
   var port : Int {
     #if os(Linux)
-      return Int(ntohs(addr_in.sin_port))
+      return Int(ntohs(sin_port))
     #else
       return Int(Int(OSHostByteOrder()) == OSLittleEndian
              ? sin_port.bigEndian : sin_port)

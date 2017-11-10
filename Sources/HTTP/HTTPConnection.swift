@@ -89,7 +89,7 @@ internal class HTTPConnection : CustomStringConvertible {
   private func closeReadSide() {
     guard isReadSideOpen else { return }
     isReadSideOpen = false
-    shutdown(channel.fileDescriptor, SHUT_RD)
+    shutdown(channel.fileDescriptor, Int32(SHUT_RD))
   }
   
   private var isSuspended = true // started in suspended state

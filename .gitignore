@@ -74,3 +74,5 @@ fastlane/test_output
 /.idea
 /Package.pins
 docs
+.build-linux
+
