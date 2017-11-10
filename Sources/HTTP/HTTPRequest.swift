@@ -19,6 +19,14 @@ public struct HTTPRequest {
     public var httpVersion: HTTPVersion
     /// HTTP request headers
     public var headers: HTTPHeaders
+
+    /// Create a new HTTP request
+    public init(method: HTTPMethod, target: String, httpVersion: HTTPVersion, headers: HTTPHeaders) {
+        self.method = method
+        self.target = target
+        self.httpVersion = httpVersion
+        self.headers = headers
+    }
 }
 
 /// Method that takes a chunk of request body and is expected to write to the `HTTPResponseWriter`
