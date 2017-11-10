@@ -129,13 +129,7 @@ public class HTTPServer {
   }
   
   
-  #if false
-    public var connectionCount: Int
-    // (do we really need this? requires another sync)
-    // - yeah, we need the connections for stop
-    // - `getConnectionCount { count in }` would be better, but we could also do
-    //   an AtomicIncr/Decr I guess
-  #endif
+  private(set) public var connectionCount : Int32 = 0
   
   
   private func handleListenEvent(on fd        : Int32,
@@ -205,6 +199,12 @@ public class HTTPServer {
     let connection = HTTPConnection(fd: fd, queue: connectionQueue,
                                     requestHandler: handler, server: self)
     connections.append(connection)
+    #if os(Linux)
+      // TODO
+    #else
+      OSAtomicIncrement32(&connectionCount)
+    #endif
+
     
     connection.resume() // start reading from socket
   }
@@ -215,6 +215,12 @@ public class HTTPServer {
         assert(false, "did not find finished connection: \(connection)")
         return
       }
+      
+      #if os(Linux)
+        // TODO
+      #else
+        OSAtomicDecrement32(&self.connectionCount)
+      #endif
       
       // break retain cycle
       self.connections.remove(at: idx)
