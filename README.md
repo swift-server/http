@@ -12,7 +12,7 @@ The following code implements a very simple "Hello World!" server:
 import Foundation
 import HTTP
 
-func hello(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing { 
+func hello(request: HTTPRequest, response: HTTPResponseWriter, queue: DispatchQueue ) -> HTTPBodyProcessing { 
     response.writeHeader(status: .ok) 
     response.writeBody("Hello, World!") 
     response.done() 
@@ -36,7 +36,7 @@ The following code implements a very simple Echo server that responds with the c
 import Foundation
 import HTTP
 
-func echo(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {
+func echo(request: HTTPRequest, response: HTTPResponseWriter, queue: DispatchQueue ) -> HTTPBodyProcessing {
     response.writeHeader(status: .ok)
     return .processBody { (chunk, stop) in
         switch chunk {
