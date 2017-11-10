@@ -87,7 +87,7 @@ extension HTTPMethod {
     public static let unlink = HTTPMethod("UNLINK")
 }
 
-extension HTTPMethod : Hashable {
+extension HTTPMethod: Hashable {
     public var hashValue: Int {
         return method.hashValue
     }
@@ -103,7 +103,7 @@ extension HTTPMethod : Hashable {
     }
 }
 
-extension HTTPMethod : ExpressibleByStringLiteral {
+extension HTTPMethod: ExpressibleByStringLiteral {
     /// :nodoc:
     public init(stringLiteral: String) {
         self.init(stringLiteral)
@@ -120,7 +120,7 @@ extension HTTPMethod : ExpressibleByStringLiteral {
     }
 }
 
-extension HTTPMethod : CustomStringConvertible {
+extension HTTPMethod: CustomStringConvertible {
     /// :nodoc:
     public var description: String {
         return method
