@@ -101,9 +101,6 @@ public class HTTPServer {
       close(fd)
       throw Error.socketError(.listenFailed(error))
     }
-    
-    // TBD:
-    print("Listening on:", boundAddress ?? "-")
   }
   
   public func stop() {
