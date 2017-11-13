@@ -366,10 +366,10 @@ public class StreamingParser: HTTPResponseWriter {
 
         var header = "HTTP/1.1 \(status.code) \(status.reasonPhrase)\r\n"
 
-        let isContinue = status == .continue
+        let isInformational = status.class == .informational
 
         var headers = headers
-        if !isContinue {
+        if !isInformational {
             adjustHeaders(status: status, headers: &headers)
         }
 
@@ -383,7 +383,7 @@ public class StreamingParser: HTTPResponseWriter {
         // TODO use requested encoding if specified
         if let data = header.data(using: .utf8) {
             self.parserConnector?.queueSocketWrite(data, completion: completion)
-            if !isContinue {
+            if !isInformational {
                 headersWritten = true
             }
         } else {
