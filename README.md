@@ -64,6 +64,9 @@ Once any data chunk has been processed, `finishedProcessing()` should be called 
 
 When the response is complete, `response.done()` should be called.
 
+## Working on HTTP
+This project uses the [Swift Package Manager](https://swift.org/package-manager/).  To work on this project within Xcode you can run the Swift Package Manager command `swift package generate-xcodeproj` to generate an `.xcodeproj` to work on within Xcode.
+
 ## API Documentation
 Full Jazzy documentation of the API is available here:  
 <https://swift-server.github.io/http/>
