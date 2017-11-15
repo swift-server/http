@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Dispatch
 import HTTP
 
 /// Simple `HTTPRequestHandler` that prints "Hello, World" as per K&R

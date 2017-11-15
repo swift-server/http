@@ -12,6 +12,7 @@
  */
 
 import Foundation
+import Dispatch
 import HTTP
 
 /// Simple block-based wrapper to create a `HTTPRequestHandler`. Normally used during XCTests

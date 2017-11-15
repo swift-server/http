@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Dispatch
 import HTTP
 
 /// `HelloWorldRequestHandler` that sets the keep alive header for XCTest purposes

@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Dispatch
 import HTTP
 
 /// Simple `HTTPRequestHandler` that just echoes back whatever input it gets

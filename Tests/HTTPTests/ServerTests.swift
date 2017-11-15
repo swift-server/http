@@ -12,59 +12,14 @@ import Dispatch
 @testable import HTTP
 
 class ServerTests: XCTestCase {
-    func testResponseOK() {
-        let request = HTTPRequest(method: .get, target: "/echo", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
-        let resolver = TestResponseResolver(request: request, requestBody: Data())
-        resolver.resolveHandler(EchoHandler().handle)
-        XCTAssertNotNil(resolver.response)
-        XCTAssertNotNil(resolver.responseBody)
-        XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
-    }
-
-    func testEcho() {
-        let testString = "This is a test"
-        let request = HTTPRequest(method: .post, target: "/echo", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
-        let resolver = TestResponseResolver(request: request, requestBody: testString.data(using: .utf8)!)
-        resolver.resolveHandler(EchoHandler().handle)
-        XCTAssertNotNil(resolver.response)
-        XCTAssertNotNil(resolver.responseBody)
-        XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
-        XCTAssertEqual(testString, resolver.responseBody?.withUnsafeBytes { String(bytes: $0, encoding: .utf8) } ?? "Nil")
-    }
-
-    func testHello() {
-        let request = HTTPRequest(method: .get, target: "/helloworld", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
-        let resolver = TestResponseResolver(request: request, requestBody: Data())
-        resolver.resolveHandler(HelloWorldHandler().handle)
-        XCTAssertNotNil(resolver.response)
-        XCTAssertNotNil(resolver.responseBody)
-        XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
-        XCTAssertEqual("Hello, World!", resolver.responseBody?.withUnsafeBytes { String(bytes: $0, encoding: .utf8) } ?? "Nil")
-    }
-
-    func testSimpleHello() {
-        let request = HTTPRequest(method: .get, target: "/helloworld", httpVersion: HTTPVersion(major: 1, minor: 1), headers: ["X-foo": "bar"])
-        let resolver = TestResponseResolver(request: request, requestBody: Data())
-        let simpleHelloWebApp = SimpleResponseCreator { (_, body) -> SimpleResponseCreator.Response in
-            return SimpleResponseCreator.Response(
-                status: .ok,
-                headers: ["X-foo": "bar"],
-                body: "Hello, World!".data(using: .utf8)!
-            )
-        }
-        resolver.resolveHandler(simpleHelloWebApp.handle)
-        XCTAssertNotNil(resolver.response)
-        XCTAssertNotNil(resolver.responseBody)
-        XCTAssertEqual(HTTPResponseStatus.ok.code, resolver.response?.status.code ?? 0)
-        XCTAssertEqual("Hello, World!", resolver.responseBody?.withUnsafeBytes { String(bytes: $0, encoding: .utf8) } ?? "Nil")
-    }
-
+    
     func testOkEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
 
         let server = HTTPServer()
         do {
             try server.start(port: 0, handler: OkHandler().handle)
+            XCTAssertNotEqual(0, server.port)
             let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/")!
             print("Test \(#function) on port \(server.port)")
@@ -368,12 +323,11 @@ class ServerTests: XCTestCase {
         }
     }
 
-  #if false // we have no PoCSocketSimpleServer
     func testRequestLargeEchoEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
 
         //Use a small chunk size to make sure that we're testing multiple HTTPBodyHandler calls
-        let chunkSize = 1024
+        //FIXME: Make this settable for testing //let chunkSize = 1024
 
         // Get a file we know exists
         let executableURL = URL(fileURLWithPath: CommandLine.arguments[0])
@@ -396,9 +350,9 @@ class ServerTests: XCTestCase {
 
         let testData = Data(testDataLong)
 
-        let server = PoCSocketSimpleServer()
+        let server = HTTPServer()
         do {
-            try server.start(port: 0, maxReadLength: chunkSize, handler: EchoHandler().handle)
+            try server.start(port: 0, handler: EchoHandler().handle)
             let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
@@ -425,10 +379,9 @@ class ServerTests: XCTestCase {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
     }
-  #endif
   
-  #if false // we have no PoCSocketSimpleServer
-    func testRequestLargePostHelloWorld() {
+    #if false //FIXME: Abort & Stop handling
+    func NOtestRequestLargePostHelloWorld() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
         
         //Use a small chunk size to make sure that we stop after one HTTPBodyHandler call
@@ -450,10 +403,10 @@ class ServerTests: XCTestCase {
         
         let executableLength = testExecutableData.count
                 
-        let server = PoCSocketSimpleServer()
+        let server = HTTPServer()
         do {
             let testHandler = AbortAndSendHelloHandler()
-            try server.start(port: 0, maxReadLength: chunkSize, handler: testHandler.handle)
+            try server.start(port: 0, handler: testHandler.handle)
             let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/echo")!
             print("Test \(#function) on port \(server.port)")
@@ -482,15 +435,16 @@ class ServerTests: XCTestCase {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
     }
+    #endif
 
-
-    func testExplicitCloseConnections() {
+    #if false //No timeout right now, so can't run this test
+    func NOtestExplicitCloseConnections() {
         let expectation = self.expectation(description: "0 Open Connection")
-        let server = PoCSocketSimpleServer()
+        let server = HTTPServer()
         let keepAliveTimeout = 0.1
 
         do {
-            try server.start(port: 0, keepAliveTimeout: keepAliveTimeout, handler: OkHandler().handle)
+            try server.start(port: 0, handler: OkHandler().handle)
             
             let session = URLSession(configuration: .default)
             let url1 = URL(string: "http://localhost:\(server.port)")!
@@ -527,17 +481,13 @@ class ServerTests: XCTestCase {
   #endif
 
     static var allTests = [
-        ("testEcho", testEcho),
-        ("testHello", testHello),
-        ("testSimpleHello", testSimpleHello),
-        ("testResponseOK", testResponseOK),
         ("testOkEndToEnd", testOkEndToEnd),
         ("testHelloEndToEnd", testHelloEndToEnd),
         ("testSimpleHelloEndToEnd", testSimpleHelloEndToEnd),
         ("testRequestEchoEndToEnd", testRequestEchoEndToEnd),
         ("testRequestKeepAliveEchoEndToEnd", testRequestKeepAliveEchoEndToEnd),
-/*
         ("testRequestLargeEchoEndToEnd", testRequestLargeEchoEndToEnd),
+/* These tests aren't working, yet
         ("testExplicitCloseConnections", testExplicitCloseConnections),
         ("testRequestLargePostHelloWorld", testRequestLargePostHelloWorld),
        */

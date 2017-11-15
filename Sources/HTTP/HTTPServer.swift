@@ -122,7 +122,7 @@ public class HTTPServer {
   
   public var port : Int {
     guard let boundAddress = boundAddress else { return -1 }
-    return Int(boundAddress.sin_port.littleEndian)
+    return Int(boundAddress.port)
   }
   
   
