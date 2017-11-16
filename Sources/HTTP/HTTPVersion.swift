@@ -20,6 +20,17 @@ public struct HTTPVersion {
     }
 }
 
+extension HTTPVersion {
+    /// HTTP version 1.0
+    public static let v1_0 = HTTPVersion(major: 1, minor: 0)
+    
+    /// HTTP version 1.1
+    public static let v1_1 = HTTPVersion(major: 1, minor: 1)
+    
+    /// HTTP version 2.0
+    public static let v2_0 = HTTPVersion(major: 2, minor: 0)
+}
+
 extension HTTPVersion: Hashable {
     /// :nodoc:
     public var hashValue: Int {
