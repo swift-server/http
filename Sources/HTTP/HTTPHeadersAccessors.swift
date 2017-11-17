@@ -117,6 +117,50 @@ extension HTTPHeaders {
         static public let threegp = ContentType(rawValue: "video/3gpp")
     }
     
+    public enum ContentDisposition: CustomStringConvertible, Equatable {
+        case inline
+        case attachment(filename: String?)
+        case formData(name: String?, filename: String?)
+        
+        public init?( _ rawValue: String) {
+            guard let type = rawValue.components(separatedBy: ";").first?.lowercased() else {
+                return nil
+            }
+            let params = HTTPHeaders.parseParams(rawValue)
+            let name = params["name"]?.trimmingCharacters(in: .whitespaces).trimmingCharacters(in: .quoted)
+            let filename = params["filename"] ?? params["filename*"]
+            
+            switch type {
+            case "inline", "":
+                self = .inline
+            case "attachment":
+                self = .attachment(filename: filename)
+            case "form-data":
+                self = .formData(name: name, filename: filename)
+            default:
+                return nil
+            }
+        }
+        
+        public var description: String {
+            switch self {
+            case .inline:
+                return "inline"
+            case .attachment(filename: let filename):
+                let filenameParam = filename.flatMap({ "; filename=\"\($0)\"" }) ?? ""
+                return "attachment\(filenameParam)"
+            case .formData(name: let name, filename: let filename):
+                let nameParam = name.flatMap({ "; name=\"\($0)\"" }) ?? ""
+                let filenameParam = filename.flatMap({ "; filename=\"\($0)\"" }) ?? ""
+                return "attachment\(nameParam)\(filenameParam)"
+            }
+        }
+        
+        public static func ==(lhs: HTTPHeaders.ContentDisposition, rhs: HTTPHeaders.ContentDisposition) -> Bool {
+            return lhs.description == rhs.description
+        }
+}
+    
     public enum CacheControl: CustomStringConvertible, Equatable {
         // Both Request and Response
         
@@ -177,7 +221,7 @@ extension HTTPHeaders {
         public init?(_ rawValue: String) {
             let keyVal = rawValue.components(separatedBy: "=").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             guard let key = keyVal.first?.lowercased() else { return nil }
-            let val = keyVal.dropFirst().joined(separator: "=")
+            let val = keyVal.dropFirst().joined(separator: "=").trimmingCharacters(in: .whitespaces).trimmingCharacters(in: .quoted)
             switch key {
             case "no-cache" where val.isEmpty:
                 self = .noCache
@@ -198,9 +242,9 @@ extension HTTPHeaders {
             case "private" where val.isEmpty:
                 self = .`private`
             case "private":
-                self = .privateWithField(field: val.trimmingCharacters(in: CharacterSet(charactersIn: "\"")))
+                self = .privateWithField(field: val)
             case "no-cache":
-                self = .noCacheWithField(field: val.trimmingCharacters(in: CharacterSet(charactersIn: "\"")))
+                self = .noCacheWithField(field: val)
             case "must-revalidate":
                 self = .mustRevalidate
             case "proxy-revalidate":
@@ -249,7 +293,7 @@ extension HTTPHeaders {
         public init(_ rawValue: String) {
             // Check begins with W/" in case-insensitive manner to indicate is weak or not
             if rawValue.range(of: "W/\"", options: [.anchored, .caseInsensitive]) != nil {
-                let linted = rawValue.replacingOccurrences(of: "W/\"", with: "", options: [.anchored, .caseInsensitive]).trimmingCharacters(in: CharacterSet(charactersIn: " \""))
+                let linted = rawValue.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: "W/\"", with: "", options: [.anchored, .caseInsensitive]).trimmingCharacters(in: .quotedWhitespace)
                 self = .weak(linted)
             }
             // Check value is wildcard
@@ -257,17 +301,17 @@ extension HTTPHeaders {
                 self = .wildcard
             }
             // Value is strong
-            let linted = rawValue.trimmingCharacters(in: CharacterSet(charactersIn: " \""))
+            let linted = rawValue.trimmingCharacters(in: .whitespaces).trimmingCharacters(in: .quotedWhitespace)
             self = .strong(linted)
         }
         
         public var description: String {
             switch self {
             case .strong(let etag):
-                let lintedEtag = etag.trimmingCharacters(in: CharacterSet(charactersIn: " \""))
+                let lintedEtag = etag.trimmingCharacters(in: .quotedWhitespace)
                 return "\"\(lintedEtag)\""
             case .weak(let etag):
-                let lintedEtag = etag.replacingOccurrences(of: "W/\"", with: "", options: [.anchored, .caseInsensitive]).trimmingCharacters(in: CharacterSet(charactersIn: " \""))
+                let lintedEtag = etag.replacingOccurrences(of: "W/\"", with: "", options: [.anchored, .caseInsensitive]).trimmingCharacters(in: .quotedWhitespace)
                 return "W/\"\(lintedEtag)\""
             case .wildcard:
                 return "*"
@@ -313,7 +357,7 @@ extension HTTPHeaders {
         case noCache = "no-cache"
     }
     
-    fileprivate func parseParams(_ value: String) -> [String: String] {
+    fileprivate static func parseParams(_ value: String) -> [String: String] {
         let rawParams: [String] = value.components(separatedBy: ";").dropFirst().flatMap { param in
             let result = param.trimmingCharacters(in: .whitespacesAndNewlines)
             return !result.isEmpty ? result : nil
@@ -335,8 +379,8 @@ extension HTTPHeaders {
     public var accept: [ContentType] {
         get {
             let values: [String]? = self.storage[.accept]?.sorted {
-                let q0 = parseParams($0)["q"].flatMap(Double.init) ?? 1
-                let q1 = parseParams($1)["q"].flatMap(Double.init) ?? 1
+                let q0 = HTTPHeaders.parseParams($0)["q"].flatMap(Double.init) ?? 1
+                let q1 = HTTPHeaders.parseParams($1)["q"].flatMap(Double.init) ?? 1
                 return q0 > q1
             }
             let results = (values ?? []).map { ContentType(rawValue: $0) }
@@ -395,8 +439,8 @@ extension HTTPHeaders {
     public var acceptEncoding: [Encoding] {
         get {
             let values: [String]? = self.storage[.acceptEncoding]?.sorted {
-                let q0 = parseParams($0)["q"].flatMap(Double.init) ?? 1
-                let q1 = parseParams($1)["q"].flatMap(Double.init) ?? 1
+                let q0 = HTTPHeaders.parseParams($0)["q"].flatMap(Double.init) ?? 1
+                let q1 = HTTPHeaders.parseParams($1)["q"].flatMap(Double.init) ?? 1
                 return q0 > q1
             }
             let results = (values ?? []).flatMap { Encoding(rawValue: $0) }
@@ -554,6 +598,15 @@ extension HTTPHeaders {
         }
     }
     
+    public var contentDisposition: HTTPHeaders.ContentDisposition? {
+        get {
+            return self.storage[.contentDisposition]?.first.flatMap(ContentDisposition.init)
+        }
+        set {
+            self.storage[.contentDisposition] = newValue.flatMap { [$0.description] }
+        }
+    }
+    
     /// `Content-Encoding` header value
     public var contentEncoding: HTTPHeaders.Encoding? {
         get {
@@ -668,7 +721,7 @@ extension HTTPHeaders {
             return self.storage[.contentType]?.first.flatMap { $0.components(separatedBy: ";").first.flatMap(ContentType.init(rawValue:)) }
         }
         set {
-            if let charset = self.storage[.contentType]?.first.flatMap({ parseParams($0)["charset"] }) {
+            if let charset = self.storage[.contentType]?.first.flatMap({ HTTPHeaders.parseParams($0)["charset"] }) {
                 self.storage[.contentType] = newValue.flatMap { ["\($0.rawValue); charset=\(charset)"] }
             } else {
                 self.storage[.contentType] = newValue.flatMap { [$0.rawValue] }
@@ -715,7 +768,7 @@ extension HTTPHeaders {
     public var contentCharset: String.Encoding? {
         get {
             return self.storage[.contentType]?.first.flatMap {
-                if let charset = parseParams($0)["charset"] {
+                if let charset = HTTPHeaders.parseParams($0)["charset"] {
                     return charsetIANAToStringEncoding(charset)
                 } else {
                     return nil
@@ -855,4 +908,9 @@ fileprivate extension Date {
         fm.locale = locale ?? Date.defaultLocale
         return fm.string(from: self)
     }
+}
+
+fileprivate extension CharacterSet {
+    static let quoted = CharacterSet(charactersIn: "\"")
+    static let quotedWhitespace = CharacterSet(charactersIn: "\" ")
 }
