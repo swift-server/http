@@ -241,6 +241,48 @@ extension HTTPHeaders {
         }
     }
     
+    public enum EntryTag: CustomStringConvertible, Equatable, Hashable {
+        case strong(String)
+        case weak(String)
+        case wildcard
+        
+        public init(_ rawValue: String) {
+            // Check begins with W/" in case-insensitive manner to indicate is weak or not
+            if rawValue.range(of: "W/\"", options: [.anchored, .caseInsensitive]) != nil {
+                let linted = rawValue.replacingOccurrences(of: "W/\"", with: "", options: [.anchored, .caseInsensitive]).trimmingCharacters(in: CharacterSet(charactersIn: " \""))
+                self = .weak(linted)
+            }
+            // Check value is wildcard
+            if rawValue == "*" {
+                self = .wildcard
+            }
+            // Value is strong
+            let linted = rawValue.trimmingCharacters(in: CharacterSet(charactersIn: " \""))
+            self = .strong(linted)
+        }
+        
+        public var description: String {
+            switch self {
+            case .strong(let etag):
+                let lintedEtag = etag.trimmingCharacters(in: CharacterSet(charactersIn: " \""))
+                return "\"\(lintedEtag)\""
+            case .weak(let etag):
+                let lintedEtag = etag.replacingOccurrences(of: "W/\"", with: "", options: [.anchored, .caseInsensitive]).trimmingCharacters(in: CharacterSet(charactersIn: " \""))
+                return "W/\"\(lintedEtag)\""
+            case .wildcard:
+                return "*"
+            }
+        }
+        
+        public var hashValue: Int {
+            return self.description.hashValue
+        }
+        
+        public static func ==(lhs: HTTPHeaders.EntryTag, rhs: HTTPHeaders.EntryTag) -> Bool {
+            return lhs.description == rhs.description
+        }
+    }
+    
     /// Encoding of body
     public enum Encoding: String {
         /// Accepting all encodings available
@@ -387,15 +429,13 @@ extension HTTPHeaders {
     // TODO: Implement var cookie: [HTTPCookie]
     
     /// `If-Match` header etag value
-    public var ifMatch: String? {
+    public var ifMatch: [EntryTag] {
         get {
-            return self.storage[.ifMatch]?.first
+            return (self.storage[.ifMatch] ?? []).map(EntryTag.init)
         }
         set {
-            if let newValue = newValue {
-                // eTag value must be a quoted string, we check only suffix to be compatible with weak eTags
-                let finalValue = newValue.hasSuffix("\"") ? newValue : "\"\(newValue)\""
-                self.storage[.ifMatch] = [finalValue]
+            if !newValue.isEmpty {
+                self.storage[.ifMatch] = newValue.map { $0.description }
             } else {
                 self.storage[.ifMatch] = nil
             }
@@ -403,15 +443,13 @@ extension HTTPHeaders {
     }
     
     /// `If-None-Match` header etag value
-    public var ifNoneMatch: String? {
+    public var ifNoneMatch: [EntryTag] {
         get {
-            return self.storage[.ifNoneMatch]?.first
+            return (self.storage[.ifNoneMatch] ?? []).map(EntryTag.init)
         }
         set {
-            if let newValue = newValue {
-                // eTag value must be a quoted string, we check only suffix to be compatible with weak eTags
-                let finalValue = newValue.hasSuffix("\"") ? newValue : "\"\(newValue)\""
-                self.storage[.ifNoneMatch] = [finalValue]
+            if !newValue.isEmpty {
+                self.storage[.ifNoneMatch] = newValue.map { $0.description }
             } else {
                 self.storage[.ifNoneMatch] = nil
             }
@@ -419,18 +457,12 @@ extension HTTPHeaders {
     }
     
     /// `If-Range` header etag value
-    public var ifRange: String? {
+    public var ifRange: EntryTag? {
         get {
-            return self.storage[.ifRange]?.first
+            return self.storage[.ifRange]?.first.flatMap(EntryTag.init)
         }
         set {
-            if let newValue = newValue {
-                // eTag value must be a quoted string, we check only suffix to be compatible with weak eTags
-                let finalValue = newValue.hasSuffix("\"") ? newValue : "\"\(newValue)\""
-                self.storage[.ifRange] = [finalValue]
-            } else {
-                self.storage[.ifRange] = nil
-            }
+            self.storage[.ifRange] = newValue.flatMap { [$0.description] }
         }
     }
     
@@ -685,18 +717,12 @@ extension HTTPHeaders {
     }
     
     /// `ETag` header value
-    public var eTag: String? {
+    public var eTag: EntryTag? {
         get {
-            return self.storage[.eTag]?.first
+            return self.storage[.eTag]?.first.flatMap(EntryTag.init)
         }
         set {
-            if let newValue = newValue {
-                // eTag value must be a quoted string, we check only suffix to be compatible with weak eTags
-                let finalValue = newValue.hasSuffix("\"") ? newValue : "\"\(newValue)\""
-                self.storage[.eTag] = [finalValue]
-            } else {
-                self.storage[.eTag] = nil
-            }
+            self.storage[.eTag] = newValue.flatMap { [$0.description] }
         }
     }
     
