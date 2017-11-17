@@ -644,13 +644,15 @@ extension HTTPHeaders {
     
     // Set `Content-Range` header
     public mutating func set(contentRange: Range<Int64>) {
-        #if swift(>=4.0)
-        let rangeStr = createRange(from: contentRange.lowerBound, to: contentRange.upperBound - 1)
-        #else
         let rangeStr = contentRange.upperBound == Int64.max ?
             createRange(from: contentRange.lowerBound) :
             createRange(from: contentRange.lowerBound, to: contentRange.upperBound - 1)
-        #endif
+        self.storage[.contentRange] = rangeStr.flatMap { [$0] }
+    }
+    public mutating func set(contentRange: ClosedRange<Int64>) {
+        let rangeStr = contentRange.upperBound == Int64.max ?
+            createRange(from: contentRange.lowerBound) :
+            createRange(from: contentRange.lowerBound, to: contentRange.upperBound)
         self.storage[.contentRange] = rangeStr.flatMap { [$0] }
     }
     
@@ -794,10 +796,13 @@ fileprivate extension Date {
         fileprivate static let allValues: [RFCStandards] = [.rfc1123, .rfc850, .iso8601, .asctime]
     }
     
+    private static let defaultLocale = Locale(identifier: "en_US_POSIX")
+    private static let defaultTImezone = TimeZone(identifier: "UTC")
+    
     /// Checks date string against various RFC standards and returns `Date`.
     init?(rfcString: String) {
         let dateFor: DateFormatter = DateFormatter()
-        dateFor.locale = Locale(identifier: "en_US")
+        dateFor.locale = Date.defaultLocale
         
         for standard in RFCStandards.allValues {
             dateFor.dateFormat = standard.rawValue
@@ -814,8 +819,8 @@ fileprivate extension Date {
     func format(with standard: RFCStandards, locale: Locale? = nil, timeZone: TimeZone? = nil) -> String {
         let fm = DateFormatter()
         fm.dateFormat = standard.rawValue
-        fm.timeZone = timeZone ?? TimeZone(identifier: "UTC")
-        fm.locale = locale ?? Locale(identifier: "en_US_POSIX")
+        fm.timeZone = timeZone ?? Date.defaultTImezone
+        fm.locale = locale ?? Date.defaultLocale
         return fm.string(from: self)
     }
 }
