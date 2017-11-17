@@ -731,36 +731,40 @@ extension HTTPHeaders {
     
     #if os(macOS) || os(iOS) || os(tvOS)
     #else
-    static private let ianatable: [String.Encoding: String] = [.ascii: "us-ascii", .nextstep: "x-nextstep",
-                                            .japaneseEUC: "euc-jp", .utf8: "utf-8", .isoLatin1: "iso-8859-1",
-                                            .symbol: "x-mac-symbol", .shiftJIS: "cp932", .isoLatin2: "iso-8859-2",
-                                            .windowsCP1251: "windows-1251", .windowsCP1252: "windows-1252",
-                                            .windowsCP1253: "windows-1253", .windowsCP1254: "windows-1254",
-                                            .windowsCP1250: "windows-1250", .iso2022JP: "iso-2022-jp", .macOSRoman: "macintosh",
-                                            .utf16: "utf-16", .utf16BigEndian: "utf-16be", .utf16LittleEndian: "utf-16le",
-                                            .utf32: "utf-32", .utf32BigEndian: "utf-32be", .utf32LittleEndian: "utf-32le"]
+    static private let ianatable: [String.Encoding: String] = [
+            .ascii: "us-ascii", .isoLatin1: "iso-8859-1", .isoLatin2: "iso-8859-2", .utf8: "utf-8",
+            .utf16: "utf-16", .utf16BigEndian: "utf-16be", .utf16LittleEndian: "utf-16le",
+            .utf32: "utf-32", .utf32BigEndian: "utf-32be", .utf32LittleEndian: "utf-32le",
+            .japaneseEUC: "euc-jp",.shiftJIS: "cp932", .iso2022JP: "iso-2022-jp",
+            .windowsCP1251: "windows-1251", .windowsCP1252: "windows-1252", .windowsCP1253: "windows-1253",
+            .windowsCP1254: "windows-1254", .windowsCP1250: "windows-1250",
+            .nextstep: "x-nextstep", .macOSRoman: "macintosh", .symbol: "x-mac-symbol"]
     #endif
     
     private func charsetIANAToStringEncoding(_ charset: String) -> String.Encoding {
         #if os(macOS) || os(iOS) || os(tvOS)
         let cfEncoding = CFStringConvertIANACharSetNameToEncoding(charset as CFString)
-        return String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(cfEncoding))
+        if cfEncoding != kCFStringEncodingInvalidId {
+            return String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(cfEncoding))
+        } else {
+            return .isoLatin1
+        }
         #else
         // CFStringConvertIANACharSetNameToEncoding is not exposed in SwiftFoundation!
-        // We use this as workaround until SwiftFoundation got fixed
-            let charset = charset.lowercased()
-            return HTTPHeaders.ianatable.filter({ return $0.value == charset }).first?.key ?? .utf8
+        // We use this as workaround until SwiftFoundation got fixed.
+        let charset = charset.lowercased()
+        return HTTPHeaders.ianatable.filter({ return $0.value == charset }).first?.key ?? .isoLatin1
         #endif
     }
     
     private func StringEncodingToIANA(_ encoding: String.Encoding) -> String {
-        
+        // Default charset for HTTP 1.1 is "iso-8859-1"
         #if os(macOS) || os(iOS) || os(tvOS)
-        return (CFStringConvertEncodingToIANACharSetName(CFStringConvertNSStringEncodingToEncoding(encoding.rawValue)) as String?) ?? "utf-8"
+        return (CFStringConvertEncodingToIANACharSetName(CFStringConvertNSStringEncodingToEncoding(encoding.rawValue)) as String?) ?? "iso-8859-1"
         #else
         // CFStringConvertEncodingToIANACharSetName is not exposed in SwiftFoundation!
-        // We use this as workaround until SwiftFoundation got fixed
-        return HTTPHeaders.ianatable[encoding] ?? "utf-8"
+        // We use this as workaround until SwiftFoundation got fixed.
+        return HTTPHeaders.ianatable[encoding] ?? "iso-8859-1"
         #endif
     }
     
