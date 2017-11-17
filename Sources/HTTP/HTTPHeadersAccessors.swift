@@ -373,13 +373,11 @@ extension HTTPHeaders {
         if self.storage[.acceptCharset] == nil {
             self.storage[.acceptCharset] = []
         }
-        let cfEncoding = CFStringConvertNSStringEncodingToEncoding(acceptCharset.rawValue)
-        if let charsetString = CFStringConvertEncodingToIANACharSetName(cfEncoding) as String? {
-            if let qualityDesc = quality.flatMap({ String(format: "%.1f", Double.minimum(0, Double.maximum($0, 1))) }) {
-                self.storage[.acceptCharset]!.append("\(charsetString); q=\(qualityDesc)")
-            } else {
-                self.storage[.acceptCharset]!.append(charsetString)
-            }
+        let charsetString = StringEncodingToIANA(acceptCharset)
+        if let qualityDesc = quality.flatMap({ String(format: "%.1f", Double.minimum(0, Double.maximum($0, 1))) }) {
+            self.storage[.acceptCharset]!.append("\(charsetString); q=\(qualityDesc)")
+        } else {
+            self.storage[.acceptCharset]!.append(charsetString)
         }
     }
     
