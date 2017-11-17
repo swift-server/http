@@ -678,13 +678,47 @@ extension HTTPHeaders {
         }
     }
     
+    #if os(macOS) || os(iOS) || os(tvOS)
+    #else
+    static private let ianatable: [String.Encoding: String] = [.ascii: "us-ascii", .nextstep: "x-nextstep",
+                                            .japaneseEUC: "euc-jp", .utf8: "utf-8", .isoLatin1: "iso-8859-1",
+                                            .symbol: "x-mac-symbol", .shiftJIS: "cp932", .isoLatin2: "iso-8859-2",
+                                            .windowsCP1251: "windows-1251", .windowsCP1252: "windows-1252",
+                                            .windowsCP1253: "windows-1253", .windowsCP1254: "windows-1254",
+                                            .windowsCP1250: "windows-1250", .iso2022JP: "iso-2022-jp", .macOSRoman: "macintosh",
+                                            .utf16: "utf-16", .utf16BigEndian: "utf-16be", .utf16LittleEndian: "utf-16le",
+                                            .utf32: "utf-32", .utf32BigEndian: "utf-32be", .utf32LittleEndian: "utf-32le"]
+    #endif
+    
+    private func charsetIANAToStringEncoding(_ charset: String) -> String.Encoding {
+        #if os(macOS) || os(iOS) || os(tvOS)
+        let cfEncoding = CFStringConvertIANACharSetNameToEncoding(charset as CFString)
+        return String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(cfEncoding))
+        #else
+        // CFStringConvertIANACharSetNameToEncoding is not exposed in SwiftFoundation!
+        // We use this as workaround until SwiftFoundation got fixed
+            let charset = charset.lowercased()
+            return HTTPHeaders.ianatable.filter({ return $0.value == charset }).first?.key ?? .utf8
+        #endif
+    }
+    
+    private func StringEncodingToIANA(_ encoding: String.Encoding) -> String {
+        
+        #if os(macOS) || os(iOS) || os(tvOS)
+        return (CFStringConvertEncodingToIANACharSetName(CFStringConvertNSStringEncodingToEncoding(encoding.rawValue)) as String?) ?? "utf-8"
+        #else
+        // CFStringConvertEncodingToIANACharSetName is not exposed in SwiftFoundation!
+        // We use this as workaround until SwiftFoundation got fixed
+        return HTTPHeaders.ianatable[encoding] ?? "utf-8"
+        #endif
+    }
+    
     /// Extracted `charset` parameter in `Content-Type` header
     public var contentCharset: String.Encoding? {
         get {
             return self.storage[.contentType]?.first.flatMap {
                 if let charset = parseParams($0)["charset"] {
-                    let cfEncoding = CFStringConvertIANACharSetNameToEncoding(charset as CFString)
-                    return String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(cfEncoding))
+                    return charsetIANAToStringEncoding(charset)
                 } else {
                     return nil
                 }
@@ -692,7 +726,7 @@ extension HTTPHeaders {
         }
         set {
             if let newValue = newValue {
-                let ianaEncoding = CFStringConvertEncodingToIANACharSetName(CFStringConvertNSStringEncodingToEncoding(newValue.rawValue)) as String
+                let ianaEncoding = StringEncodingToIANA(newValue)
                 if self.storage[.contentType] != nil {
                     self.storage[.contentType] = self.storage[.contentType]?.flatMap {
                         let type = $0.components(separatedBy: ";").first?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "*"
