@@ -333,14 +333,21 @@ extension HTTPHeaders {
         case all = "*"
         /// Send body as is
         case identity
-        /// Compress body data using zlib method
+        /// Compress body data using lzw method
         case compress
-        /// Compress body data using deflate method
+        /// Compress body data using zlib deflate method
         case deflate
         /// Compress body data using gzip method
         case gzip
         /// Compress body data using brotli method
-        case brotli
+        case brotli = "br"
+        
+        // These values are valid for Transfer Encoding
+        
+        /// Chunked body in `Transfer-Encoding` response header
+        case chunked
+        /// Can have trailers in `TE` request header
+        case trailers
     }
     
     /// Determines server accepts `Range` header or not
@@ -357,7 +364,7 @@ extension HTTPHeaders {
         case noCache = "no-cache"
     }
     
-    // Request Headers
+    // MARK: Request Headers
     
     /// Fetch `Accept` header values, sorted by `q` parameter
     public var accept: [ContentType] {
@@ -415,7 +422,7 @@ extension HTTPHeaders {
             return self.storage[.acceptDatetime]?.first.flatMap(Date.init(rfcString:))
         }
         set {
-            self.storage[.acceptDatetime] = newValue.flatMap { [$0.format(with: .rfc1123)] }
+            self.storage[.acceptDatetime] = newValue.flatMap { [$0.format(with: .http)] }
         }
     }
     
@@ -498,7 +505,7 @@ extension HTTPHeaders {
             return self.storage[.ifModifiedSince]?.first.flatMap(Date.init(rfcString:))
         }
         set {
-            self.storage[.ifModifiedSince] = newValue.flatMap { [$0.format(with: .rfc1123)] }
+            self.storage[.ifModifiedSince] = newValue.flatMap { [$0.format(with: .http)] }
         }
     }
     
@@ -508,7 +515,7 @@ extension HTTPHeaders {
             return self.storage[.ifUnmodifiedSince]?.first.flatMap(Date.init(rfcString:))
         }
         set {
-            self.storage[.ifUnmodifiedSince] = newValue.flatMap { [$0.format(with: .rfc1123)] }
+            self.storage[.ifUnmodifiedSince] = newValue.flatMap { [$0.format(with: .http)] }
         }
     }
     
@@ -534,7 +541,7 @@ extension HTTPHeaders {
     
     // TODO: Parse User-Agent for Browser and Operating system
     
-    // Response Headers
+    // MARK: Response Headers
     
     /// `Accept-Ranges` header value
     public var acceptRanges: RangeType? {
@@ -557,13 +564,13 @@ extension HTTPHeaders {
     }
     
     /// `Allow` header value
-    public var allow: [HTTPMethod]? {
+    public var allow: [HTTPMethod] {
         get {
-            return self.storage[.allow]?.map { HTTPMethod($0) }
+            return self.storage[.allow]?.flatMap({ HTTPMethod($0) }) ?? []
         }
         set {
-            if let value = newValue {
-                self.storage[.allow] = value.map { $0.method }
+            if !newValue.isEmpty {
+                self.storage[.allow] = newValue.map { $0.method }
             } else {
                 self.storage[.allow] = nil
             }
@@ -582,6 +589,7 @@ extension HTTPHeaders {
         }
     }
     
+    /// `Content-Disposition` header value
     public var contentDisposition: HTTPHeaders.ContentDisposition? {
         get {
             return self.storage[.contentDisposition]?.first.flatMap(ContentDisposition.init)
@@ -666,6 +674,7 @@ extension HTTPHeaders {
     }
     
     /// Returns `Content-Range` header value
+    /// - Note: upperbound will be Int64.max in case of open ended Range
     public var contentRange: Range<Int64>? {
         // TODO: return PartialRangeFrom when possible
         get {
@@ -748,7 +757,7 @@ extension HTTPHeaders {
             return self.storage[.date]?.first.flatMap(Date.init(rfcString:))
         }
         set {
-            self.storage[.date] = newValue.flatMap { [$0.format(with: .rfc1123)] }
+            self.storage[.date] = newValue.flatMap { [$0.format(with: .http)] }
         }
     }
     
@@ -768,7 +777,7 @@ extension HTTPHeaders {
             return self.storage[.expires]?.first.flatMap(Date.init(rfcString:))
         }
         set {
-            self.storage[.expires] = newValue.flatMap { [$0.format(with: .rfc1123)] }
+            self.storage[.expires] = newValue.flatMap { [$0.format(with: .http)] }
         }
     }
     
@@ -778,7 +787,7 @@ extension HTTPHeaders {
             return self.storage[.lastModified]?.first.flatMap(Date.init(rfcString:))
         }
         set {
-            self.storage[.lastModified] = newValue.flatMap { [$0.format(with: .rfc1123)] }
+            self.storage[.lastModified] = newValue.flatMap { [$0.format(with: .http)] }
         }
     }
     
@@ -818,8 +827,8 @@ extension HTTPHeaders {
         return string.removingPercentEscapes(encoding: encoding) ?? string
     }
     
-    fileprivate static func parseParams(_ value: String) -> [String: String] {
-        let rawParams: [String] = value.components(separatedBy: ";").dropFirst().flatMap { param in
+    fileprivate static func parseParams(_ value: String, separator: String = ";") -> [String: String] {
+        let rawParams: [String] = value.components(separatedBy: separator).dropFirst().flatMap { param in
             let result = param.trimmingCharacters(in: .whitespacesAndNewlines)
             return !result.isEmpty ? result : nil
         }
@@ -837,13 +846,13 @@ extension HTTPHeaders {
     #if os(macOS) || os(iOS) || os(tvOS)
     #else
     static private let ianatable: [String.Encoding: String] = [
-    .ascii: "us-ascii", .isoLatin1: "iso-8859-1", .isoLatin2: "iso-8859-2", .utf8: "utf-8",
-    .utf16: "utf-16", .utf16BigEndian: "utf-16be", .utf16LittleEndian: "utf-16le",
-    .utf32: "utf-32", .utf32BigEndian: "utf-32be", .utf32LittleEndian: "utf-32le",
-    .japaneseEUC: "euc-jp",.shiftJIS: "cp932", .iso2022JP: "iso-2022-jp",
-    .windowsCP1251: "windows-1251", .windowsCP1252: "windows-1252", .windowsCP1253: "windows-1253",
-    .windowsCP1254: "windows-1254", .windowsCP1250: "windows-1250",
-    .nextstep: "x-nextstep", .macOSRoman: "macintosh", .symbol: "x-mac-symbol"]
+        .ascii: "us-ascii", .isoLatin1: "iso-8859-1", .isoLatin2: "iso-8859-2", .utf8: "utf-8",
+        .utf16: "utf-16", .utf16BigEndian: "utf-16be", .utf16LittleEndian: "utf-16le",
+        .utf32: "utf-32", .utf32BigEndian: "utf-32be", .utf32LittleEndian: "utf-32le",
+        .japaneseEUC: "euc-jp",.shiftJIS: "cp932", .iso2022JP: "iso-2022-jp",
+        .windowsCP1251: "windows-1251", .windowsCP1252: "windows-1252", .windowsCP1253: "windows-1253",
+        .windowsCP1254: "windows-1254", .windowsCP1250: "windows-1250",
+        .nextstep: "x-nextstep", .macOSRoman: "macintosh", .symbol: "x-mac-symbol"]
     #endif
     
     fileprivate static func charsetIANAToStringEncoding(_ charset: String) -> String.Encoding {
@@ -899,7 +908,7 @@ fileprivate extension Date {
     }
     
     private static let defaultLocale = Locale(identifier: "en_US_POSIX")
-    private static let defaultTImezone = TimeZone(identifier: "UTC")
+    private static let defaultTimezone = TimeZone(identifier: "UTC")
     
     /// Checks date string against various RFC standards and returns `Date`.
     init?(rfcString: String) {
@@ -921,7 +930,7 @@ fileprivate extension Date {
     func format(with standard: RFCStandards, locale: Locale? = nil, timeZone: TimeZone? = nil) -> String {
         let fm = DateFormatter()
         fm.dateFormat = standard.rawValue
-        fm.timeZone = timeZone ?? Date.defaultTImezone
+        fm.timeZone = timeZone ?? Date.defaultTimezone
         fm.locale = locale ?? Date.defaultLocale
         return fm.string(from: self)
     }
