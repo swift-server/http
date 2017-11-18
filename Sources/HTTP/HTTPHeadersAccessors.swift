@@ -261,18 +261,123 @@ extension HTTPHeaders {
         }
     }
     
+    /// Defines HTTP Authorization request
+    public enum Authorization: CustomStringConvertible {
+        /// Basic method [RFC7617](http://www.iana.org/go/rfc7617)
+        case basic(user: String, password: String)
+        /// Digest method [RFC7616](http://www.iana.org/go/rfc7616)
+        case digest(params: [String: String])
+        /// OAuth 1.0 method (OAuth) [RFC5849, Section 3.5.1](http://www.iana.org/go/rfc5849)
+        case oAuth1(token: String)
+        /// OAuth 2.0 method (Bearer) [RFC6750](http://www.iana.org/go/rfc6750)
+        case oAuth2(token: String)
+        /// Mututal method [RFC8120](http://www.iana.org/go/rfc8120)
+        case mutual(params: [String: String])
+        /// Negotiate method [RFC4559, Section 3](http://www.iana.org/go/rfc4559)
+        case negotiate(data: Data)
+        /// Custom authentication method
+        case custom(String, token: String?, params: [String: String])
+        
+        public init?(_ rawValue: String) {
+            let sep = rawValue.components(separatedBy: " ")
+            guard let type = sep.first?.trimmingCharacters(in: .whitespaces), !type.isEmpty else {
+                return nil
+            }
+            let q = sep.dropFirst().joined(separator: " ").trimmingCharacters(in: .whitespaces)
+            switch type.lowercased() {
+            case "basic":
+                guard let data = Data(base64Encoded: q) else { return nil }
+                guard let paramStr = String(data: data, encoding: .ascii) ?? String(data: data, encoding: .utf8) else { return nil }
+                let decoded = paramStr.components(separatedBy: ":")
+                guard let user = decoded.first else { return nil }
+                let pass = decoded.dropFirst().joined(separator: ":")
+                self = .basic(user: user, password: pass)
+            case "digest":
+                self = .digest(params: HTTPHeaders.parseParams(q))
+            case "oauth":
+                self = .oAuth1(token: q)
+            case "bearer":
+                self = .oAuth2(token: q)
+            case "mutual":
+                self = .mutual(params: HTTPHeaders.parseParams(q))
+            case "negotiate":
+                guard let data = Data(base64Encoded: q) else { return nil }
+                self = .negotiate(data: data)
+            default:
+                var params = HTTPHeaders.parseParams(q)
+                var token: String?
+                for param in params {
+                    if param.value.isEmpty {
+                        token = param.key
+                        params[param.key] = nil
+                        break
+                    }
+                }
+                self = .custom(type, token: token, params: params)
+            }
+        }
+        
+        public var description: String {
+            switch self {
+            case .basic(let user, let password):
+                let text = "\(user):\(password)"
+                let b64 = (text.data(using: .ascii) ?? text.data(using: .utf8))?.base64EncodedString() ?? ""
+                return "Basic \(b64)"
+            case .digest(let params):
+                let paramsString = params.map({ "\($0.key)=\($0.value)" }).joined(separator: ", ")
+                return "Digest \(paramsString)"
+            case .oAuth1(let token):
+                return "OAuth \(token)"
+            case .oAuth2(let token):
+                return "Bearer \(token)"
+            case .mutual(let params):
+                let paramsString = params.map({ "\($0.key)=\($0.value)" }).joined(separator: ", ")
+                return "Mutual \(paramsString)"
+            case .negotiate(let data):
+                return "Negotiate \(data.base64EncodedString())"
+            case .custom(let type, let token, let params):
+                let tokenString = token.flatMap({ "\($0) " }) ?? ""
+                let paramsString = params.map({ "\($0.key)=\($0.value)" }).joined(separator: ", ")
+                return "\(type) \(tokenString)\(paramsString)"
+            }
+        }
+    }
+    
     /// Defines HTTP Authentication challenge method required to access
-    public enum Challenge: CustomStringConvertible {
-        /// Basic method for authentication
+    public enum ChallengeType: CustomStringConvertible {
+        /// Basic method [RFC7617](http://www.iana.org/go/rfc7617)
         case basic
-        /// Digest method for authentication
+        /// Digest method [RFC7616](http://www.iana.org/go/rfc7616)
         case digest
-        /// OAuth 1.0 method for authentication (OAuth)
+        /// OAuth 1.0 method (OAuth) [RFC5849, Section 3.5.1](http://www.iana.org/go/rfc5849)
         case oAuth1
-        /// OAuth 2.0 method for authentication (Bearer)
+        /// OAuth 2.0 method (Bearer) [RFC6750](http://www.iana.org/go/rfc6750)
         case oAuth2
+        /// Mututal method [RFC8120](http://www.iana.org/go/rfc8120)
+        case mutual
+        /// Negotiate method [RFC4559, Section 3](http://www.iana.org/go/rfc4559)
+        case negotiate
         /// Custom authentication method
         case custom(String)
+        
+        public init(_ rawValue: String) {
+            switch rawValue.lowercased() {
+            case "basic":
+                self = .basic
+            case "digest":
+                self = .digest
+            case "oauth":
+                self = .oAuth1
+            case "bearer":
+                self = .oAuth2
+            case "mutual":
+                self = .mutual
+            case "negotiate":
+                self = .negotiate
+            default:
+                self = .custom(rawValue.components(separatedBy: " ").first?.trimmingCharacters(in: .whitespaces) ?? "")
+            }
+        }
         
         public var description: String {
             switch self {
@@ -280,8 +385,50 @@ extension HTTPHeaders {
             case .digest: return "Digest"
             case .oAuth1: return "OAuth"
             case .oAuth2: return "Bearer"
+            case .mutual: return "Mutual"
+            case .negotiate: return "Negotiate"
             case .custom(let type): return type
             }
+        }
+    }
+    
+    public struct Challenge: CustomStringConvertible {
+        let type: ChallengeType
+        let parameters: [String: String]
+        var realm: String? {
+            return parameters["realm"]
+        }
+        var charset: String.Encoding? {
+            return parameters["charset"].flatMap(HTTPHeaders.charsetIANAToStringEncoding)
+        }
+        
+        public init(type: ChallengeType, token: String? = nil, realm: String? = nil, charset: String.Encoding? = nil, parameters: [String: String] = [:]) {
+            self.type = type
+            var parameters = parameters
+            parameters["realm"] = realm
+            parameters["charset"] = charset.flatMap(HTTPHeaders.StringEncodingToIANA)
+            self.parameters = parameters
+        }
+        
+        public init?(_ rawValue: String) {
+            let typeSegment = rawValue.components(separatedBy: " ")
+            guard let type = typeSegment.first.flatMap(ChallengeType.init) else { return nil }
+            self.type = type
+            let allparams = typeSegment.dropFirst().joined(separator: " ")
+            let params: [(String, String)] = allparams.components(separatedBy: ",").flatMap { param in
+                let keyval = param.components(separatedBy: "=")
+                guard let key = keyval.first?.trimmingCharacters(in: .whitespaces), !key.isEmpty else { return nil }
+                let value = keyval.dropFirst().joined(separator: "=").trimmingCharacters(in: .whitespaces)
+                return (key, value)
+            }
+            self.parameters = Dictionary(params, uniquingKeysWith: { (f, s) in
+                return f
+            })
+        }
+        
+        public var description: String {
+            let params = parameters.map({ "\($0.key)=\($0.value)" }).joined(separator: ", ")
+            return "\(type.description) \(params)"
         }
     }
     
@@ -457,9 +604,32 @@ extension HTTPHeaders {
         }
     }
     
-    // TODO: Implement var authentication
+    // `Authorization` header value
+    public var authorization: HTTPHeaders.Authorization? {
+        get {
+            return self.storage[.authorization]?.first.flatMap(Authorization.init)
+        }
+        set {
+            self.storage[.authorization] = newValue.flatMap { [$0.description] }
+        }
+    }
     
-    // TODO: Implement var cookie: [HTTPCookie]
+    // `Cookie` header value
+    public var cookie: [HTTPCookie] {
+        let pairs: [(key: String, val: String)] = (self.storage[.cookie]?.first?.components(separatedBy: ";").flatMap { text in
+            let segments = text.components(separatedBy: "=")
+            guard let key = segments.first?.trimmingCharacters(in: .whitespaces), !key.isEmpty else {
+                return nil
+            }
+            let value = segments.dropFirst().joined(separator: "=")
+            return (key, value)
+            }) ?? []
+        
+        return pairs.flatMap {
+            // path should be set otherwise it will fail!
+            return HTTPCookie(properties: [.name : $0.key, .value: $0.val, .path: "/"])
+        }
+    }
     
     /// `If-Match` header etag value
     public var ifMatch: [EntryTag] {
@@ -467,6 +637,7 @@ extension HTTPHeaders {
             return (self.storage[.ifMatch] ?? []).map(EntryTag.init)
         }
         set {
+            // TOCHECK: When there is a wildcard, other values should be ignored
             if !newValue.isEmpty {
                 self.storage[.ifMatch] = newValue.map { $0.description }
             } else {
@@ -481,6 +652,7 @@ extension HTTPHeaders {
             return (self.storage[.ifNoneMatch] ?? []).map(EntryTag.init)
         }
         set {
+            // TOCHECK: When there is a wildcard, other values should be ignored
             if !newValue.isEmpty {
                 self.storage[.ifNoneMatch] = newValue.map { $0.description }
             } else {
@@ -539,6 +711,19 @@ extension HTTPHeaders {
         }
     }
     
+    /// Fetch `TE` header values, sorted by `q` parameter
+    public var te: [Encoding] {
+        get {
+            let values: [String]? = self.storage[.te]?.sorted {
+                let q0 = HTTPHeaders.parseParams($0)["q"].flatMap(Double.init) ?? 1
+                let q1 = HTTPHeaders.parseParams($1)["q"].flatMap(Double.init) ?? 1
+                return q0 > q1
+            }
+            let results = (values ?? []).flatMap { Encoding(rawValue: $0) }
+            return results
+        }
+    }
+    
     // TODO: Parse User-Agent for Browser and Operating system
     
     // MARK: Response Headers
@@ -559,6 +744,7 @@ extension HTTPHeaders {
             return self.storage[.age]?.first.flatMap(TimeInterval.init)
         }
         set {
+            // TOCHECK: Can't be a negative value
             self.storage[.age] = newValue.flatMap { [String($0)] }
         }
     }
@@ -586,6 +772,21 @@ extension HTTPHeaders {
         }
         set {
             self.storage[.cacheControl] = newValue.flatMap { [$0.description] }
+        }
+    }
+    
+    /// `Connection` header value
+    public var connection: [HTTPMethod] {
+        get {
+            return self.storage[.connection]?.map({ HTTPMethod($0) }) ?? []
+        }
+        set {
+            // TOCHECK: Only keepAlive is valid?
+            if !newValue.isEmpty {
+                self.storage[.connection] = newValue.flatMap { $0.method }
+            } else {
+                self.storage[.connection] = nil
+            }
         }
     }
     
@@ -625,6 +826,7 @@ extension HTTPHeaders {
             return self.storage[.contentLength]?.first.flatMap { Int64($0) }
         }
         set {
+            // TOCHECK: Can't be a negative value
             self.storage[.contentLength] = newValue.flatMap { [String($0)] }
         }
     }
@@ -767,6 +969,7 @@ extension HTTPHeaders {
             return self.storage[.eTag]?.first.flatMap(EntryTag.init)
         }
         set {
+            // TOCHECK: wildcard should be ignored
             self.storage[.eTag] = newValue.flatMap { [$0.description] }
         }
     }
@@ -813,7 +1016,46 @@ extension HTTPHeaders {
     
     // TODO: Implement var setCookie: [HTTPCookie]
     
-    // TODO: Implement func add(setCookie: HTTPCookie)
+    // TODO: Implement funcs set & add(setCookie: HTTPCookie)
+    
+    /// `Trailer` header value
+    public var trailer: [HTTPMethod] {
+        get {
+            return self.storage[.trailer]?.flatMap({ HTTPMethod($0) }) ?? []
+        }
+        set {
+            if !newValue.isEmpty {
+                // TOCHECK: Forbidden headers ought to be ignored/dropped
+                self.storage[.trailer] = newValue.map { $0.method }
+            } else {
+                self.storage[.trailer] = nil
+            }
+        }
+    }
+    
+    /// `Vary` header value
+    public var vary: [HTTPMethod] {
+        get {
+            return self.storage[.vary]?.flatMap({ HTTPMethod($0) }) ?? []
+        }
+        set {
+            if !newValue.isEmpty {
+                // TOCHECK: Forbidden headers ought to be ignored/dropped
+                self.storage[.vary] = newValue.map { $0.method }
+            } else {
+                self.storage[.vary] = nil
+            }
+        }
+    }
+    
+    public var wwwAuthenticate: HTTPHeaders.Challenge? {
+        get {
+            return self.storage[.wwwAuthenticate]?.first.flatMap(Challenge.init)
+        }
+        set {
+            self.storage[.wwwAuthenticate] = newValue.flatMap { [$0.description] }
+        }
+    }
 }
 
 extension HTTPHeaders {
