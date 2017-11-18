@@ -868,10 +868,12 @@ extension HTTPHeaders {
     }
     
     fileprivate func createRange(from: Int64, to: Int64? = nil, total: Int64? = nil) -> String? {
-        guard from >= 0, (to ?? 0) >= 0, (total ?? 1) >= 1 else { return nil }
+        guard from >= 0, (to ?? 0) >= 0, (total ?? 1) >= 1 else {
+            return total.flatMap({ "*/\($0)" })
+        }
         let toString = to.flatMap(String.init) ?? ""
-        let totalString = total.flatMap({ "/\($0)" }) ?? ""
-        
+        let totalString = total.flatMap({ "/\($0)" }) ?? "/*"
+
         return "bytes=\(from)-\(toString)\(totalString)"
     }
     
@@ -889,16 +891,18 @@ extension HTTPHeaders {
     }
     
     // Set `Content-Range` header
-    public mutating func set(contentRange: Range<Int64>) {
+    public mutating func set(contentRange: Range<Int64>, size: Int64? = nil) {
+        // TOCHECK: size >= contentRange.count
         let rangeStr = contentRange.upperBound == Int64.max ?
-            createRange(from: contentRange.lowerBound) :
-            createRange(from: contentRange.lowerBound, to: contentRange.upperBound - 1)
+            createRange(from: contentRange.lowerBound, total: size) :
+            createRange(from: contentRange.lowerBound, to: contentRange.upperBound - 1, total: size)
         self.storage[.contentRange] = rangeStr.flatMap { [$0] }
     }
-    public mutating func set(contentRange: ClosedRange<Int64>) {
+    public mutating func set(contentRange: ClosedRange<Int64>, size: Int64? = nil) {
+        // TOCHECK: size >= contentRange.count
         let rangeStr = contentRange.upperBound == Int64.max ?
-            createRange(from: contentRange.lowerBound) :
-            createRange(from: contentRange.lowerBound, to: contentRange.upperBound)
+            createRange(from: contentRange.lowerBound, total: size) :
+            createRange(from: contentRange.lowerBound, to: contentRange.upperBound, total: size)
         self.storage[.contentRange] = rangeStr.flatMap { [$0] }
     }
     
