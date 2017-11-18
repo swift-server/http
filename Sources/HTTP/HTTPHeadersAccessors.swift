@@ -117,9 +117,13 @@ extension HTTPHeaders {
         static public let threegp = ContentType(rawValue: "video/3gpp")
     }
     
+    /// Values available for `Conten-Disposition` header
     public enum ContentDisposition: CustomStringConvertible, Equatable {
+        /// Default value, which indicates file must be shown in browser
         case inline
+        /// Downloadable content, with specifed filename if available
         case attachment(filename: String?)
+        /// Form-Data
         case formData(name: String?, filename: String?)
         
         public init?( _ rawValue: String) {
@@ -147,6 +151,7 @@ extension HTTPHeaders {
             case .inline:
                 return "inline"
             case .attachment(filename: let filename):
+                // FIX: Use filename* for utf-8 file names
                 let filenameParam = filename.flatMap({ "; filename=\"\($0)\"" }) ?? ""
                 return "attachment\(filenameParam)"
             case .formData(name: let name, filename: let filename):
@@ -262,6 +267,7 @@ extension HTTPHeaders {
     }
     
     /// Defines HTTP Authorization request
+    /// -Note: Paramters may be quoted or not according to RFCs
     public enum Authorization: CustomStringConvertible {
         /// Basic method [RFC7617](http://www.iana.org/go/rfc7617)
         case basic(user: String, password: String)
@@ -392,11 +398,13 @@ extension HTTPHeaders {
         }
     }
     
-    public struct Challenge: CustomStringConvertible {
+    /// Challenge defined in WWW-Authenticate
+    /// -Note: Paramters may be quoted or not according to RFCs
+   public struct Challenge: CustomStringConvertible {
         let type: ChallengeType
         let parameters: [String: String]
         var realm: String? {
-            return parameters["realm"]
+            return parameters["realm"]?.trimmingCharacters(in: .quoted)
         }
         var charset: String.Encoding? {
             return parameters["charset"].flatMap(HTTPHeaders.charsetIANAToStringEncoding)
@@ -405,7 +413,7 @@ extension HTTPHeaders {
         public init(type: ChallengeType, token: String? = nil, realm: String? = nil, charset: String.Encoding? = nil, parameters: [String: String] = [:]) {
             self.type = type
             var parameters = parameters
-            parameters["realm"] = realm
+            parameters["realm"] = (realm?.trimmingCharacters(in: .quoted)).flatMap({ "\"\($0)\"" })
             parameters["charset"] = charset.flatMap(HTTPHeaders.StringEncodingToIANA)
             self.parameters = parameters
         }
@@ -432,9 +440,13 @@ extension HTTPHeaders {
         }
     }
     
+    /// EntryTag used in `ETag`, `If-Modified`, etc
     public enum EntryTag: CustomStringConvertible, Equatable, Hashable {
+        /// Regular entry tag
         case strong(String)
+        /// Weak entry tag prefixed with `"W/"`
         case weak(String)
+        /// Equals to `"*"`
         case wildcard
         
         public init(_ rawValue: String) {
