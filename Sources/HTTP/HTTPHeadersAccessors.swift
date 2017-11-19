@@ -173,13 +173,16 @@ extension HTTPHeaders {
             case .inline:
                 return "inline"
             case .attachment(filename: let filename):
-                // FIX: Use filename* for utf-8 file names
-                let filenameParam = filename.flatMap({ "; filename=\"\($0)\"" }) ?? ""
-                return "attachment\(filenameParam)"
+                let isoFileName = filename.flatMap(HTTPHeaders.isoLatinStripped)
+                let filenameParam = isoFileName.flatMap({ "; filename=\"\($0)\"" }) ?? ""
+                let filenameAstrisk = filename.flatMap({ "; filename*=\(HTTPHeaders.rfc5987String($0))" }) ?? ""
+                return "attachment\(filenameParam)\(filenameAstrisk)"
             case .formData(name: let name, filename: let filename):
                 let nameParam = name.flatMap({ "; name=\"\($0)\"" }) ?? ""
-                let filenameParam = filename.flatMap({ "; filename=\"\($0)\"" }) ?? ""
-                return "attachment\(nameParam)\(filenameParam)"
+                let isoFileName = filename.flatMap(HTTPHeaders.isoLatinStripped)
+                let filenameParam = isoFileName.flatMap({ "; filename=\"\($0)\"" }) ?? ""
+                let filenameAstrisk = filename.flatMap({ "; filename*=\(HTTPHeaders.rfc5987String($0))" }) ?? ""
+                return "form-data\(nameParam)\(filenameParam)\(filenameAstrisk)"
             }
         }
         
@@ -1273,6 +1276,17 @@ extension HTTPHeaders {
 }
 
 extension HTTPHeaders {
+    fileprivate static func rfc5987String(_ value: String) -> String {
+        let encoded = value.addingPercentEncoding(withAllowedCharacters: .legal) ?? value
+        return "UTF-8''\(encoded)"
+    }
+    
+    fileprivate static func isoLatinStripped(_ value: String) -> String {
+        let isoLatinCharset = CharacterSet.init(charactersIn: Unicode.Scalar(32)..<Unicode.Scalar(255))
+        let isoLatin = value.filter({ $0.unicodeScalars.count == 1 ? isoLatinCharset.contains($0.unicodeScalars.first!) : false })
+        return isoLatin
+    }
+    
     fileprivate static func parseRFC5987(_ value: String) -> String {
         let components = value.components(separatedBy: "'")
         guard components.count >= 3 else {
@@ -1395,6 +1409,7 @@ fileprivate extension Date {
 fileprivate extension CharacterSet {
     static let quoted = CharacterSet(charactersIn: "\"")
     static let quotedWhitespace = CharacterSet(charactersIn: "\" ")
+    static let legal = CharacterSet(charactersIn: "!#$&+-.^_`|~").intersection(.alphanumerics).inverted
 }
 
 fileprivate extension String {
