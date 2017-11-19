@@ -11,110 +11,132 @@ import Foundation
 extension HTTPHeaders {
     
     /// MIME type directive for `Accept` and `Content-Type` headers
-    public struct ContentType: RawRepresentable, Hashable, Equatable {
+    public struct MediaType: RawRepresentable, Hashable, Equatable, ExpressibleByStringLiteral {
         public var rawValue: String
         public typealias RawValue = String
-        
+        public typealias StringLiteralType = String
+
         public init(rawValue: String) {
             self.rawValue = rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         }
         
+        public init(stringLiteral: String) {
+            self.init(rawValue: stringLiteral)
+        }
+        
+        private init(linted: String) {
+            self.rawValue = linted
+        }
+        
         public var hashValue: Int { return rawValue.hashValue }
-        public static func == (lhs: ContentType, rhs: ContentType) -> Bool {
+        
+        public static func == (lhs: MediaType, rhs: MediaType) -> Bool {
             return lhs.rawValue == rhs.rawValue
         }
         
         /// Directory
-        static public let directory = ContentType(rawValue: "httpd/unix-directory")
+        static public let directory = MediaType(linted: "httpd/unix-directory")
         
         // Archive and Binary
         
         /// All types
-        static public let all = ContentType(rawValue: "*/*")
+        static public let all = MediaType(linted: "*/*")
         /// Binary stream and unknown types
-        static public let stream = ContentType(rawValue: "application/octet-stream")
+        static public let stream = MediaType(linted: "application/octet-stream")
         /// Protable document format
-        static public let pdf = ContentType(rawValue: "application/pdf")
+        static public let pdf = MediaType(linted: "application/pdf")
         /// Zip archive
-        static public let zip = ContentType(rawValue: "application/zip")
+        static public let zip = MediaType(linted: "application/zip")
         /// Rar archive
-        static public let rarArchive = ContentType(rawValue: "application/x-rar-compressed")
+        static public let rarArchive = MediaType(linted: "application/x-rar-compressed")
         /// 7-zip archive
-        static public let lzma = ContentType(rawValue: "application/x-7z-compressed")
+        static public let lzma = MediaType(linted: "application/x-7z-compressed")
         /// Adobe Flash
-        static public let flash = ContentType(rawValue: "application/x-shockwave-flash")
+        static public let flash = MediaType(linted: "application/x-shockwave-flash")
         /// ePub book
-        static public let epub = ContentType(rawValue: "application/epub+zip")
+        static public let epub = MediaType(linted: "application/epub+zip")
         /// Java archive (jar)
-        static public let javaArchive = ContentType(rawValue: "application/java-archive")
+        static public let javaArchive = MediaType(linted: "application/java-archive")
         
         // Texts
         
         /// All Text types
-        static public let text = ContentType(rawValue: "text/*")
+        static public let text = MediaType(linted: "text/*")
         /// Text file
-        static public let plainText = ContentType(rawValue: "text/plain")
+        static public let plainText = MediaType(linted: "text/plain")
         /// Coma-separated values
-        static public let csv = ContentType(rawValue: "text/csv")
+        static public let csv = MediaType(linted: "text/csv")
         /// Hyper-text markup language
-        static public let html = ContentType(rawValue: "text/html")
+        static public let html = MediaType(linted: "text/html")
         /// Common style sheet
-        static public let css = ContentType(rawValue: "text/css")
+        static public let css = MediaType(linted: "text/css")
         /// eXtended Markup language
-        static public let xml = ContentType(rawValue: "text/xml")
+        static public let xml = MediaType(linted: "text/xml")
         /// Javascript code file
-        static public let javascript = ContentType(rawValue: "application/javascript")
+        static public let javascript = MediaType(linted: "application/javascript")
         /// Javascript notation
-        static public let json = ContentType(rawValue: "application/json")
+        static public let json = MediaType(linted: "application/json")
         
         // Documents
         
         /// Rich text file (RTF)
-        static public let richText = ContentType(rawValue: "application/rtf")
+        static public let richText = MediaType(linted: "application/rtf")
         /// Excel 2013 (OOXML) document
-        static public let excel = ContentType(rawValue: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        static public let excel = MediaType(linted: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         /// Powerpoint 2013 (OOXML) document
-        static public let powerpoint = ContentType(rawValue: "application/vnd.openxmlformats-officedocument.presentationml.slideshow")
+        static public let powerpoint = MediaType(linted: "application/vnd.openxmlformats-officedocument.presentationml.slideshow")
         /// Word 2013 (OOXML) document
-        static public let word = ContentType(rawValue: "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        static public let word = MediaType(linted: "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
         
         // Images
         
         /// Bitmap
-        static public let bmp = ContentType(rawValue: "image/bmp")
+        static public let bmp = MediaType(linted: "image/bmp")
         /// Graphics Interchange Format photo
-        static public let gif = ContentType(rawValue: "image/gif")
+        static public let gif = MediaType(linted: "image/gif")
         /// JPEG photo
-        static public let jpeg = ContentType(rawValue: "image/jpeg")
+        static public let jpeg = MediaType(linted: "image/jpeg")
         /// Portable network graphics
-        static public let png = ContentType(rawValue: "image/png")
+        static public let png = MediaType(linted: "image/png")
+        /// Scalable vector graphics
+        static public let svg = MediaType(linted: "image/svg+xml")
         
         // Audio & Video
         
         /// All Audio types
-        static public let audio = ContentType(rawValue: "audio/*")
+        static public let audio = MediaType(linted: "audio/*")
         /// All Video types
-        static public let video = ContentType(rawValue: "video/*")
+        static public let video = MediaType(linted: "video/*")
         /// MPEG Audio
-        static public let mpegAudio = ContentType(rawValue: "audio/mpeg")
+        static public let mpegAudio = MediaType(linted: "audio/mpeg")
         /// MPEG Video
-        static public let mpeg = ContentType(rawValue: "video/mpeg")
+        static public let mpeg = MediaType(linted: "video/mpeg")
         /// MPEG4 Audio
-        static public let mpeg4Audio = ContentType(rawValue: "audio/mp4")
+        static public let mpeg4Audio = MediaType(linted: "audio/mp4")
         /// MPEG4 Video
-        static public let mpeg4 = ContentType(rawValue: "video/mp4")
+        static public let mpeg4 = MediaType(linted: "video/mp4")
+        /// Mpeg playlist
+        static public let m3u8 = MediaType(linted: "application/x-mpegurl")
+        /// Mpeg-2 transport stream
+        static public let ts = MediaType(linted: "video/mp2t")
         /// OGG Audio
-        static public let ogg = ContentType(rawValue: "audio/ogg")
+        static public let ogg = MediaType(linted: "audio/ogg")
         /// Advanced Audio Coding
-        static public let aac = ContentType(rawValue: "audio/x-aac")
+        static public let aac = MediaType(linted: "audio/x-aac")
         /// Microsoft Audio Video Interleaved
-        static public let avi = ContentType(rawValue: "video/x-msvideo")
+        static public let avi = MediaType(linted: "video/x-msvideo")
         /// Microsoft Wave audio
-        static public let wav = ContentType(rawValue: "audio/x-wav")
+        static public let wav = MediaType(linted: "audio/x-wav")
         /// Apple QuickTime format
-        static public let quicktime = ContentType(rawValue: "video/quicktime")
+        static public let quicktime = MediaType(linted: "video/quicktime")
         /// 3GPP
-        static public let threegp = ContentType(rawValue: "video/3gpp")
+        static public let threegp = MediaType(linted: "video/3gpp")
+        
+        // Multipart
+        /// Multipart mixed
+        static public let multipart = MediaType(linted: "multipart/mixed")
+        /// Multipart form-data
+        static public let formData = MediaType(linted: "multipart/form-data")
     }
     
     /// Values available for `Conten-Disposition` header
@@ -432,6 +454,36 @@ extension HTTPHeaders {
         }
     }
     
+    /// Challenge defined in WWW-Authenticate
+    /// -Note: Paramters may be quoted or not according to RFCs
+    public struct ContentType: CustomStringConvertible {
+        let mediaType: HTTPHeaders.MediaType
+        let parameters: [String: String]
+        var charset: String.Encoding? {
+            return parameters["charset"].flatMap(HTTPHeaders.charsetIANAToStringEncoding)
+        }
+        
+        public init(type: HTTPHeaders.MediaType, charset: String.Encoding? = nil, parameters: [String: String] = [:]) {
+            self.mediaType = type
+            var parameters = parameters
+            parameters["charset"] = charset.flatMap(HTTPHeaders.StringEncodingToIANA)
+            self.parameters = parameters
+        }
+        
+        public init?(_ rawValue: String) {
+            let typeSegment = rawValue.components(separatedBy: ";")
+            guard let type = (typeSegment.first?.trimmingCharacters(in: .whitespaces)).flatMap(MediaType.init(rawValue:)) else { return nil }
+            self.mediaType = type
+            let allparams = typeSegment.dropFirst().joined(separator: ";")
+            self.parameters = HTTPHeaders.parseParams(allparams)
+        }
+        
+        public var description: String {
+            let params = parameters.map({ " \($0.key)=\($0.value)" }).joined(separator: ",")
+            return "\(mediaType.rawValue)\(params)"
+        }
+    }
+    
     /// EntryTag used in `ETag`, `If-Modified`, etc
     public enum EntryTag: CustomStringConvertible, Equatable, Hashable {
         /// Regular entry tag
@@ -501,6 +553,37 @@ extension HTTPHeaders {
         case trailers
     }
     
+    public enum IfRange: CustomStringConvertible, Equatable, Hashable {
+        
+        case tag(EntryTag)
+        case date(Date)
+        
+        public init( _ rawValue: String) {
+            if let parsedDate = Date(rfcString: rawValue) {
+                self = .date(parsedDate)
+            } else {
+                self = .tag(EntryTag(rawValue))
+            }
+        }
+        
+        public var description: String {
+            switch self {
+            case .date(let date):
+                return date.format(with: .http)
+            case .tag(let tag):
+                return tag.description
+            }
+        }
+        
+        public var hashValue: Int {
+            return self.description.hashValue
+        }
+        
+        public static func ==(lhs: HTTPHeaders.IfRange, rhs: HTTPHeaders.IfRange) -> Bool {
+            return lhs.description == rhs.description
+        }
+    }
+    
     /// Determines server accepts `Range` header or not
     public struct RangeType: RawRepresentable, Hashable, Equatable {
         public var rawValue: String
@@ -533,26 +616,26 @@ extension HTTPHeaders {
     // MARK: Request Headers
     
     /// Fetch `Accept` header values, sorted by `q` parameter
-    public var accept: [ContentType] {
+    public var accept: [MediaType] {
         get {
             let values: [String]? = self.storage[.accept]?.sorted {
                 let q0 = HTTPHeaders.parseParams($0)["q"].flatMap(Double.init) ?? 1
                 let q1 = HTTPHeaders.parseParams($1)["q"].flatMap(Double.init) ?? 1
                 return q0 > q1
             }
-            let results = (values ?? []).map { ContentType(rawValue: $0) }
+            let results = (values ?? []).map { MediaType(rawValue: $0) }
             return results
         }
     }
     
     /// Sets new value for `Accept` header and removes previous values if set
-    public mutating func set(accept: ContentType, quality: Double?) {
+    public mutating func set(accept: MediaType, quality: Double?) {
         self.storage[.accept]?.removeAll()
         self.add(accept: accept, quality: quality)
     }
     
     /// Adds a new `Accept` header value
-    public mutating func add(accept: ContentType, quality: Double?) {
+    public mutating func add(accept: MediaType, quality: Double?) {
         if self.storage[.accept] == nil {
             self.storage[.accept] = []
         }
@@ -635,6 +718,7 @@ extension HTTPHeaders {
     
     // `Cookie` header value
     public var cookie: [HTTPCookie] {
+        // Regarding `Cookie2` is obsolete, should we have to integrate it into values?
         let pairs: [(key: String, val: String)] = (self.storage[.cookie]?.first?.components(separatedBy: ";").flatMap { text in
             let segments = text.components(separatedBy: "=")
             guard let key = segments.first?.trimmingCharacters(in: .whitespaces), !key.isEmpty else {
@@ -681,9 +765,9 @@ extension HTTPHeaders {
     }
     
     /// `If-Range` header etag value
-    public var ifRange: EntryTag? {
+    public var ifRange: HTTPHeaders.IfRange? {
         get {
-            return self.storage[.ifRange]?.first.flatMap(EntryTag.init)
+            return self.storage[.ifRange]?.first.flatMap(IfRange.init)
         }
         set {
             self.storage[.ifRange] = newValue.flatMap { [$0.description] }
@@ -944,43 +1028,10 @@ extension HTTPHeaders {
     /// `Content-Type` header value
     public var contentType: ContentType? {
         get {
-            return self.storage[.contentType]?.first.flatMap { $0.components(separatedBy: ";").first.flatMap(ContentType.init(rawValue:)) }
+            return self.storage[.contentType]?.first.flatMap(ContentType.init)
         }
         set {
-            if let charset = self.storage[.contentType]?.first.flatMap({ HTTPHeaders.parseParams($0)["charset"] }) {
-                self.storage[.contentType] = newValue.flatMap { ["\($0.rawValue); charset=\(charset)"] }
-            } else {
-                self.storage[.contentType] = newValue.flatMap { [$0.rawValue] }
-            }
-        }
-    }
-    
-    /// Extracted `charset` parameter in `Content-Type` header
-    public var contentTypeCharset: String.Encoding? {
-        get {
-            return self.storage[.contentType]?.first.flatMap {
-                if let charset = HTTPHeaders.parseParams($0)["charset"] {
-                    return HTTPHeaders.charsetIANAToStringEncoding(charset)
-                } else {
-                    return nil
-                }
-            }
-        }
-        set {
-            if let newValue = newValue {
-                let ianaEncoding = HTTPHeaders.StringEncodingToIANA(newValue)
-                if self.storage[.contentType] != nil {
-                    self.storage[.contentType] = self.storage[.contentType]?.flatMap {
-                        let type = $0.components(separatedBy: ";").first?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "*"
-                        return "\(type); charset=\(ianaEncoding))"
-                    }
-                } else {
-                    self.storage[.contentType] = ["*; charset=\(ianaEncoding)"]
-                }
-                
-            } else {
-                self.storage[.contentType] = self.storage[.contentType]?.flatMap { ($0.components(separatedBy: ";").first?.trimmingCharacters(in: .whitespacesAndNewlines)) }
-            }
+            self.storage[.contentType] = newValue.flatMap { [$0.description] }
         }
     }
     
