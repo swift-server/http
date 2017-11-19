@@ -804,6 +804,26 @@ extension HTTPHeaders {
         }
     }
     
+    /// Returns `Range` header value
+    /// - Note: upperbound will be Int64.max in case of open ended Range
+    public var range: Range<Int64>? {
+        // TODO: return PartialRangeFrom when possible
+        get {
+            guard let elements = self.storage[.range]?.first.flatMap({ self.dissectRange($0) }) else {
+                return nil
+            }
+            let to = elements.to.flatMap({ $0 + 1 }) ?? Int64.max
+            return elements.from..<to
+        }
+    }
+    
+    /// Returns `Range` type, usually `.bytes`
+    public var rangeType: RangeType? {
+        get {
+            return self.storage[.range]?.first?.components(separatedBy: "=").first.flatMap(HTTPHeaders.RangeType.init(rawValue:))
+        }
+    }
+    
     /// `Referer` header value
     public var referer: URL? {
         get {
@@ -827,7 +847,114 @@ extension HTTPHeaders {
         }
     }
     
-    // TODO: Parse User-Agent for Browser and Operating system
+    /// Returns client's browser name and version using `User-Agent`
+    public var clientBrowser: (name: String, version: Float?)? {
+        
+        func getVersion(_ value: String) -> (name: String, version: Float?) {
+            let browser = value.components(separatedBy: "/")
+            let name = browser.first ?? "unknown"
+            let version = (browser.dropFirst().first?.trimmingCharacters(in: CharacterSet(charactersIn: " ;()")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Float.init)
+            return (name, version)
+        }
+        
+        guard let agent = self.storage[.userAgent]?.first else {
+            return nil
+        }
+        
+        let dissect = agent.components(separatedBy: " ")
+        
+        // All standard browsers begins with `"Mozila/5.0"`
+        // Presto-based Opera, Crawlers, Custom apps
+        guard agent.hasPrefix("Mozilla/5.0 ") else {
+            return dissect.first.flatMap(getVersion)
+        }
+        
+        // Checking for browsers, Ordered by commonness and exclusivity of browser name in user-agent string
+        
+        // For performance, checking user-agent reversed order for some
+        let rdissect = dissect.reversed()
+        // All standard browsers begins with `"Mozila/5.0"`
+        if let firefox = rdissect.first(where: { $0.hasPrefix("Firefox") }) {
+            return getVersion(firefox)
+        }
+        // Opera (webkit-based)
+        if let opera = rdissect.first(where: { $0.hasPrefix("OPR") }) {
+            return getVersion(opera)
+        }
+        // Microsoft Edge
+        if let edge = rdissect.first(where: { $0.hasPrefix("Edge") }) {
+            return getVersion(edge)
+        }
+        // Chrome and Chromium
+        if let chrome = dissect.first(where: { $0.hasPrefix("Chrome") }) {
+            return getVersion(chrome)
+        }
+        // Safari browser
+        if rdissect.first(where: { $0.hasPrefix("Safari") }) != nil {
+            let version = dissect.filter({ $0.hasPrefix("Version") }).first.flatMap(getVersion)
+            return ("Safari", version?.version)
+        }
+        // UIWebView, Game Consoles
+        if let webkit = dissect.first(where: { $0.hasPrefix("AppleWebKit") }) {
+            return getVersion(webkit)
+        }
+        // Gecko based browsers
+        if dissect.first(where: { $0.hasPrefix("Gecko") }) != nil {
+            let version = (dissect.filter({ $0.hasPrefix("rv:") }).first?.replacingOccurrences(of: "rv:", with: "", options: .anchored).trimmingCharacters(in: CharacterSet(charactersIn: "); ")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Float.init)
+            return ("Gecko", version)
+        }
+        // Internet Explorer
+        if dissect.first(where: { $0.hasPrefix("MSIE") }) != nil {
+            let version = (dissect.drop(while: { $0 != "MSIE" }).dropFirst().first?.trimmingCharacters(in: CharacterSet(charactersIn: "; )")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Float.init)
+            return ("Internet Explore", version)
+        }
+        // Google bot
+        if let googlebot = dissect.first(where: { $0.hasPrefix("Googlebot") }) {
+            return getVersion(googlebot)
+        }
+        return ("Mozila", 5.0) // Indeed unknown browser but compatible with Mozila
+    }
+    
+    /// Returns client's operating system name and version (if available) using `User-Agent`
+    /// - Note: return value for macOS begins with `"Intel Mac OS X"`
+    /// - Note: return value for iOS begins with `"iPhone OS"`
+    public var clientOperatingSystem: String? {
+        guard let agent = self.storage[.userAgent]?.first else {
+            return nil
+        }
+        
+        guard let parIndex = agent.index(of: "(") else {
+            return nil
+        }
+        
+        // Extract first paranthesis enclosed substring
+        let deviceString = agent[parIndex..<(agent.index(of: ")") ?? agent.endIndex)]
+        var deviceArray = deviceString.trimmingCharacters(in: CharacterSet(charactersIn: " ;()")).components(separatedBy: ";").map({ $0.trimmingCharacters(in: .whitespaces) })
+        // Remove frequent but meanless ids
+        let isX11 = deviceArray.index(of: "X11") != nil
+        deviceArray = deviceArray.filter({ $0 != "X11" && $0 != "U" && $0 != "compatible" })
+        
+        // Check for known misarrangements!
+        
+        // Check for Windows Phone to ignore redundant Android in string
+        if let windows = deviceArray.first(where: { $0.hasPrefix("Windows") }) {
+            return windows
+        }
+        // Check Android
+        if let android = deviceArray.first(where: { $0.hasPrefix("Android") }) {
+            return android
+        }
+        // Check iOS
+        if let ios = deviceArray.first(where: { $0.hasPrefix("CPU iPhone OS") }) {
+            return ios.components(separatedBy: " ").dropFirst().prefix(3).joined(separator: " ").replacingOccurrences(of: "_", with: ".")
+        }
+        // Check macOS
+        if let macos = deviceArray.first(where: { $0.hasPrefix("Intel Mac OS X") }) {
+            return macos.replacingOccurrences(of: "_", with: ".")
+        }
+        
+        return deviceArray.first ?? (isX11 ? "X11" : nil)
+    }
     
     // MARK: Response Headers
     
@@ -1099,9 +1226,11 @@ extension HTTPHeaders {
         }
     }
     
-    // TODO: Implement var setCookie: [HTTPCookie]
+    public var setCookie: [HTTPCookie] {
+        return self.storage[.setCookie]?.flatMap({ HTTPCookie.cookies(withResponseHeaderFields: ["Set-Cookie": $0], for: URL(string: "/")!) }) ?? []
+    }
     
-    // TODO: Implement funcs set & add(setCookie: HTTPCookie)
+    // TODO: Implement funcs set(setCookie: HTTPCookie) & add(setCookie: HTTPCookie)
     
     /// `Trailer` header value
     public var trailer: [HTTPMethod] {
