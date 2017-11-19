@@ -894,7 +894,7 @@ extension HTTPHeaders {
         }
         // Safari browser
         if rdissect.first(where: { $0.hasPrefix("Safari") }) != nil {
-            let version = dissect.filter({ $0.hasPrefix("Version") }).first.flatMap(getVersion)
+            let version = dissect.first(where: { $0.hasPrefix("Version") }).flatMap(getVersion)
             return ("Safari", version?.version)
         }
         // UIWebView, Game Consoles
@@ -903,7 +903,7 @@ extension HTTPHeaders {
         }
         // Gecko based browsers
         if dissect.first(where: { $0.hasPrefix("Gecko") }) != nil {
-            let version = (dissect.filter({ $0.hasPrefix("rv:") }).first?.replacingOccurrences(of: "rv:", with: "", options: .anchored).trimmingCharacters(in: CharacterSet(charactersIn: "); ")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Float.init)
+            let version = (dissect.first(where: { $0.hasPrefix("rv:") })?.replacingOccurrences(of: "rv:", with: "", options: .anchored).trimmingCharacters(in: CharacterSet(charactersIn: "); ")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Float.init)
             return ("Gecko", version)
         }
         // Internet Explorer
@@ -1233,7 +1233,42 @@ extension HTTPHeaders {
         return self.storage[.setCookie]?.flatMap({ HTTPCookie.cookies(withResponseHeaderFields: ["Set-Cookie": $0], for: URL(string: "/")!) }) ?? []
     }
     
-    // TODO: Implement funcs set(setCookie: HTTPCookie) & add(setCookie: HTTPCookie)
+    public mutating func add(setCookie cookie: HTTPCookie) {
+        if self.storage[.setCookie] == nil {
+            self.storage[.setCookie] = []
+        }
+        
+        var cookieString = "\(cookie.name)"
+        cookieString += !cookie.value.isEmpty ? "=\(cookie)" : ""
+        cookieString += cookie.expiresDate.flatMap({ "; Expires=\($0.format(with: .http))" }) ?? ""
+        cookieString += !(cookie.domain.isEmpty || cookie.domain == "^filecookies^") ? "; Domain=\(cookie.domain)" : ""
+        cookieString += !cookie.path.isEmpty ? "; Path=\(cookie.path)" : ""
+        cookieString += cookie.properties?[.maximumAge].flatMap({ "; Max-Age=\($0)" }) ?? ""
+        cookieString += cookie.properties?[.comment].flatMap({ "; Comment=\"\($0)\"" }) ?? ""
+        cookieString += cookie.isSecure ? "; Secure" : ""
+        cookieString += cookie.isHTTPOnly ? "; HttpOnly" : ""
+        self.storage[.setCookie]?.append(cookieString)
+    }
+    
+    public mutating func add(setCookie name: String, value: String, path: String, domain: String, expiresDate: Date? = nil, maximumAge: TimeInterval? = nil, comment: String? = nil, isSecure: Bool = false, isHTTPOnly: Bool = false, others: [String: String] = [:]) {
+        if self.storage[.setCookie] == nil {
+            self.storage[.setCookie] = []
+        }
+        
+        var cookieString = "\(name)"
+        cookieString += !value.isEmpty ? "=\(cookie)" : ""
+        cookieString += expiresDate.flatMap({ "; Expires=\($0.format(with: .http))" }) ?? ""
+        cookieString += !(domain.isEmpty || domain == "^filecookies^") ? "; Domain=\(domain)" : ""
+        cookieString += !path.isEmpty ? "; Path=\(path)" : ""
+        cookieString += maximumAge.flatMap({ "; Max-Age=\(Int($0))" }) ?? ""
+        cookieString += comment.flatMap({ "; Comment=\"\($0)\"" }) ?? ""
+        cookieString += isSecure ? "; Secure" : ""
+        cookieString += isHTTPOnly ? "; HttpOnly" : ""
+        for item in others {
+            cookieString += !item.value.isEmpty ? "; \(item.key)=\(item.value)" : "\(item.key)"
+        }
+        self.storage[.setCookie]?.append(cookieString)
+    }
     
     /// `Trailer` header value
     public var trailer: [HTTPMethod] {
@@ -1337,7 +1372,7 @@ extension HTTPHeaders {
             // CFStringConvertIANACharSetNameToEncoding is not exposed in SwiftFoundation!
             // We use this as workaround until SwiftFoundation got fixed.
             let charset = charset.lowercased()
-            return HTTPHeaders.ianatable.filter({ return $0.value == charset }).first?.key ?? .isoLatin1
+            return HTTPHeaders.ianatable.first(where: { return $0.value == charset })?.key ?? .isoLatin1
         #endif
     }
     
