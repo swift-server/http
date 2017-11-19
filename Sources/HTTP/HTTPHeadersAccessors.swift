@@ -931,7 +931,7 @@ extension HTTPHeaders {
         }
         
         // Extract first paranthesis enclosed substring
-        let deviceString = agent[parIndex..<(agent.index(of: ")") ?? agent.endIndex)]
+        let deviceString = String(agent[parIndex..<(agent.index(of: ")") ?? agent.endIndex)])
         var deviceArray = deviceString.trimmingCharacters(in: CharacterSet(charactersIn: " ;()")).components(separatedBy: ";").map({ $0.trimmingCharacters(in: .whitespaces) })
         // Remove frequent but meanless ids
         let isX11 = deviceArray.index(of: "X11") != nil
