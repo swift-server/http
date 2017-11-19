@@ -400,7 +400,7 @@ extension HTTPHeaders {
     
     /// Challenge defined in WWW-Authenticate
     /// -Note: Paramters may be quoted or not according to RFCs
-   public struct Challenge: CustomStringConvertible {
+    public struct Challenge: CustomStringConvertible {
         let type: ChallengeType
         let parameters: [String: String]
         var realm: String? {
@@ -413,7 +413,7 @@ extension HTTPHeaders {
         public init(type: ChallengeType, token: String? = nil, realm: String? = nil, charset: String.Encoding? = nil, parameters: [String: String] = [:]) {
             self.type = type
             var parameters = parameters
-            parameters["realm"] = (realm?.trimmingCharacters(in: .quoted)).flatMap({ "\"\($0)\"" })
+            parameters["realm"] = (realm?.trimmingCharacters(in: .quoted)).flatMap({ "\"\($0)\""})
             parameters["charset"] = charset.flatMap(HTTPHeaders.StringEncodingToIANA)
             self.parameters = parameters
         }
@@ -423,15 +423,7 @@ extension HTTPHeaders {
             guard let type = typeSegment.first.flatMap(ChallengeType.init) else { return nil }
             self.type = type
             let allparams = typeSegment.dropFirst().joined(separator: " ")
-            let params: [(String, String)] = allparams.components(separatedBy: ",").flatMap { param in
-                let keyval = param.components(separatedBy: "=")
-                guard let key = keyval.first?.trimmingCharacters(in: .whitespaces), !key.isEmpty else { return nil }
-                let value = keyval.dropFirst().joined(separator: "=").trimmingCharacters(in: .whitespaces)
-                return (key, value)
-            }
-            self.parameters = Dictionary(params, uniquingKeysWith: { (f, s) in
-                return f
-            })
+            self.parameters = HTTPHeaders.parseParams(allparams)
         }
         
         public var description: String {
@@ -510,11 +502,26 @@ extension HTTPHeaders {
     }
     
     /// Determines server accepts `Range` header or not
-    public enum RangeType: String {
+    public struct RangeType: RawRepresentable, Hashable, Equatable {
+        public var rawValue: String
+        public typealias RawValue = String
+        
+        public init(rawValue: String) {
+            self.rawValue = rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        }
+        
+        public var hashValue: Int { return rawValue.hashValue }
+        
+        public static func == (lhs: RangeType, rhs: RangeType) -> Bool {
+            return lhs.rawValue == rhs.rawValue
+        }
+        
         /// Can't accept Range
-        case none
+        public static let none = RangeType(rawValue: "none")
         /// Accept range in bytes(octets)
-        case bytes
+        public static let bytes = RangeType(rawValue: "bytes")
+        /// Accept range in item numbers
+        public static let items = RangeType(rawValue: "items")
     }
     
     /// `Pragma` header values
@@ -757,7 +764,7 @@ extension HTTPHeaders {
         }
         set {
             // TOCHECK: Can't be a negative value
-            self.storage[.age] = newValue.flatMap { [String($0)] }
+            self.storage[.age] = newValue.flatMap { [String(Int($0))] }
         }
     }
     
@@ -788,14 +795,14 @@ extension HTTPHeaders {
     }
     
     /// `Connection` header value
-    public var connection: [HTTPMethod] {
+    public var connection: [HTTPHeaders.Name] {
         get {
-            return self.storage[.connection]?.map({ HTTPMethod($0) }) ?? []
+            return self.storage[.connection]?.map({ HTTPHeaders.Name($0) }) ?? []
         }
         set {
             // TOCHECK: Only keepAlive is valid?
             if !newValue.isEmpty {
-                self.storage[.connection] = newValue.flatMap { $0.method }
+                self.storage[.connection] = newValue.flatMap { $0.lowercased }
             } else {
                 self.storage[.connection] = nil
             }
@@ -879,14 +886,14 @@ extension HTTPHeaders {
         return (lower ?? 0, upper, total)
     }
     
-    fileprivate func createRange(from: Int64, to: Int64? = nil, total: Int64? = nil) -> String? {
+    fileprivate func createRange(from: Int64, to: Int64? = nil, total: Int64? = nil, type: HTTPHeaders.RangeType = .bytes) -> String? {
         guard from >= 0, (to ?? 0) >= 0, (total ?? 1) >= 1 else {
             return total.flatMap({ "*/\($0)" })
         }
         let toString = to.flatMap(String.init) ?? ""
         let totalString = total.flatMap({ "/\($0)" }) ?? "/*"
 
-        return "bytes=\(from)-\(toString)\(totalString)"
+        return "\(type.rawValue)=\(from)-\(toString)\(totalString)"
     }
     
     /// Returns `Content-Range` header value
@@ -894,7 +901,7 @@ extension HTTPHeaders {
     public var contentRange: Range<Int64>? {
         // TODO: return PartialRangeFrom when possible
         get {
-            guard let elements = self.storage[.contentMD5]?.first.flatMap({ self.dissectRange($0) }) else {
+            guard let elements = self.storage[.contentRange]?.first.flatMap({ self.dissectRange($0) }) else {
                 return nil
             }
             let to = elements.to.flatMap({ $0 + 1 }) ?? Int64.max
@@ -902,26 +909,34 @@ extension HTTPHeaders {
         }
     }
     
-    // Set `Content-Range` header
-    public mutating func set(contentRange: Range<Int64>, size: Int64? = nil) {
-        // TOCHECK: size >= contentRange.count
-        let rangeStr = contentRange.upperBound == Int64.max ?
-            createRange(from: contentRange.lowerBound, total: size) :
-            createRange(from: contentRange.lowerBound, to: contentRange.upperBound - 1, total: size)
+    /// Returns `Content-Range` type, usually `.bytes`
+    public var contentRangeType: RangeType? {
+        get {
+            return self.storage[.contentRange]?.first?.components(separatedBy: "=").first.flatMap(HTTPHeaders.RangeType.init(rawValue:))
+        }
+    }
+    
+    /// Set `Content-Range` header
+    public mutating func set(contentRange: Range<Int64>, size: Int64? = nil, type: HTTPHeaders.RangeType = .bytes) {
+        // TOCHECK: size >= contentRange.count, type != .none
+        let upper: Int64? = contentRange.upperBound == Int64.max ? nil : (contentRange.upperBound - 1)
+        let rangeStr = createRange(from: contentRange.lowerBound, to: upper, total: size, type: type)
         self.storage[.contentRange] = rangeStr.flatMap { [$0] }
     }
-    public mutating func set(contentRange: ClosedRange<Int64>, size: Int64? = nil) {
-        // TOCHECK: size >= contentRange.count
-        let rangeStr = contentRange.upperBound == Int64.max ?
-            createRange(from: contentRange.lowerBound, total: size) :
-            createRange(from: contentRange.lowerBound, to: contentRange.upperBound, total: size)
+    
+    /// Set `Content-Range` header, set upperbound to `Int64.max` to set an opened-end range
+    public mutating func set(contentRange: ClosedRange<Int64>, size: Int64? = nil, type: HTTPHeaders.RangeType = .bytes) {
+        // TOCHECK: size >= contentRange.count, type != .none
+        let upper: Int64? = contentRange.upperBound == Int64.max ? nil : (contentRange.upperBound - 1)
+        let rangeStr = createRange(from: contentRange.lowerBound, to: upper, total: size, type: type)
         self.storage[.contentRange] = rangeStr.flatMap { [$0] }
     }
     
     #if swift(>=4.0)
     /// Set half-open `Content-Range`
-    public mutating func set(contentRange: PartialRangeFrom<Int64>) {
-        let rangeStr = createRange(from: contentRange.lowerBound)
+    public mutating func set(contentRange: PartialRangeFrom<Int64>, size: Int64? = nil, type: HTTPHeaders.RangeType = .bytes) {
+        // TOCHECK: size >= 0, type != .none
+        let rangeStr = createRange(from: contentRange.lowerBound, total: size, type: type)
         self.storage[.contentRange] = rangeStr.flatMap { [$0] }
     }
     #endif
@@ -975,6 +990,7 @@ extension HTTPHeaders {
             return self.storage[.date]?.first.flatMap(Date.init(rfcString:))
         }
         set {
+            // TOCHECK: newValue <= Date()
             self.storage[.date] = newValue.flatMap { [$0.format(with: .http)] }
         }
     }
@@ -996,6 +1012,7 @@ extension HTTPHeaders {
             return self.storage[.expires]?.first.flatMap(Date.init(rfcString:))
         }
         set {
+            // TOCHECK: newValue =< Date() + 1 year
             self.storage[.expires] = newValue.flatMap { [$0.format(with: .http)] }
         }
     }
@@ -1006,6 +1023,7 @@ extension HTTPHeaders {
             return self.storage[.lastModified]?.first.flatMap(Date.init(rfcString:))
         }
         set {
+            // TOCHECK: newValue <= Date()
             self.storage[.lastModified] = newValue.flatMap { [$0.format(with: .http)] }
         }
     }
