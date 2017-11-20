@@ -15,7 +15,7 @@ extension HTTPHeaders {
         public var rawValue: String
         public typealias RawValue = String
         public typealias StringLiteralType = String
-
+        
         public init(rawValue: String) {
             self.rawValue = rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         }
@@ -31,7 +31,27 @@ extension HTTPHeaders {
         public var hashValue: Int { return rawValue.hashValue }
         
         public static func == (lhs: MediaType, rhs: MediaType) -> Bool {
-            return lhs.rawValue == rhs.rawValue
+            return lhs.rawValue.replacingOccurrences(of: "/x-", with: "/") == rhs.rawValue.replacingOccurrences(of: "/x-", with: "/")
+        }
+        
+        /// Returns true if media type provided in argument can be returned as `Content-Type`
+        /// when this media type is provided by `Accept` header.
+        public func canAccept(_ value: MediaType) -> Bool {
+            // Removing nonstandard `x-` prefix
+            // see [RFC 6838](https://tools.ietf.org/html/rfc6838)
+            let rhsValue = self.rawValue.replacingOccurrences(of: "/x-", with: "/")
+            let lhsValue = value.rawValue.replacingOccurrences(of: "/x-", with: "/")
+            
+            if rhsValue == lhsValue || rhsValue == "*/*" {
+                return true
+            }
+            
+            // Check if rhs is wildcard and has common general type
+            if rhsValue.hasSuffix("/*") && lhsValue.commonPrefix(with: rhsValue).hasSuffix("/") {
+                return true
+            }
+            
+            return false
         }
         
         /// Directory
@@ -72,24 +92,17 @@ extension HTTPHeaders {
         static public let css = MediaType(linted: "text/css")
         /// eXtended Markup language
         static public let xml = MediaType(linted: "text/xml")
+        /// eXtended Hyper-text markup language
+        static public let xhtml = MediaType(linted: "application/xhtml+xml")
         /// Javascript code file
         static public let javascript = MediaType(linted: "application/javascript")
         /// Javascript notation
         static public let json = MediaType(linted: "application/json")
         
-        // Documents
-        
-        /// Rich text file (RTF)
-        static public let richText = MediaType(linted: "application/rtf")
-        /// Excel 2013 (OOXML) document
-        static public let excel = MediaType(linted: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-        /// Powerpoint 2013 (OOXML) document
-        static public let powerpoint = MediaType(linted: "application/vnd.openxmlformats-officedocument.presentationml.slideshow")
-        /// Word 2013 (OOXML) document
-        static public let word = MediaType(linted: "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-        
         // Images
         
+        /// All Image types
+        static public let image = MediaType(linted: "image/bmp")
         /// Bitmap
         static public let bmp = MediaType(linted: "image/bmp")
         /// Graphics Interchange Format photo
@@ -189,30 +202,71 @@ extension HTTPHeaders {
         public static func ==(lhs: HTTPHeaders.ContentDisposition, rhs: HTTPHeaders.ContentDisposition) -> Bool {
             return lhs.description == rhs.description
         }
-}
+    }
     
+    ///
     public enum CacheControl: CustomStringConvertible, Equatable {
         // Both Request and Response
         
+        /// `no-cache` header value. The cache should not store anything about the client request or server response.
         case noCache
+        /// `no-store` header value.
         case noStore
+        /// `no-transform` header value. No transformations or conversions should be made to the resource.
+        /// The Content-Encoding, Content-Range, Content-Type headers must not be modified by a proxy.
         case noTransform
+        /// `max-age=<seconds>` header value. Specifies the maximum amount of
+        /// relative time a resource will be considered fresh.
         case maxAge(TimeInterval)
-        
+        /// custom header value undefined in `CacheControl` enum, parsed as `name=value` if there is
+        /// a value or `name` if no value is provided.
+        ///
+        /// `immutable`, `stale-while-revalidate=<seconds>`
+        case custom(String, value: String?)
+
         // Only Request
         
+        /// `only-if-cached` header value, should be used in request header only. Indicates to
+        /// not retrieve new data. The client only wishes to obtain a cached response,
+        /// and should not contact the origin-server to see if a newer copy exists.
         case onlyIfCached
+        /// `max-stale=<seconds>` header value, should be used in request header only.
+        /// Indicates that the client is willing to accept a response that has exceeded its expiration time.
         case maxStale(TimeInterval)
+        /// `min-fresh=<seconds>` header value, should be used in request header only.
+        /// Indicates that the client wants a response that will still be fresh for at least
+        /// the specified number of seconds.
         case minFresh(TimeInterval)
         
         // Only Response
         
+        /// `public` header value, should be used in response header only.
+        /// Indicates that the response may be cached by any cache.
         case `public`
+        /// `private` header value, should be used in response header only.
+        /// Indicates that the response is intended for a single user and must not be stored by
+        /// a shared cache. A private cache may store the response.
         case `private`
+        /// `private=<field>` header value, should be used in response header only.
+        /// Indicates that the response is intended for a single user and must not be stored by
+        /// a shared cache. A private cache may store the response limited to the field-values
+        /// associated with the listed response header fields.
         case privateWithField(field: String)
+        /// `no-cache=<field>` header value, should be used in response header only.
+        /// Forces caches to submit the request to the origin server for validation before releasing a
+        /// cached copy limited to the field-values associated with the listed response header fields.
         case noCacheWithField(field: String)
+        /// `must-revalidate` header value, should be used in response header only.
+        /// The cache must verify the status of the stale resources before using it and
+        /// expired ones should not be used.
         case mustRevalidate
+        /// `proxy-revalidate` header value, should be used in response header only.
+        /// Same as `must-revalidate`, but it only applies to shared caches (e.g., proxies)
+        /// and is ignored by a private cache.
         case proxyRevalidate
+        /// `s-maxage=<seconds>` header value, should be used in response header only.
+        /// Overrides `max-age` or the `Expires` header, but it only applies to shared caches\
+        /// (e.g., proxies) and is ignored by a private cache.
         case sMaxAge(TimeInterval)
         
         public var description: String {
@@ -245,6 +299,9 @@ extension HTTPHeaders {
                 return "proxy-revalidate"
             case .sMaxAge(let interval):
                 return "s-maxage=\(Int(interval))"
+            case .custom(let name, value: let value):
+                let v = value.flatMap({ "=\($0)" }) ?? ""
+                return "\(name)\(v)"
             }
         }
         
@@ -282,7 +339,9 @@ extension HTTPHeaders {
             case "s-maxage":
                 self = .sMaxAge(TimeInterval(val) ?? 0)
             default:
-                return nil
+                let nameparam = rawValue.components(separatedBy: "=")
+                guard let name = nameparam.first else { return nil }
+                self = .custom(name, value: nameparam.dropFirst().first)
             }
         }
         
@@ -294,7 +353,7 @@ extension HTTPHeaders {
     /// Defines HTTP Authorization request
     /// -Note: Paramters may be quoted or not according to RFCs
     public enum Authorization: CustomStringConvertible {
-        /// Basic method [RFC7617](http://www.iana.org/go/rfc7617)
+        /// Basic base64-encoded method [RFC7617](http://www.iana.org/go/rfc7617)
         case basic(user: String, password: String)
         /// Digest method [RFC7616](http://www.iana.org/go/rfc7616)
         case digest(params: [String: String])
@@ -426,20 +485,32 @@ extension HTTPHeaders {
     /// Challenge defined in WWW-Authenticate
     /// -Note: Paramters may be quoted or not according to RFCs
     public struct Challenge: CustomStringConvertible {
+        /// Type of challenge
         let type: ChallengeType
+        /// All parameters associated to challenge
         let parameters: [String: String]
+        /// token parameter provided
+        var token: String? {
+            return parameters.first(where: { $0.value.isEmpty })?.key
+        }
+        /// `realm` parameter without quotations
         var realm: String? {
             return parameters["realm"]?.trimmingCharacters(in: .quoted)
         }
+        /// `charset` parameter as String.Encoding
         var charset: String.Encoding? {
             return parameters["charset"].flatMap(HTTPHeaders.charsetIANAToStringEncoding)
         }
         
+        /// Inits a noew
         public init(type: ChallengeType, token: String? = nil, realm: String? = nil, charset: String.Encoding? = nil, parameters: [String: String] = [:]) {
             self.type = type
             var parameters = parameters
             parameters["realm"] = (realm?.trimmingCharacters(in: .quoted)).flatMap({ "\"\($0)\""})
             parameters["charset"] = charset.flatMap(HTTPHeaders.StringEncodingToIANA)
+            if let token = token {
+                parameters[token] = ""
+            }
             self.parameters = parameters
         }
         
@@ -448,11 +519,14 @@ extension HTTPHeaders {
             guard let type = typeSegment.first.flatMap(ChallengeType.init) else { return nil }
             self.type = type
             let allparams = typeSegment.dropFirst().joined(separator: " ")
-            self.parameters = HTTPHeaders.parseParams(allparams)
+            self.parameters = HTTPHeaders.parseParams(allparams, separator: ",")
         }
         
         public var description: String {
-            let params = parameters.map({ "\($0.key)=\($0.value)" }).joined(separator: ", ")
+            let params = parameters.map({
+                !$0.value.isEmpty ? "\($0.key)=\($0.value)" : "\($0.key)"
+                
+            }).joined(separator: ", ")
             return "\(type.description) \(params)"
         }
     }
@@ -460,8 +534,11 @@ extension HTTPHeaders {
     /// Challenge defined in WWW-Authenticate
     /// -Note: Paramters may be quoted or not according to RFCs
     public struct ContentType: CustomStringConvertible {
+        /// Media type (MIME) of content
         let mediaType: HTTPHeaders.MediaType
+        /// All parameter provided with content type
         let parameters: [String: String]
+        /// charset parameter of content type
         var charset: String.Encoding? {
             return parameters["charset"].flatMap(HTTPHeaders.charsetIANAToStringEncoding)
         }
@@ -556,9 +633,11 @@ extension HTTPHeaders {
         case trailers
     }
     
+    /// Values for `If-Range` header.
     public enum IfRange: CustomStringConvertible, Equatable, Hashable {
-        
+        /// An entry tag for `If-Range` to be checked againt `ETag`
         case tag(EntryTag)
+        /// an entry tag for `If-Range` to be checked againt `Last-Modified`
         case date(Date)
         
         public init( _ rawValue: String) {
@@ -618,7 +697,7 @@ extension HTTPHeaders {
     
     // MARK: Request Headers
     
-    /// Fetch `Accept` header values, sorted by `q` parameter
+    /// Fetch `Accept` header values, sorted by `q` parameter.
     public var accept: [MediaType] {
         get {
             let values: [String]? = self.storage[.accept]?.sorted {
@@ -631,13 +710,17 @@ extension HTTPHeaders {
         }
     }
     
-    /// Sets new value for `Accept` header and removes previous values if set
+    /// Sets new value for `Accept` header and removes previous values if set.
+    /// - Parameter accept: Media type to be accepted.
+    /// - Parameter quality: `q` value used to prioritize values, between 0.0 and 1.0.
     public mutating func set(accept: MediaType, quality: Double?) {
         self.storage[.accept]?.removeAll()
         self.add(accept: accept, quality: quality)
     }
     
-    /// Adds a new `Accept` header value
+    /// Adds a new `Accept` header value to list.
+    /// - Parameter accept: Media type to be accepted.
+    /// - Parameter quality: `q` value used to prioritize values, between 0.0 and 1.0.
     public mutating func add(accept: MediaType, quality: Double?) {
         if self.storage[.accept] == nil {
             self.storage[.accept] = []
@@ -650,13 +733,17 @@ extension HTTPHeaders {
     }
     
     /// Sets new value for `Accept-Encoding` header and removes previous values if set
-    mutating func set(acceptCharset: String.Encoding, quality: Double? = nil) {
+    /// - Parameter acceptCharset: Text encoding to be accepted.
+    /// - Parameter quality: `q` value used to prioritize values, between 0.0 and 1.0.
+   mutating func set(acceptCharset: String.Encoding, quality: Double? = nil) {
         self.storage[.acceptCharset]?.removeAll()
         self.add(acceptCharset: acceptCharset, quality: quality)
     }
     
     /// Adds a new `Accept-Encoding` header value
-    mutating func add(acceptCharset: String.Encoding, quality: Double? = nil) {
+    /// - Parameter acceptCharset: Text encoding to be accepted.
+    /// - Parameter quality: `q` value used to prioritize values, between 0.0 and 1.0.
+   mutating func add(acceptCharset: String.Encoding, quality: Double? = nil) {
         if self.storage[.acceptCharset] == nil {
             self.storage[.acceptCharset] = []
         }
@@ -668,7 +755,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Accept-Datetime` header
+    /// `Accept-Datetime` header.
     public var acceptDatetime: Date? {
         get {
             return self.storage[.acceptDatetime]?.first.flatMap(Date.init(rfcString:))
@@ -692,12 +779,16 @@ extension HTTPHeaders {
     }
     
     /// Sets new value for `Accept` header and removes previous values if set
-    public mutating func set(acceptEncoding: Encoding, quality: Double?) {
+    /// - Parameter acceptEncoding: HTTP Encoding to be accepted.
+    /// - Parameter quality: `q` value used to prioritize values, between 0.0 and 1.0.
+   public mutating func set(acceptEncoding: Encoding, quality: Double?) {
         self.storage[.acceptEncoding]?.removeAll()
         self.add(acceptEncoding: acceptEncoding, quality: quality)
     }
     
     /// Adds a new `Accept` header value
+    /// - Parameter acceptEncoding: HTTP Encoding to be accepted.
+    /// - Parameter quality: `q` value used to prioritize values, between 0.0 and 1.0.
     public mutating func add(acceptEncoding: Encoding, quality: Double?) {
         if self.storage[.acceptEncoding] == nil {
             self.storage[.acceptEncoding] = []
@@ -709,7 +800,7 @@ extension HTTPHeaders {
         }
     }
     
-    // `Authorization` header value
+    // `Authorization` header value.
     public var authorization: HTTPHeaders.Authorization? {
         get {
             return self.storage[.authorization]?.first.flatMap(Authorization.init)
@@ -719,7 +810,7 @@ extension HTTPHeaders {
         }
     }
     
-    // `Cookie` header value
+    // `Cookie` header value.
     public var cookie: [HTTPCookie] {
         // Regarding `Cookie2` is obsolete, should we have to integrate it into values?
         let pairs: [(key: String, val: String)] = (self.storage[.cookie]?.first?.components(separatedBy: ";").flatMap { text in
@@ -737,7 +828,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `If-Match` header etag value
+    /// `If-Match` header etag value.
     public var ifMatch: [EntryTag] {
         get {
             return (self.storage[.ifMatch] ?? []).map(EntryTag.init)
@@ -752,7 +843,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `If-None-Match` header etag value
+    /// `If-None-Match` header etag value.
     public var ifNoneMatch: [EntryTag] {
         get {
             return (self.storage[.ifNoneMatch] ?? []).map(EntryTag.init)
@@ -767,7 +858,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `If-Range` header etag value
+    /// `If-Range` header etag value.
     public var ifRange: HTTPHeaders.IfRange? {
         get {
             return self.storage[.ifRange]?.first.flatMap(IfRange.init)
@@ -777,7 +868,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `If-Modified-Since` header value
+    /// `If-Modified-Since` header value.
     public var ifModifiedSince: Date? {
         get {
             return self.storage[.ifModifiedSince]?.first.flatMap(Date.init(rfcString:))
@@ -787,7 +878,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `If-Unmodified-Since` header value
+    /// `If-Unmodified-Since` header value.
     public var ifUnmodifiedSince: Date? {
         get {
             return self.storage[.ifUnmodifiedSince]?.first.flatMap(Date.init(rfcString:))
@@ -797,7 +888,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Origin` header value
+    /// `Origin` header value.
     public var origin: URL? {
         get {
             return self.storage[.origin]?.first.flatMap(URL.init(string:))
@@ -807,8 +898,8 @@ extension HTTPHeaders {
         }
     }
     
-    /// Returns `Range` header value
-    /// - Note: upperbound will be Int64.max in case of open ended Range
+    /// Returns `Range` header value.
+    /// - Note: upperbound will be Int64.max in case of open ended Range.
     public var range: Range<Int64>? {
         // TODO: return PartialRangeFrom when possible
         get {
@@ -827,7 +918,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Referer` header value
+    /// `Referer` header value.
     public var referer: URL? {
         get {
             return self.storage[.referer]?.first.flatMap(URL.init(string:))
@@ -837,7 +928,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// Fetch `TE` header values, sorted by `q` parameter
+    /// Fetch `TE` header values, sorted by `q` parameter.
     public var te: [Encoding] {
         get {
             let values: [String]? = self.storage[.te]?.sorted {
@@ -850,7 +941,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// Returns client's browser name and version using `User-Agent`
+    /// Returns client's browser name and version using `User-Agent`.
     public var clientBrowser: (name: String, version: Float?)? {
         
         func getVersion(_ value: String) -> (name: String, version: Float?) {
@@ -866,17 +957,16 @@ extension HTTPHeaders {
         
         let dissect = agent.components(separatedBy: " ")
         
-        // All standard browsers begins with `"Mozila/5.0"`
         // Presto-based Opera, Crawlers, Custom apps
+        // Many common browsers begins with `"Mozila/5.0"`
         guard agent.hasPrefix("Mozilla/5.0 ") else {
             return dissect.first.flatMap(getVersion)
         }
         
         // Checking for browsers, Ordered by commonness and exclusivity of browser name in user-agent string
         
-        // For performance, checking user-agent reversed order for some
+        // For performance, checking user-agent are reversed order for some
         let rdissect = dissect.reversed()
-        // All standard browsers begins with `"Mozila/5.0"`
         if let firefox = rdissect.first(where: { $0.hasPrefix("Firefox") }) {
             return getVersion(firefox)
         }
@@ -895,10 +985,12 @@ extension HTTPHeaders {
         // Safari browser
         if rdissect.first(where: { $0.hasPrefix("Safari") }) != nil {
             let version = dissect.first(where: { $0.hasPrefix("Version") }).flatMap(getVersion)
-            return ("Safari", version?.version)
+            // Sould we distinguish Mobile Safari & Desktop Safari?
+            let isMobile = rdissect.index(of: "Mobile") != nil
+            return (isMobile ? "Mobile Safari" : "Safari", version?.version)
         }
         // UIWebView, Game Consoles
-        if let webkit = dissect.first(where: { $0.hasPrefix("AppleWebKit") }) {
+        if let webkit = dissect.first(where: { $0.hasPrefix("AppleWebKit") || $0.hasPrefix("WebKit") }) {
             return getVersion(webkit)
         }
         // Gecko based browsers
@@ -915,12 +1007,13 @@ extension HTTPHeaders {
         if let googlebot = dissect.first(where: { $0.hasPrefix("Googlebot") }) {
             return getVersion(googlebot)
         }
+        // Should we add Avant, iCab and Konqueror/konqueror?
         return ("Mozila", 5.0) // Indeed unknown browser but compatible with Mozila
     }
     
-    /// Returns client's operating system name and version (if available) using `User-Agent`
-    /// - Note: return value for macOS begins with `"Intel Mac OS X"`
-    /// - Note: return value for iOS begins with `"iPhone OS"`
+    /// Returns client's operating system name and version (if available) using `User-Agent`.
+    /// - Note: return value for macOS begins with `"Intel Mac OS X"` or `"PPC Mac OS X"`.
+    /// - Note: return value for iOS begins with `"iOS"`.
     public var clientOperatingSystem: String? {
         guard let agent = self.storage[.userAgent]?.first else {
             return nil
@@ -933,9 +1026,10 @@ extension HTTPHeaders {
         // Extract first paranthesis enclosed substring
         let deviceString = String(agent[parIndex..<(agent.index(of: ")") ?? agent.endIndex)])
         var deviceArray = deviceString.trimmingCharacters(in: CharacterSet(charactersIn: " ;()")).components(separatedBy: ";").map({ $0.trimmingCharacters(in: .whitespaces) })
-        // Remove frequent but meanless ids
+        // Remove frequent but meaningless ids
         let isX11 = deviceArray.index(of: "X11") != nil
-        deviceArray = deviceArray.filter({ $0 != "X11" && $0 != "U" && $0 != "compatible" })
+        let removable: [String] = ["X11", "U", "I", "compatible", "Macintosh"]
+        deviceArray = deviceArray.filter({ !removable.contains($0) })
         
         // Check for known misarrangements!
         
@@ -947,13 +1041,14 @@ extension HTTPHeaders {
         if let android = deviceArray.first(where: { $0.hasPrefix("Android") }) {
             return android
         }
-        // Check iOS
-        if let ios = deviceArray.first(where: { $0.hasPrefix("CPU iPhone OS") }) {
-            return ios.components(separatedBy: " ").dropFirst().prefix(3).joined(separator: " ").replacingOccurrences(of: "_", with: ".")
+        // Check Tizen
+        if let tizen = deviceArray.first(where: { $0.hasPrefix("Tizen") }) {
+            return tizen
         }
-        // Check macOS
-        if let macos = deviceArray.first(where: { $0.hasPrefix("Intel Mac OS X") }) {
-            return macos.replacingOccurrences(of: "_", with: ".")
+        // Check iOS
+        if let ios = deviceArray.first(where: { $0.hasPrefix("CPU iPhone OS") || $0.hasPrefix("CPU OS") }) {
+            let version = ios.components(separatedBy: " OS ").dropFirst().first?.replacingOccurrences(of: "_", with: ".") ?? ""
+            return "iOS \(version)"
         }
         
         return deviceArray.first ?? (isX11 ? "X11" : nil)
@@ -961,7 +1056,7 @@ extension HTTPHeaders {
     
     // MARK: Response Headers
     
-    /// `Accept-Ranges` header value
+    /// `Accept-Ranges` header value.
     public var acceptRanges: RangeType? {
         get {
             return self.storage[.acceptRanges]?.first.flatMap(RangeType.init(rawValue:))
@@ -971,7 +1066,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Age` header value
+    /// `Age` header value.
     public var age: TimeInterval? {
         get {
             return self.storage[.age]?.first.flatMap(TimeInterval.init)
@@ -982,7 +1077,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Allow` header value
+    /// `Allow` header value.
     public var allow: [HTTPMethod] {
         get {
             return self.storage[.allow]?.flatMap({ HTTPMethod($0) }) ?? []
@@ -996,19 +1091,23 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Cache-Control` header value
+    /// `Cache-Control` header values.
     /// - Note: Please set appropriate value according to request/response state of header.
     ///     No control is implmemted to check either value is appropriate for type of header or not.
-    public var cacheControl: HTTPHeaders.CacheControl? {
+    public var cacheControl: [HTTPHeaders.CacheControl] {
         get {
-            return self.storage[.cacheControl]?.first.flatMap(CacheControl.init)
+            return self.storage[.cacheControl]?.flatMap(CacheControl.init) ?? []
         }
         set {
-            self.storage[.cacheControl] = newValue.flatMap { [$0.description] }
+            if !newValue.isEmpty {
+                self.storage[.cacheControl] = newValue.flatMap { $0.description }
+            } else {
+                self.storage[.cacheControl] = nil
+            }
         }
     }
     
-    /// `Connection` header value
+    /// `Connection` header value.
     public var connection: [HTTPHeaders.Name] {
         get {
             return self.storage[.connection]?.map({ HTTPHeaders.Name($0) }) ?? []
@@ -1023,7 +1122,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Content-Disposition` header value
+    /// `Content-Disposition` header value.
     public var contentDisposition: HTTPHeaders.ContentDisposition? {
         get {
             return self.storage[.contentDisposition]?.first.flatMap(ContentDisposition.init)
@@ -1033,7 +1132,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Content-Encoding` header value
+    /// `Content-Encoding` header value.
     public var contentEncoding: HTTPHeaders.Encoding? {
         get {
             return self.storage[.contentEncoding]?.first.flatMap(Encoding.init)
@@ -1043,7 +1142,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Content-Language` header value
+    /// `Content-Language` header value.
     public var contentLanguage: Locale? {
         get {
             return self.storage[.contentLanguage]?.first.flatMap(Locale.init(identifier:))
@@ -1053,18 +1152,18 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Content-Length` header value
+    /// `Content-Length` header value.
     public var contentLength: Int64? {
         get {
             return self.storage[.contentLength]?.first.flatMap { Int64($0) }
         }
         set {
-            // TOCHECK: Can't be a negative value
+            // TOCHECK: Can't be a negative value.
             self.storage[.contentLength] = newValue.flatMap { [String($0)] }
         }
     }
     
-    /// `Content-Location` header value
+    /// `Content-Location` header value.
     public var contentLocation: URL? {
         get {
             return self.storage[.contentLocation]?.first.flatMap(URL.init(string:))
@@ -1074,7 +1173,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Content-MD5` header value, parsed from Base64 into `Data`
+    /// `Content-MD5` header value, parsed from Base64 into `Data`.
     public var contentMD5: Data? {
         get {
             return self.storage[.contentMD5]?.first.flatMap { Data(base64Encoded: $0) }
@@ -1110,8 +1209,8 @@ extension HTTPHeaders {
         return "\(type.rawValue)=\(from)-\(toString)\(totalString)"
     }
     
-    /// Returns `Content-Range` header value
-    /// - Note: upperbound will be Int64.max in case of open ended Range
+    /// Returns `Content-Range` header value.
+    /// - Note: upperbound will be Int64.max in case of open ended Range.
     public var contentRange: Range<Int64>? {
         // TODO: return PartialRangeFrom when possible
         get {
@@ -1123,14 +1222,14 @@ extension HTTPHeaders {
         }
     }
     
-    /// Returns `Content-Range` type, usually `.bytes`
+    /// Returns `Content-Range` type, usually `.bytes`.
     public var contentRangeType: RangeType? {
         get {
             return self.storage[.contentRange]?.first?.components(separatedBy: "=").first.flatMap(HTTPHeaders.RangeType.init(rawValue:))
         }
     }
     
-    /// Set `Content-Range` header
+    /// Set `Content-Range` header.
     public mutating func set(contentRange: Range<Int64>, size: Int64? = nil, type: HTTPHeaders.RangeType = .bytes) {
         // TOCHECK: size >= contentRange.count, type != .none
         let upper: Int64? = contentRange.upperBound == Int64.max ? nil : (contentRange.upperBound - 1)
@@ -1138,7 +1237,7 @@ extension HTTPHeaders {
         self.storage[.contentRange] = rangeStr.flatMap { [$0] }
     }
     
-    /// Set `Content-Range` header, set upperbound to `Int64.max` to set an opened-end range
+    /// Set `Content-Range` header, set upperbound to `Int64.max` to set an opened-end range.
     public mutating func set(contentRange: ClosedRange<Int64>, size: Int64? = nil, type: HTTPHeaders.RangeType = .bytes) {
         // TOCHECK: size >= contentRange.count, type != .none
         let upper: Int64? = contentRange.upperBound == Int64.max ? nil : (contentRange.upperBound - 1)
@@ -1147,7 +1246,7 @@ extension HTTPHeaders {
     }
     
     #if swift(>=4.0)
-    /// Set half-open `Content-Range`
+    /// Set half-open `Content-Range`.
     public mutating func set(contentRange: PartialRangeFrom<Int64>, size: Int64? = nil, type: HTTPHeaders.RangeType = .bytes) {
         // TOCHECK: size >= 0, type != .none
         let rangeStr = createRange(from: contentRange.lowerBound, total: size, type: type)
@@ -1155,7 +1254,7 @@ extension HTTPHeaders {
     }
     #endif
     
-    /// `Content-Type` header value
+    /// `Content-Type` header value.
     public var contentType: ContentType? {
         get {
             return self.storage[.contentType]?.first.flatMap(ContentType.init)
@@ -1165,7 +1264,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Date` header value
+    /// `Date` header value.
     public var date: Date? {
         get {
             return self.storage[.date]?.first.flatMap(Date.init(rfcString:))
@@ -1176,7 +1275,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `ETag` header value
+    /// `ETag` header value.
     public var eTag: EntryTag? {
         get {
             return self.storage[.eTag]?.first.flatMap(EntryTag.init)
@@ -1187,7 +1286,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Expires` header value
+    /// `Expires` header value.
     public var expires: Date? {
         get {
             return self.storage[.expires]?.first.flatMap(Date.init(rfcString:))
@@ -1198,7 +1297,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Last-Modified` header value
+    /// `Last-Modified` header value.
     public var lastModified: Date? {
         get {
             return self.storage[.lastModified]?.first.flatMap(Date.init(rfcString:))
@@ -1209,7 +1308,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Location` header value
+    /// `Location` header value.
     public var location: URL? {
         get {
             return self.storage[.location]?.first.flatMap(URL.init(string:))
@@ -1219,7 +1318,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Pragma` header value
+    /// `Pragma` header value.
     public var pragma: Pragma? {
         get {
             return self.storage[.pragma]?.first.flatMap(Pragma.init)
@@ -1229,10 +1328,13 @@ extension HTTPHeaders {
         }
     }
     
+    /// `Set-Cookie` header values.
     public var setCookie: [HTTPCookie] {
         return self.storage[.setCookie]?.flatMap({ HTTPCookie.cookies(withResponseHeaderFields: ["Set-Cookie": $0], for: URL(string: "/")!) }) ?? []
     }
     
+    /// Appends a cookie to`Set-Cookie` header values.
+    /// - Parameter setCookie: The cookie object to be appended.
     public mutating func add(setCookie cookie: HTTPCookie) {
         if self.storage[.setCookie] == nil {
             self.storage[.setCookie] = []
@@ -1250,6 +1352,17 @@ extension HTTPHeaders {
         self.storage[.setCookie]?.append(cookieString)
     }
     
+    /// Appends a cookie to`Set-Cookie` header values.
+    /// - Parameter name: Name of cookie.
+    /// - Parameter name: Value of cookie. Can be empty string of cookie has no value.
+    /// - Parameter path: Indicates a URL path that must exist in the requested resource.
+    /// - Parameter domain: Specifies those hosts to which the cookie will be sent.
+    /// - Parameter expiresDate: The maximum lifetime of the cookie as an HTTP-date timestamp.
+    /// - Parameter maximumAge: Number of seconds until the cookie expires.
+    /// - Parameter comment: Comment of cookie application shown in browser settings to user.
+    /// - Parameter isSecure: Cookie has `Secure` attribute. HTTPS encrypted sites will be supported if ture.
+    /// - Parameter isHTTPOnly: Cookie has `HTTPOnly` attribute, unaccessible by javascript.
+    /// - Parameter others: Other possible parameters for cookie.
     public mutating func add(setCookie name: String, value: String, path: String, domain: String, expiresDate: Date? = nil, maximumAge: TimeInterval? = nil, comment: String? = nil, isSecure: Bool = false, isHTTPOnly: Bool = false, others: [String: String] = [:]) {
         if self.storage[.setCookie] == nil {
             self.storage[.setCookie] = []
@@ -1270,7 +1383,7 @@ extension HTTPHeaders {
         self.storage[.setCookie]?.append(cookieString)
     }
     
-    /// `Trailer` header value
+    /// `Trailer` header value.
     public var trailer: [HTTPMethod] {
         get {
             return self.storage[.trailer]?.flatMap({ HTTPMethod($0) }) ?? []
@@ -1285,7 +1398,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Vary` header value
+    /// `Vary` header value.
     public var vary: [HTTPMethod] {
         get {
             return self.storage[.vary]?.flatMap({ HTTPMethod($0) }) ?? []
@@ -1300,6 +1413,7 @@ extension HTTPHeaders {
         }
     }
     
+    /// `WWW-Authenticate` header value.
     public var wwwAuthenticate: HTTPHeaders.Challenge? {
         get {
             return self.storage[.wwwAuthenticate]?.first.flatMap(Challenge.init)
@@ -1311,17 +1425,20 @@ extension HTTPHeaders {
 }
 
 extension HTTPHeaders {
+    /// Returns percent encoded string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
     fileprivate static func rfc5987String(_ value: String) -> String {
         let encoded = value.addingPercentEncoding(withAllowedCharacters: .legal) ?? value
         return "UTF-8''\(encoded)"
     }
     
+    /// Removing non latin characters from string.
     fileprivate static func isoLatinStripped(_ value: String) -> String {
         let isoLatinCharset = CharacterSet.init(charactersIn: Unicode.Scalar(32)..<Unicode.Scalar(255))
         let isoLatin = value.filter({ $0.unicodeScalars.count == 1 ? isoLatinCharset.contains($0.unicodeScalars.first!) : false })
         return isoLatin
     }
     
+    /// Converts percent encoded to normal string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
     fileprivate static func parseRFC5987(_ value: String) -> String {
         let components = value.components(separatedBy: "'")
         guard components.count >= 3 else {
@@ -1332,6 +1449,7 @@ extension HTTPHeaders {
         return string.removingPercentEscapes(encoding: encoding) ?? string
     }
     
+    /// Converts `name=value` pairs into a dictionary
     fileprivate static func parseParams(_ value: String, separator: String = ";") -> [String: String] {
         let rawParams: [String] = value.components(separatedBy: separator).dropFirst().flatMap { param in
             let result = param.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1432,6 +1550,7 @@ fileprivate extension Date {
     }
     
     /// Formats date according to RFCs standard.
+    /// - Note: local and timezone paramters should be nil for `.http` standard
     func format(with standard: RFCStandards, locale: Locale? = nil, timeZone: TimeZone? = nil) -> String {
         let fm = DateFormatter()
         fm.dateFormat = standard.rawValue
@@ -1448,7 +1567,7 @@ fileprivate extension CharacterSet {
 }
 
 fileprivate extension String {
-    // Similiar method is deprecated in Foundation, we implemented ours
+    // Similiar method is deprecated in Foundation, we implemented ours!
     func removingPercentEscapes(encoding: String.Encoding) -> String? {
         if encoding == .utf8 {
             return self.removingPercentEncoding
