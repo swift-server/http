@@ -149,7 +149,9 @@ extension HTTPHeaders {
         /// Multipart mixed
         static public let multipart = MediaType(linted: "multipart/mixed")
         /// Multipart form-data
-        static public let formData = MediaType(linted: "multipart/form-data")
+        static public let multipartFormData = MediaType(linted: "multipart/form-data")
+        /// Multipart byteranges
+        static public let multipartByteranges = MediaType(linted: "multipart/byteranges")
     }
     
     /// Values available for `Conten-Disposition` header
@@ -486,19 +488,19 @@ extension HTTPHeaders {
     /// -Note: Paramters may be quoted or not according to RFCs
     public struct Challenge: CustomStringConvertible {
         /// Type of challenge
-        let type: ChallengeType
+        public let type: ChallengeType
         /// All parameters associated to challenge
-        let parameters: [String: String]
+        public let parameters: [String: String]
         /// token parameter provided
-        var token: String? {
+        public var token: String? {
             return parameters.first(where: { $0.value.isEmpty })?.key
         }
         /// `realm` parameter without quotations
-        var realm: String? {
+        public var realm: String? {
             return parameters["realm"]?.trimmingCharacters(in: .quoted)
         }
         /// `charset` parameter as String.Encoding
-        var charset: String.Encoding? {
+        public var charset: String.Encoding? {
             return parameters["charset"].flatMap(HTTPHeaders.charsetIANAToStringEncoding)
         }
         
@@ -622,6 +624,8 @@ extension HTTPHeaders {
         case deflate
         /// Compress body data using gzip method
         case gzip
+        /// Compress body data using bzip2 method
+        case bzip2
         /// Compress body data using brotli method
         case brotli = "br"
         
@@ -697,16 +701,20 @@ extension HTTPHeaders {
     
     // MARK: Request Headers
     
-    /// Fetch `Accept` header values, sorted by `q` parameter.
+    /// Fetch `Accept` header values, sorted by `q` parameter. An empty array means no value is set in header.
     public var accept: [MediaType] {
         get {
-            let values: [String]? = self.storage[.accept]?.sorted {
-                let q0 = HTTPHeaders.parseParams($0)["q"].flatMap(Double.init) ?? 1
-                let q1 = HTTPHeaders.parseParams($1)["q"].flatMap(Double.init) ?? 1
-                return q0 > q1
-            }
-            let results = (values ?? []).map { MediaType(rawValue: $0) }
-            return results
+            return self.storage[.accept]?.flatMap({ (value) -> (type: MediaType, q: Double)? in
+                let type = MediaType(rawValue: value)
+                let q = HTTPHeaders.parseParams(value)["q"].flatMap(Double.init) ?? 1
+                // Removing values with q=0 according to [RFC7231](https://tools.ietf.org/html/rfc7231)
+                if q == 0 {
+                    return nil
+                }
+                return (type, q)
+            }).sorted(by: {
+                $0.q > $1.q
+            }).map({ $0.type }) ?? []
         }
     }
     
@@ -765,16 +773,22 @@ extension HTTPHeaders {
         }
     }
     
-    /// Fetch `Accept-Encoding` header values, sorted by `q` parameter
+    /// Fetch `Accept-Encoding` header values, sorted by `q` parameter. An empty array means no value is set in header.
     public var acceptEncoding: [Encoding] {
         get {
-            let values: [String]? = self.storage[.acceptEncoding]?.sorted {
-                let q0 = HTTPHeaders.parseParams($0)["q"].flatMap(Double.init) ?? 1
-                let q1 = HTTPHeaders.parseParams($1)["q"].flatMap(Double.init) ?? 1
-                return q0 > q1
-            }
-            let results = (values ?? []).flatMap { Encoding(rawValue: $0) }
-            return results
+            return self.storage[.acceptEncoding]?.flatMap({ (value) -> (type: Encoding, q: Double)? in
+                guard let enc = Encoding(rawValue: value) else {
+                    return nil
+                }
+                let q = HTTPHeaders.parseParams(value)["q"].flatMap(Double.init) ?? 1
+                // Removing values with q=0 according to [RFC7231](https://tools.ietf.org/html/rfc7231)
+                if q == 0 {
+                    return nil
+                }
+                return (enc, q)
+            }).sorted(by: {
+                $0.q > $1.q
+            }).map({ $0.type }) ?? []
         }
     }
     
@@ -800,7 +814,26 @@ extension HTTPHeaders {
         }
     }
     
-    // `Authorization` header value.
+    /// Fetch `Accept-Encoding` header values, sorted by `q` parameter. An empty array means no value is set in header.
+    public var acceptLanguage: [Locale] {
+        get {
+            return self.storage[.acceptLanguage]?.flatMap({ (value) -> (type: Locale, q: Double)? in
+                guard let lang = value.components(separatedBy: ";").first?.trimmingCharacters(in: .whitespaces) else {
+                    return nil
+                }
+                let q = HTTPHeaders.parseParams(value)["q"].flatMap(Double.init) ?? 1
+                // Removing values with q=0 according to [RFC7231](https://tools.ietf.org/html/rfc7231)
+                if q == 0 {
+                    return nil
+                }
+                return (Locale(identifier: lang), q)
+            }).sorted(by: {
+                $0.q > $1.q
+            }).map({ $0.type }) ?? []
+        }
+    }
+    
+    /// `Authorization` header value.
     public var authorization: HTTPHeaders.Authorization? {
         get {
             return self.storage[.authorization]?.first.flatMap(Authorization.init)
@@ -810,7 +843,7 @@ extension HTTPHeaders {
         }
     }
     
-    // `Cookie` header value.
+    // `Cookie` header value. An empty array means no value is set in header.
     public var cookie: [HTTPCookie] {
         // Regarding `Cookie2` is obsolete, should we have to integrate it into values?
         let pairs: [(key: String, val: String)] = (self.storage[.cookie]?.first?.components(separatedBy: ";").flatMap { text in
@@ -828,7 +861,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `If-Match` header etag value.
+    /// `If-Match` header etag value. An empty array means no value is set in header.
     public var ifMatch: [EntryTag] {
         get {
             return (self.storage[.ifMatch] ?? []).map(EntryTag.init)
@@ -843,7 +876,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `If-None-Match` header etag value.
+    /// `If-None-Match` header etag value. An empty array means no value is set in header.
     public var ifNoneMatch: [EntryTag] {
         get {
             return (self.storage[.ifNoneMatch] ?? []).map(EntryTag.init)
@@ -898,16 +931,46 @@ extension HTTPHeaders {
         }
     }
     
-    /// Returns `Range` header value.
+    fileprivate func dissectRanges(_ value: String?) -> [(from: Int64, to: Int64?)] {
+        // Converting real negatives to _ to avoid conflict with - as separator
+        let value = value?.replacingOccurrences(of: "=-", with: "=_").replacingOccurrences(of: "--", with: "-_").replacingOccurrences(of: ",-", with: ",_")
+        guard let bytes = value?.components(separatedBy: "=").dropFirst().first?.trimmingCharacters(in: .whitespaces) else {
+            return []
+        }
+        
+        var ranges = [(from: Int64, to: Int64?)]()
+        for range in bytes.components(separatedBy: ",") {
+            let elements = range.components(separatedBy: "-").map({ $0.trimmingCharacters(in: .whitespaces) })
+            
+            guard let lower = elements.first.flatMap({ Int64($0.replacingOccurrences(of: "_", with: "-")) }) else {
+                continue
+            }
+            let upper = elements.dropFirst().first.flatMap { Int64($0.replacingOccurrences(of: "_", with: "-")) }
+            ranges.append((lower, upper))
+        }
+        return ranges
+    }
+    
+    /// Returns `Range` header values. An empty array means no value is set in header.
     /// - Note: upperbound will be Int64.max in case of open ended Range.
-    public var range: Range<Int64>? {
+    /// - Note: Server response should be `multipart/byteranges` in case of more than one range is returned.
+    ///    See [MDN's HTTP range requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests) for more info.
+    /// - Important: A negative range means server must return last bytes/items of file.
+    public var range: [Range<Int64>] {
         // TODO: return PartialRangeFrom when possible
         get {
-            guard let elements = self.storage[.range]?.first.flatMap({ self.dissectRange($0) }) else {
-                return nil
+            guard let ranges = (self.storage[.range]?.joined(separator: ",")).flatMap({ self.dissectRanges($0) }) else {
+                return []
             }
-            let to = elements.to.flatMap({ $0 + 1 }) ?? Int64.max
-            return elements.from..<to
+            
+            return ranges.flatMap({ elements in
+                let to = elements.to.flatMap({ $0 + 1 }) ?? Int64.max
+                /// Avoiding server crash if upper bound is less than lower bound!
+                guard to >= elements.from else {
+                    return nil
+                }
+                return elements.from..<to
+            })
         }
     }
     
@@ -1077,7 +1140,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Allow` header value.
+    /// `Allow` header value. An empty array means no value is set in header.
     public var allow: [HTTPMethod] {
         get {
             return self.storage[.allow]?.flatMap({ HTTPMethod($0) }) ?? []
@@ -1091,7 +1154,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Cache-Control` header values.
+    /// `Cache-Control` header values. An empty array means no value is set in header.
     /// - Note: Please set appropriate value according to request/response state of header.
     ///     No control is implmemted to check either value is appropriate for type of header or not.
     public var cacheControl: [HTTPHeaders.CacheControl] {
@@ -1107,7 +1170,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Connection` header value.
+    /// `Connection` header value. An empty array means no value is set in header.
     public var connection: [HTTPHeaders.Name] {
         get {
             return self.storage[.connection]?.map({ HTTPHeaders.Name($0) }) ?? []
@@ -1183,7 +1246,9 @@ extension HTTPHeaders {
         }
     }
     
-    fileprivate func dissectRange(_ value: String?) -> (from: Int64, to: Int64?, total: Int64?)? {
+    fileprivate func dissectContentRange(_ value: String?) -> (from: Int64, to: Int64?, total: Int64?)? {
+        // Converting real negatives to _ to avoid conflict with - as separator
+        let value = value?.replacingOccurrences(of: "=-", with: "=_").replacingOccurrences(of: "--", with: "-_")
         guard let bytes = value?.components(separatedBy: "=").dropFirst().first?.trimmingCharacters(in: .whitespaces) else {
             return nil
         }
@@ -1194,7 +1259,7 @@ extension HTTPHeaders {
         }
         
         let total = bytes.components(separatedBy: "/").dropFirst().first.flatMap { Int64($0) }
-        let lower = bounds.first.flatMap { Int64($0) }
+        let lower = bounds.first.flatMap { Int64($0.replacingOccurrences(of: "_", with: "-")) }
         let upper = bounds.dropFirst().first.flatMap { Int64($0) }
         return (lower ?? 0, upper, total)
     }
@@ -1211,10 +1276,11 @@ extension HTTPHeaders {
     
     /// Returns `Content-Range` header value.
     /// - Note: upperbound will be Int64.max in case of open ended Range.
+    /// - Important: A negative range means server must return last bytes/items of file
     public var contentRange: Range<Int64>? {
         // TODO: return PartialRangeFrom when possible
         get {
-            guard let elements = self.storage[.contentRange]?.first.flatMap({ self.dissectRange($0) }) else {
+            guard let elements = self.storage[.contentRange]?.first.flatMap({ self.dissectContentRange($0) }) else {
                 return nil
             }
             let to = elements.to.flatMap({ $0 + 1 }) ?? Int64.max
@@ -1328,7 +1394,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Set-Cookie` header values.
+    /// `Set-Cookie` header values. An empty array means no value is set in header.
     public var setCookie: [HTTPCookie] {
         return self.storage[.setCookie]?.flatMap({ HTTPCookie.cookies(withResponseHeaderFields: ["Set-Cookie": $0], for: URL(string: "/")!) }) ?? []
     }
@@ -1383,7 +1449,7 @@ extension HTTPHeaders {
         self.storage[.setCookie]?.append(cookieString)
     }
     
-    /// `Trailer` header value.
+    /// `Trailer` header value. An empty array means no value is set in header.
     public var trailer: [HTTPMethod] {
         get {
             return self.storage[.trailer]?.flatMap({ HTTPMethod($0) }) ?? []
@@ -1398,7 +1464,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// `Vary` header value.
+    /// `Vary` header value. An empty array means no value is set in header.
     public var vary: [HTTPMethod] {
         get {
             return self.storage[.vary]?.flatMap({ HTTPMethod($0) }) ?? []
