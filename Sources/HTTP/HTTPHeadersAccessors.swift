@@ -613,28 +613,45 @@ extension HTTPHeaders {
     }
     
     /// Encoding of body
-    public enum Encoding: String {
+    public struct Encoding: RawRepresentable, Hashable, Equatable {
+        public var rawValue: String
+        public typealias RawValue = String
+        
+        public init(rawValue: String) {
+            self.rawValue = rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        }
+        
+        private init(linted: String) {
+            self.rawValue = linted
+        }
+        
+        public var hashValue: Int { return rawValue.hashValue }
+        
+        public static func == (lhs: Encoding, rhs: Encoding) -> Bool {
+            return lhs.rawValue == rhs.rawValue
+        }
+        
         /// Accepting all encodings available
-        case all = "*"
+        static public let all = Encoding(linted: "*")
         /// Send body as is
-        case identity
+        static public let identity = Encoding(linted: "identity")
         /// Compress body data using lzw method
-        case compress
+        static public let compress = Encoding(linted: "compress")
         /// Compress body data using zlib deflate method
-        case deflate
+        static public let deflate = Encoding(linted: "deflate")
         /// Compress body data using gzip method
-        case gzip
+        static public let gzip = Encoding(linted: "gzip")
         /// Compress body data using bzip2 method
-        case bzip2
+        static public let bzip2 = Encoding(linted: "bzip2")
         /// Compress body data using brotli method
-        case brotli = "br"
+        static public let brotli = Encoding(linted: "br")
         
         // These values are valid for Transfer Encoding
         
         /// Chunked body in `Transfer-Encoding` response header
-        case chunked
+        static public let chunked = Encoding(linted: "chunked")
         /// Can have trailers in `TE` request header
-        case trailers
+        static public let trailers = Encoding(linted: "trailers")
     }
     
     /// Values for `If-Range` header.
@@ -777,9 +794,7 @@ extension HTTPHeaders {
     public var acceptEncoding: [Encoding] {
         get {
             return self.storage[.acceptEncoding]?.flatMap({ (value) -> (type: Encoding, q: Double)? in
-                guard let enc = Encoding(rawValue: value) else {
-                    return nil
-                }
+                 let enc = Encoding(rawValue: value)
                 let q = HTTPHeaders.parseParams(value)["q"].flatMap(Double.init) ?? 1
                 // Removing values with q=0 according to [RFC7231](https://tools.ietf.org/html/rfc7231)
                 if q == 0 {
