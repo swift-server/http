@@ -10,14 +10,17 @@ import Foundation
 
 extension HTTPHeaders {
     
-    /// MIME type directive for `Accept` and `Content-Type` headers
+    /// MIME type directive for `Accept` and `Content-Type` headers.
     public struct MediaType: RawRepresentable, Hashable, Equatable, ExpressibleByStringLiteral {
         public var rawValue: String
+        public var hashValue: Int
         public typealias RawValue = String
         public typealias StringLiteralType = String
         
         public init(rawValue: String) {
-            self.rawValue = rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let linted = rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            self.rawValue = linted
+            self.hashValue = linted.hashValue
         }
         
         public init(stringLiteral: String) {
@@ -26,11 +29,13 @@ extension HTTPHeaders {
         
         private init(linted: String) {
             self.rawValue = linted
+            self.hashValue = linted.hashValue
         }
         
-        public var hashValue: Int { return rawValue.hashValue }
-        
         public static func == (lhs: MediaType, rhs: MediaType) -> Bool {
+            if lhs.hashValue == rhs.hashValue {
+                return lhs.rawValue == rhs.rawValue
+            }
             return lhs.rawValue.replacingOccurrences(of: "/x-", with: "/") == rhs.rawValue.replacingOccurrences(of: "/x-", with: "/")
         }
         
@@ -39,6 +44,10 @@ extension HTTPHeaders {
         public func canAccept(_ value: MediaType) -> Bool {
             // Removing nonstandard `x-` prefix
             // see [RFC 6838](https://tools.ietf.org/html/rfc6838)
+            if self.hashValue == value.hashValue {
+                return true
+            }
+            
             let rhsValue = self.rawValue.replacingOccurrences(of: "/x-", with: "/")
             let lhsValue = value.rawValue.replacingOccurrences(of: "/x-", with: "/")
             
@@ -51,11 +60,20 @@ extension HTTPHeaders {
                 return true
             }
             
+            // xml has two types, application/xml and text/xml
+            if lhsValue.hasSuffix("/xml") && lhsValue.hasSuffix("/xml"){
+                return true
+            }
+            
             return false
         }
         
         /// Directory
-        static public let directory = MediaType(linted: "httpd/unix-directory")
+        static public let directory = MediaType(linted: "text/directory")
+        /// Unix directory
+        static public let unixDirectory = MediaType(linted: "inode/directory")
+        /// Apache server's directory
+        static public let apacheDirectory = MediaType(linted: "httpd/unix-directory")
         
         // Archive and Binary
         
@@ -63,16 +81,10 @@ extension HTTPHeaders {
         static public let all = MediaType(linted: "*/*")
         /// Binary stream and unknown types
         static public let stream = MediaType(linted: "application/octet-stream")
-        /// Protable document format
-        static public let pdf = MediaType(linted: "application/pdf")
         /// Zip archive
         static public let zip = MediaType(linted: "application/zip")
-        /// Rar archive
-        static public let rarArchive = MediaType(linted: "application/x-rar-compressed")
-        /// 7-zip archive
-        static public let lzma = MediaType(linted: "application/x-7z-compressed")
-        /// Adobe Flash
-        static public let flash = MediaType(linted: "application/x-shockwave-flash")
+        /// Protable document format
+        static public let pdf = MediaType(linted: "application/pdf")
         /// ePub book
         static public let epub = MediaType(linted: "application/epub+zip")
         /// Java archive (jar)
@@ -113,6 +125,8 @@ extension HTTPHeaders {
         static public let png = MediaType(linted: "image/png")
         /// Scalable vector graphics
         static public let svg = MediaType(linted: "image/svg+xml")
+        /// Scalable vector graphics
+        static public let webp = MediaType(linted: "image/webp")
         
         // Audio & Video
         
@@ -120,7 +134,7 @@ extension HTTPHeaders {
         static public let audio = MediaType(linted: "audio/*")
         /// All Video types
         static public let video = MediaType(linted: "video/*")
-        /// MPEG Audio
+        /// MPEG Audio (including MP3)
         static public let mpegAudio = MediaType(linted: "audio/mpeg")
         /// MPEG Video
         static public let mpeg = MediaType(linted: "video/mpeg")
@@ -129,23 +143,41 @@ extension HTTPHeaders {
         /// MPEG4 Video
         static public let mpeg4 = MediaType(linted: "video/mp4")
         /// Mpeg playlist
-        static public let m3u8 = MediaType(linted: "application/x-mpegurl")
+        static public let m3u8 = MediaType(linted: "application/vnd.apple.mpegurl")
+        /// Mpeg playlist for Audio files
+        static public let m3u8Audio = MediaType(linted: "application/vnd.apple.mpegurl.audio")
         /// Mpeg-2 transport stream
         static public let ts = MediaType(linted: "video/mp2t")
         /// OGG Audio
         static public let ogg = MediaType(linted: "audio/ogg")
+        /// WebM Video
+        static public let webm = MediaType(linted: "video/webm")
+        /// WebM Audio
+        static public let webmAudio = MediaType(linted: "audio/webm")
         /// Advanced Audio Coding
-        static public let aac = MediaType(linted: "audio/x-aac")
+        static public let aac = MediaType(linted: "audio/aac")
         /// Microsoft Audio Video Interleaved
         static public let avi = MediaType(linted: "video/x-msvideo")
         /// Microsoft Wave audio
-        static public let wav = MediaType(linted: "audio/x-wav")
+        static public let wav = MediaType(linted: "audio/wav")
         /// Apple QuickTime format
         static public let quicktime = MediaType(linted: "video/quicktime")
         /// 3GPP
         static public let threegp = MediaType(linted: "video/3gpp")
         
+        // Font
+        
+        /// TrueType Font
+        static public let ttf = MediaType(linted: "font/ttf")
+        /// OpenType font
+        static public let otf = MediaType(linted: "font/otf")
+        /// Web Open Font Format
+        static public let woff = MediaType(linted: "font/woff")
+        /// Web Open Font Format 2
+        static public let woff2 = MediaType(linted: "font/woff2")
+        
         // Multipart
+        
         /// Multipart mixed
         static public let multipart = MediaType(linted: "multipart/mixed")
         /// Multipart form-data
@@ -202,7 +234,16 @@ extension HTTPHeaders {
         }
         
         public static func ==(lhs: HTTPHeaders.ContentDisposition, rhs: HTTPHeaders.ContentDisposition) -> Bool {
-            return lhs.description == rhs.description
+            switch (lhs, rhs) {
+            case (.inline, .inline):
+                return true
+            case let (.attachment(l), .attachment(r)):
+                return l == r
+            case let (.formData(nl, fnl), .formData(nr, fnr)):
+                return nl == nr && fnl == fnr
+            default:
+                return false
+            }
         }
     }
     
@@ -348,7 +389,17 @@ extension HTTPHeaders {
         }
         
         public static func ==(lhs: HTTPHeaders.CacheControl, rhs: HTTPHeaders.CacheControl) -> Bool {
-            return lhs.description == rhs.description
+            switch (lhs, rhs) {
+            case (.noCache, .noCache), (.noStore, .noStore), (.noTransform, .noTransform),
+                 (.onlyIfCached, .onlyIfCached), (.`public`, .`public`), (.`private`, .`private`),
+                 (.mustRevalidate, .mustRevalidate), (.proxyRevalidate, .proxyRevalidate):
+                return true
+            case let (.maxAge(l), .maxAge(r)), let (.maxStale(l), .maxStale(r)),
+                 let (.minFresh(l), .minFresh(r)), let (.sMaxAge(l), .sMaxAge(r)):
+                return Int(l) == Int(r)
+            default:
+                return lhs.description == rhs.description
+            }
         }
     }
     
@@ -608,27 +659,38 @@ extension HTTPHeaders {
         }
         
         public static func ==(lhs: HTTPHeaders.EntryTag, rhs: HTTPHeaders.EntryTag) -> Bool {
-            return lhs.description == rhs.description
+            switch (lhs, rhs) {
+            case (.wildcard, .wildcard):
+                return true
+            case let (.strong(l), .strong(r)),
+                 let (.weak(l), .weak(r)):
+                return l == r
+            default:
+                return false
+            }
         }
     }
     
+    // Should we use enum? It's faster to compare.
     /// Encoding of body
     public struct Encoding: RawRepresentable, Hashable, Equatable {
         public var rawValue: String
+        public var hashValue: Int
         public typealias RawValue = String
         
         public init(rawValue: String) {
-            self.rawValue = rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let linted = rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            self.rawValue = linted
+            self.hashValue = linted.hashValue
         }
         
         private init(linted: String) {
             self.rawValue = linted
+            self.hashValue = linted.hashValue
         }
         
-        public var hashValue: Int { return rawValue.hashValue }
-        
         public static func == (lhs: Encoding, rhs: Encoding) -> Bool {
-            return lhs.rawValue == rhs.rawValue
+            return  lhs.hashValue == rhs.hashValue && lhs.rawValue == rhs.rawValue
         }
         
         /// Accepting all encodings available
@@ -683,23 +745,32 @@ extension HTTPHeaders {
         }
         
         public static func ==(lhs: HTTPHeaders.IfRange, rhs: HTTPHeaders.IfRange) -> Bool {
-            return lhs.description == rhs.description
+            switch (lhs, rhs) {
+            case let (.tag(l), .tag(r)):
+                return l == r
+            case let (.date(l), .date(r)):
+                return l == r
+            default:
+                return false
+            }
         }
     }
     
     /// Determines server accepts `Range` header or not
     public struct RangeType: RawRepresentable, Hashable, Equatable {
         public var rawValue: String
+        public var hashValue: Int
+        
         public typealias RawValue = String
         
         public init(rawValue: String) {
-            self.rawValue = rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let linted = rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            self.rawValue = linted
+            self.hashValue = linted.hashValue
         }
         
-        public var hashValue: Int { return rawValue.hashValue }
-        
         public static func == (lhs: RangeType, rhs: RangeType) -> Bool {
-            return lhs.rawValue == rhs.rawValue
+            return lhs.hashValue == rhs.hashValue && lhs.rawValue == rhs.rawValue
         }
         
         /// Can't accept Range
@@ -721,7 +792,9 @@ extension HTTPHeaders {
     /// Fetch `Accept` header values, sorted by `q` parameter. An empty array means no value is set in header.
     public var accept: [MediaType] {
         get {
-            return self.storage[.accept]?.flatMap({ (value) -> (type: MediaType, q: Double)? in
+            return self.storage[.accept]?.flatMap({ (value) -> [String] in
+                return value.components(separatedBy: ",")
+            }).flatMap({ (value) -> (type: MediaType, q: Double)? in
                 let type = MediaType(rawValue: value)
                 let q = HTTPHeaders.parseParams(value)["q"].flatMap(Double.init) ?? 1
                 // Removing values with q=0 according to [RFC7231](https://tools.ietf.org/html/rfc7231)
@@ -793,7 +866,9 @@ extension HTTPHeaders {
     /// Fetch `Accept-Encoding` header values, sorted by `q` parameter. An empty array means no value is set in header.
     public var acceptEncoding: [Encoding] {
         get {
-            return self.storage[.acceptEncoding]?.flatMap({ (value) -> (type: Encoding, q: Double)? in
+            return self.storage[.acceptEncoding]?.flatMap({ (value) -> [String] in
+                return value.components(separatedBy: ",")
+            }).flatMap({ (value) -> (type: Encoding, q: Double)? in
                  let enc = Encoding(rawValue: value)
                 let q = HTTPHeaders.parseParams(value)["q"].flatMap(Double.init) ?? 1
                 // Removing values with q=0 according to [RFC7231](https://tools.ietf.org/html/rfc7231)
@@ -829,10 +904,12 @@ extension HTTPHeaders {
         }
     }
     
-    /// Fetch `Accept-Encoding` header values, sorted by `q` parameter. An empty array means no value is set in header.
+    /// Fetch `Accept-Language` header values, sorted by `q` parameter. An empty array means no value is set in header.
     public var acceptLanguage: [Locale] {
         get {
-            return self.storage[.acceptLanguage]?.flatMap({ (value) -> (type: Locale, q: Double)? in
+            return self.storage[.acceptLanguage]?.flatMap({ (value) -> [String] in
+                return value.components(separatedBy: ",")
+            }).flatMap({ (value) -> (type: Locale, q: Double)? in
                 guard let lang = value.components(separatedBy: ";").first?.trimmingCharacters(in: .whitespaces) else {
                     return nil
                 }
@@ -879,7 +956,9 @@ extension HTTPHeaders {
     /// `If-Match` header etag value. An empty array means no value is set in header.
     public var ifMatch: [EntryTag] {
         get {
-            return (self.storage[.ifMatch] ?? []).map(EntryTag.init)
+            return (self.storage[.ifMatch] ?? []).flatMap({ (value) -> [String] in
+                return value.components(separatedBy: ",")
+            }).map(EntryTag.init)
         }
         set {
             // TOCHECK: When there is a wildcard, other values should be ignored
@@ -894,7 +973,9 @@ extension HTTPHeaders {
     /// `If-None-Match` header etag value. An empty array means no value is set in header.
     public var ifNoneMatch: [EntryTag] {
         get {
-            return (self.storage[.ifNoneMatch] ?? []).map(EntryTag.init)
+            return (self.storage[.ifNoneMatch] ?? []).flatMap({ (value) -> [String] in
+                return value.components(separatedBy: ",")
+            }).map(EntryTag.init)
         }
         set {
             // TOCHECK: When there is a wildcard, other values should be ignored
@@ -967,7 +1048,8 @@ extension HTTPHeaders {
     }
     
     /// Returns `Range` header values. An empty array means no value is set in header.
-    /// - Note: upperbound will be Int64.max in case of open ended Range.
+    /// - Note: upperbound will be Int64.max for positive ranges and 0 for negative
+    ///   ranges in case of open ended Range.
     /// - Note: Server response should be `multipart/byteranges` in case of more than one range is returned.
     ///    See [MDN's HTTP range requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests) for more info.
     /// - Important: A negative range means server must return last bytes/items of file.
@@ -979,8 +1061,9 @@ extension HTTPHeaders {
             }
             
             return ranges.flatMap({ elements in
-                let to = elements.to.flatMap({ $0 + 1 }) ?? Int64.max
-                /// Avoiding server crash if upper bound is less than lower bound!
+                // Determining upper bound. Negative ranges are meaningful up to 0 or eof.
+                let to = elements.to.flatMap({ $0 + 1 }) ?? (elements.from >= 0 ? Int64.max : 0)
+                // Avoiding server crash if upper bound is less than lower bound!
                 guard to >= elements.from else {
                     return nil
                 }
@@ -1009,13 +1092,19 @@ extension HTTPHeaders {
     /// Fetch `TE` header values, sorted by `q` parameter.
     public var te: [Encoding] {
         get {
-            let values: [String]? = self.storage[.te]?.sorted {
-                let q0 = HTTPHeaders.parseParams($0)["q"].flatMap(Double.init) ?? 1
-                let q1 = HTTPHeaders.parseParams($1)["q"].flatMap(Double.init) ?? 1
-                return q0 > q1
-            }
-            let results = (values ?? []).flatMap { Encoding(rawValue: $0) }
-            return results
+            return self.storage[.te]?.flatMap({ (value) -> [String] in
+                return value.components(separatedBy: ",")
+            }).flatMap({ (value) -> (encoding: Encoding, q: Double)? in
+                let enc = Encoding(rawValue: value)
+                let q = HTTPHeaders.parseParams(value)["q"].flatMap(Double.init) ?? 1
+                // Removing values with q=0 according to [RFC7231](https://tools.ietf.org/html/rfc7231)
+                if q == 0 {
+                    return nil
+                }
+                return (enc, q)
+            }).sorted(by: {
+                $0.q > $1.q
+            }).map({ $0.encoding }) ?? []
         }
     }
     
@@ -1072,21 +1161,22 @@ extension HTTPHeaders {
             return getVersion(webkit)
         }
         // Gecko based browsers
-        if dissect.first(where: { $0.hasPrefix("Gecko") }) != nil {
+        if dissect.first(where: { $0.hasPrefix("Gecko/") }) != nil {
+            // Gecko version is fixed to 20100101, we have to read rv: value
             let version = (dissect.first(where: { $0.hasPrefix("rv:") })?.replacingOccurrences(of: "rv:", with: "", options: .anchored).trimmingCharacters(in: CharacterSet(charactersIn: "); ")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Float.init)
             return ("Gecko", version)
         }
         // Internet Explorer
         if dissect.first(where: { $0.hasPrefix("MSIE") }) != nil {
             let version = (dissect.drop(while: { $0 != "MSIE" }).dropFirst().first?.trimmingCharacters(in: CharacterSet(charactersIn: "; )")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Float.init)
-            return ("Internet Explore", version)
+            return ("Internet Explorer", version)
         }
         // Google bot
         if let googlebot = dissect.first(where: { $0.hasPrefix("Googlebot") }) {
             return getVersion(googlebot)
         }
         // Should we add Avant, iCab and Konqueror/konqueror?
-        return ("Mozila", 5.0) // Indeed unknown browser but compatible with Mozila
+        return ("Mozila", 5.0) // Indeed unknown browser but compatible with Netscape.
     }
     
     /// Returns client's operating system name and version (if available) using `User-Agent`.
