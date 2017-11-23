@@ -64,15 +64,17 @@ Once any data chunk has been processed, `finishedProcessing()` should be called 
 
 When the response is complete, `response.done()` should be called.
 
-## Working on HTTP
-This project uses the [Swift Package Manager](https://swift.org/package-manager/).  To work on this project within Xcode you can run the Swift Package Manager command `swift package generate-xcodeproj` to generate an `.xcodeproj` to work on within Xcode.
-
 ## API Documentation
 Full Jazzy documentation of the API is available here:  
 <https://swift-server.github.io/http/>
 
-## Contributing Feedback
+## Contributing
+
+### Feedback
 We are actively seeking feedback on this prototype and your comments are extremely valuable. If you have any comments on the API design, the implementation, or any other aspects of this project, please email the [`swift-server-dev`](https://lists.swift.org/mailman/listinfo/swift-server-dev) mailing list.
+
+### Writing Code
+We also welcome code contributions.  If you are developing on macOS, you may want to work within Xcode.  This project uses the [Swift Package Manager](https://swift.org/package-manager/).  To work on this project within Xcode you can run the Swift Package Manager command `swift package generate-xcodeproj` to generate an `.xcodeproj` to work on within Xcode.
 
 ## Acknowledgements
 This project is based on an inital proposal from @weissi on the swift-server-dev mailing list:  
