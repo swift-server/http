@@ -777,7 +777,7 @@ extension HTTPHeaders {
         public static let none = RangeType(rawValue: "none")
         /// Accept range in bytes(octets)
         public static let bytes = RangeType(rawValue: "bytes")
-        /// Accept range in item numbers
+        /// Accept range in item numbers (non-standard)
         public static let items = RangeType(rawValue: "items")
     }
     
@@ -792,19 +792,9 @@ extension HTTPHeaders {
     /// Fetch `Accept` header values, sorted by `q` parameter. An empty array means no value is set in header.
     public var accept: [MediaType] {
         get {
-            return self.storage[.accept]?.flatMap({ (value) -> [String] in
-                return value.components(separatedBy: ",")
-            }).flatMap({ (value) -> (type: MediaType, q: Double)? in
-                let type = MediaType(rawValue: value)
-                let q = HTTPHeaders.parseParams(value)["q"].flatMap(Double.init) ?? 1
-                // Removing values with q=0 according to [RFC7231](https://tools.ietf.org/html/rfc7231)
-                if q == 0 {
-                    return nil
-                }
-                return (type, q)
-            }).sorted(by: {
-                $0.q > $1.q
-            }).map({ $0.type }) ?? []
+            return self.storage[.accept].flatMap({
+                HTTPHeaders.parseQuilified($0, MediaType.init(rawValue:))
+            }) ?? []
         }
     }
     
@@ -827,6 +817,15 @@ extension HTTPHeaders {
             self.storage[.accept]!.append("\(accept.rawValue); q=\(qualityDesc)")
         } else {
             self.storage[.accept]!.append(accept.rawValue)
+        }
+    }
+    
+    /// Fetch `Accept-Charset` header values, sorted by `q` parameter. An empty array means no value is set in header.
+    public var acceptCharset: [String.Encoding] {
+        get {
+            return self.storage[.acceptCharset].flatMap({
+                HTTPHeaders.parseQuilified($0, HTTPHeaders.charsetIANAToStringEncoding)
+            }) ?? []
         }
     }
     
@@ -866,19 +865,9 @@ extension HTTPHeaders {
     /// Fetch `Accept-Encoding` header values, sorted by `q` parameter. An empty array means no value is set in header.
     public var acceptEncoding: [Encoding] {
         get {
-            return self.storage[.acceptEncoding]?.flatMap({ (value) -> [String] in
-                return value.components(separatedBy: ",")
-            }).flatMap({ (value) -> (type: Encoding, q: Double)? in
-                 let enc = Encoding(rawValue: value)
-                let q = HTTPHeaders.parseParams(value)["q"].flatMap(Double.init) ?? 1
-                // Removing values with q=0 according to [RFC7231](https://tools.ietf.org/html/rfc7231)
-                if q == 0 {
-                    return nil
-                }
-                return (enc, q)
-            }).sorted(by: {
-                $0.q > $1.q
-            }).map({ $0.type }) ?? []
+            return self.storage[.acceptEncoding].flatMap({
+                HTTPHeaders.parseQuilified($0, Encoding.init(rawValue:))
+            }) ?? []
         }
     }
     
@@ -907,21 +896,9 @@ extension HTTPHeaders {
     /// Fetch `Accept-Language` header values, sorted by `q` parameter. An empty array means no value is set in header.
     public var acceptLanguage: [Locale] {
         get {
-            return self.storage[.acceptLanguage]?.flatMap({ (value) -> [String] in
-                return value.components(separatedBy: ",")
-            }).flatMap({ (value) -> (type: Locale, q: Double)? in
-                guard let lang = value.components(separatedBy: ";").first?.trimmingCharacters(in: .whitespaces) else {
-                    return nil
-                }
-                let q = HTTPHeaders.parseParams(value)["q"].flatMap(Double.init) ?? 1
-                // Removing values with q=0 according to [RFC7231](https://tools.ietf.org/html/rfc7231)
-                if q == 0 {
-                    return nil
-                }
-                return (Locale(identifier: lang), q)
-            }).sorted(by: {
-                $0.q > $1.q
-            }).map({ $0.type }) ?? []
+            return self.storage[.acceptLanguage].flatMap({
+                HTTPHeaders.parseQuilified($0, Locale.init(identifier:))
+            }) ?? []
         }
     }
     
@@ -1089,22 +1066,12 @@ extension HTTPHeaders {
         }
     }
     
-    /// Fetch `TE` header values, sorted by `q` parameter.
+    /// Fetch `TE` header values, sorted by `q` parameter. An empty array means no value is set in header.
     public var te: [Encoding] {
         get {
-            return self.storage[.te]?.flatMap({ (value) -> [String] in
-                return value.components(separatedBy: ",")
-            }).flatMap({ (value) -> (encoding: Encoding, q: Double)? in
-                let enc = Encoding(rawValue: value)
-                let q = HTTPHeaders.parseParams(value)["q"].flatMap(Double.init) ?? 1
-                // Removing values with q=0 according to [RFC7231](https://tools.ietf.org/html/rfc7231)
-                if q == 0 {
-                    return nil
-                }
-                return (enc, q)
-            }).sorted(by: {
-                $0.q > $1.q
-            }).map({ $0.encoding }) ?? []
+            return self.storage[.te].flatMap({
+                HTTPHeaders.parseQuilified($0, Encoding.init(rawValue:))
+            }) ?? []
         }
     }
     
@@ -1118,15 +1085,15 @@ extension HTTPHeaders {
             return (name, version)
         }
         
-        guard let agent = self.storage[.userAgent]?.first else {
+        guard let agent = self.storage[.userAgent]?.first, !agent.isEmpty else {
             return nil
         }
         
         let dissect = agent.components(separatedBy: " ")
         
-        // Presto-based Opera, Crawlers, Custom apps
         // Many common browsers begins with `"Mozila/5.0"`
-        guard agent.hasPrefix("Mozilla/5.0 ") else {
+        guard agent.hasPrefix("Mozilla/") else {
+            // Presto-based Opera, Crawlers, Custom apps
             return dissect.first.flatMap(getVersion)
         }
         
@@ -1156,6 +1123,19 @@ extension HTTPHeaders {
             let isMobile = rdissect.index(of: "Mobile") != nil
             return (isMobile ? "Mobile Safari" : "Safari", version?.version)
         }
+        // Internet Explorer
+        if dissect.first(where: { $0.hasPrefix("MSIE") }) != nil {
+            let version = (dissect.drop(while: { $0 != "MSIE" }).dropFirst().first?.trimmingCharacters(in: CharacterSet(charactersIn: "; )")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Float.init)
+            return ("Internet Explorer", version)
+        }
+        
+        // Google bot
+        if let googlebot = dissect.first(where: { $0.hasPrefix("Googlebot") }) {
+            return getVersion(googlebot)
+        }
+        
+        // Now try to return engine
+        
         // UIWebView, Game Consoles
         if let webkit = dissect.first(where: { $0.hasPrefix("AppleWebKit") || $0.hasPrefix("WebKit") }) {
             return getVersion(webkit)
@@ -1166,17 +1146,13 @@ extension HTTPHeaders {
             let version = (dissect.first(where: { $0.hasPrefix("rv:") })?.replacingOccurrences(of: "rv:", with: "", options: .anchored).trimmingCharacters(in: CharacterSet(charactersIn: "); ")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Float.init)
             return ("Gecko", version)
         }
-        // Internet Explorer
-        if dissect.first(where: { $0.hasPrefix("MSIE") }) != nil {
-            let version = (dissect.drop(while: { $0 != "MSIE" }).dropFirst().first?.trimmingCharacters(in: CharacterSet(charactersIn: "; )")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Float.init)
-            return ("Internet Explorer", version)
+        // Trident based
+        if let trident = dissect.first(where: { $0.hasPrefix("Trident") }) {
+            return getVersion(trident)
         }
-        // Google bot
-        if let googlebot = dissect.first(where: { $0.hasPrefix("Googlebot") }) {
-            return getVersion(googlebot)
-        }
-        // Should we add Avant, iCab and Konqueror/konqueror?
-        return ("Mozila", 5.0) // Indeed unknown browser but compatible with Netscape.
+        
+        // Indeed unknown browser but compatible with Netscape/Mozila.
+        return dissect.first.flatMap({ getVersion($0) }) ?? ("Mozila", 5.0)
     }
     
     /// Returns client's operating system name and version (if available) using `User-Agent`.
@@ -1607,6 +1583,22 @@ extension HTTPHeaders {
         let isoLatinCharset = CharacterSet.init(charactersIn: Unicode.Scalar(32)..<Unicode.Scalar(255))
         let isoLatin = value.filter({ $0.unicodeScalars.count == 1 ? isoLatinCharset.contains($0.unicodeScalars.first!) : false })
         return isoLatin
+    }
+    
+    fileprivate static func parseQuilified<T>(_ value: [String], _ initializer: (String) -> T) -> [T] {
+        return value.flatMap({ (value) -> [String] in
+            return value.components(separatedBy: ",")
+        }).flatMap({ (value) -> (typed: T, q: Double)? in
+            let typed = initializer(value)
+            let q = parseParams(value)["q"].flatMap(Double.init) ?? 1
+            // Removing values with q=0 according to [RFC7231](https://tools.ietf.org/html/rfc7231)
+            if q == 0 {
+                return nil
+            }
+            return (typed, q)
+        }).sorted(by: {
+            $0.q > $1.q
+        }).map({ $0.typed })
     }
     
     /// Converts percent encoded to normal string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
