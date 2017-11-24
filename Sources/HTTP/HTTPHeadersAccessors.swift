@@ -798,28 +798,6 @@ extension HTTPHeaders {
         }
     }
     
-    /// Sets new value for `Accept` header and removes previous values if set.
-    /// - Parameter accept: Media type to be accepted.
-    /// - Parameter quality: `q` value used to prioritize values, between 0.0 and 1.0.
-    public mutating func set(accept: MediaType, quality: Double?) {
-        self.storage[.accept]?.removeAll()
-        self.add(accept: accept, quality: quality)
-    }
-    
-    /// Adds a new `Accept` header value to list.
-    /// - Parameter accept: Media type to be accepted.
-    /// - Parameter quality: `q` value used to prioritize values, between 0.0 and 1.0.
-    public mutating func add(accept: MediaType, quality: Double?) {
-        if self.storage[.accept] == nil {
-            self.storage[.accept] = []
-        }
-        if let qualityDesc = quality.flatMap({ String(format: "%.1f", Double.minimum(0, Double.maximum($0, 1))) }) {
-            self.storage[.accept]!.append("\(accept.rawValue); q=\(qualityDesc)")
-        } else {
-            self.storage[.accept]!.append(accept.rawValue)
-        }
-    }
-    
     /// Fetch `Accept-Charset` header values, sorted by `q` parameter. An empty array means no value is set in header.
     public var acceptCharset: [String.Encoding] {
         get {
@@ -829,36 +807,10 @@ extension HTTPHeaders {
         }
     }
     
-    /// Sets new value for `Accept-Encoding` header and removes previous values if set
-    /// - Parameter acceptCharset: Text encoding to be accepted.
-    /// - Parameter quality: `q` value used to prioritize values, between 0.0 and 1.0.
-   mutating func set(acceptCharset: String.Encoding, quality: Double? = nil) {
-        self.storage[.acceptCharset]?.removeAll()
-        self.add(acceptCharset: acceptCharset, quality: quality)
-    }
-    
-    /// Adds a new `Accept-Encoding` header value
-    /// - Parameter acceptCharset: Text encoding to be accepted.
-    /// - Parameter quality: `q` value used to prioritize values, between 0.0 and 1.0.
-   mutating func add(acceptCharset: String.Encoding, quality: Double? = nil) {
-        if self.storage[.acceptCharset] == nil {
-            self.storage[.acceptCharset] = []
-        }
-        let charsetString = HTTPHeaders.StringEncodingToIANA(acceptCharset)
-        if let qualityDesc = quality.flatMap({ String(format: "%.1f", Double.minimum(0, Double.maximum($0, 1))) }) {
-            self.storage[.acceptCharset]!.append("\(charsetString); q=\(qualityDesc)")
-        } else {
-            self.storage[.acceptCharset]!.append(charsetString)
-        }
-    }
-    
     /// `Accept-Datetime` header.
     public var acceptDatetime: Date? {
         get {
             return self.storage[.acceptDatetime]?.first.flatMap(Date.init(rfcString:))
-        }
-        set {
-            self.storage[.acceptDatetime] = newValue.flatMap { [$0.format(with: .http)] }
         }
     }
     
@@ -868,28 +820,6 @@ extension HTTPHeaders {
             return self.storage[.acceptEncoding].flatMap({
                 HTTPHeaders.parseQuilified($0, Encoding.init(rawValue:))
             }) ?? []
-        }
-    }
-    
-    /// Sets new value for `Accept` header and removes previous values if set
-    /// - Parameter acceptEncoding: HTTP Encoding to be accepted.
-    /// - Parameter quality: `q` value used to prioritize values, between 0.0 and 1.0.
-   public mutating func set(acceptEncoding: Encoding, quality: Double?) {
-        self.storage[.acceptEncoding]?.removeAll()
-        self.add(acceptEncoding: acceptEncoding, quality: quality)
-    }
-    
-    /// Adds a new `Accept` header value
-    /// - Parameter acceptEncoding: HTTP Encoding to be accepted.
-    /// - Parameter quality: `q` value used to prioritize values, between 0.0 and 1.0.
-    public mutating func add(acceptEncoding: Encoding, quality: Double?) {
-        if self.storage[.acceptEncoding] == nil {
-            self.storage[.acceptEncoding] = []
-        }
-        if let qualityDesc = quality.flatMap({ String(format: "%.1f", Double.minimum(0, Double.maximum($0, 1))) }) {
-            self.storage[.acceptEncoding]!.append("\(acceptEncoding.rawValue); q=\(qualityDesc)")
-        } else {
-            self.storage[.acceptEncoding]!.append(acceptEncoding.rawValue)
         }
     }
     
@@ -930,20 +860,32 @@ extension HTTPHeaders {
         }
     }
     
+    /// `Origin` header value.
+    public var host: URL? {
+        get {
+            return self.storage[.host]?.first.flatMap {
+                if $0.contains("://") {
+                    return URL(string: $0)
+                } else {
+                    return URL(string: "://\($0)")
+                }
+            }
+        }
+        set {
+            self.storage[.host] = newValue.flatMap {
+                guard let host = $0.host else { return nil }
+                let port = $0.port.flatMap({ ":\($0)" }) ?? ""
+                return ["\(host)\(port)"]
+            }
+        }
+    }
+    
     /// `If-Match` header etag value. An empty array means no value is set in header.
     public var ifMatch: [EntryTag] {
         get {
             return (self.storage[.ifMatch] ?? []).flatMap({ (value) -> [String] in
                 return value.components(separatedBy: ",")
             }).map(EntryTag.init)
-        }
-        set {
-            // TOCHECK: When there is a wildcard, other values should be ignored
-            if !newValue.isEmpty {
-                self.storage[.ifMatch] = newValue.map { $0.description }
-            } else {
-                self.storage[.ifMatch] = nil
-            }
         }
     }
     
@@ -954,23 +896,12 @@ extension HTTPHeaders {
                 return value.components(separatedBy: ",")
             }).map(EntryTag.init)
         }
-        set {
-            // TOCHECK: When there is a wildcard, other values should be ignored
-            if !newValue.isEmpty {
-                self.storage[.ifNoneMatch] = newValue.map { $0.description }
-            } else {
-                self.storage[.ifNoneMatch] = nil
-            }
-        }
     }
     
     /// `If-Range` header etag value.
     public var ifRange: HTTPHeaders.IfRange? {
         get {
             return self.storage[.ifRange]?.first.flatMap(IfRange.init)
-        }
-        set {
-            self.storage[.ifRange] = newValue.flatMap { [$0.description] }
         }
     }
     
@@ -979,18 +910,12 @@ extension HTTPHeaders {
         get {
             return self.storage[.ifModifiedSince]?.first.flatMap(Date.init(rfcString:))
         }
-        set {
-            self.storage[.ifModifiedSince] = newValue.flatMap { [$0.format(with: .http)] }
-        }
     }
     
     /// `If-Unmodified-Since` header value.
     public var ifUnmodifiedSince: Date? {
         get {
             return self.storage[.ifUnmodifiedSince]?.first.flatMap(Date.init(rfcString:))
-        }
-        set {
-            self.storage[.ifUnmodifiedSince] = newValue.flatMap { [$0.format(with: .http)] }
         }
     }
     
@@ -1224,7 +1149,9 @@ extension HTTPHeaders {
     /// `Allow` header value. An empty array means no value is set in header.
     public var allow: [HTTPMethod] {
         get {
-            return self.storage[.allow]?.flatMap({ HTTPMethod($0) }) ?? []
+            return self.storage[.allow]?.flatMap({ (value) -> [String] in
+                return value.components(separatedBy: ",")
+            }).flatMap({ HTTPMethod($0) }) ?? []
         }
         set {
             if !newValue.isEmpty {
@@ -1240,7 +1167,9 @@ extension HTTPHeaders {
     ///     No control is implmemted to check either value is appropriate for type of header or not.
     public var cacheControl: [HTTPHeaders.CacheControl] {
         get {
-            return self.storage[.cacheControl]?.flatMap(CacheControl.init) ?? []
+            return self.storage[.cacheControl]?.flatMap({ (value) -> [String] in
+                return value.components(separatedBy: ",")
+            }).flatMap(CacheControl.init) ?? []
         }
         set {
             if !newValue.isEmpty {
@@ -1254,7 +1183,9 @@ extension HTTPHeaders {
     /// `Connection` header value. An empty array means no value is set in header.
     public var connection: [HTTPHeaders.Name] {
         get {
-            return self.storage[.connection]?.map({ HTTPHeaders.Name($0) }) ?? []
+            return self.storage[.connection]?.flatMap({ (value) -> [String] in
+                return value.components(separatedBy: ",")
+            }).map({ HTTPHeaders.Name($0) }) ?? []
         }
         set {
             // TOCHECK: Only keepAlive is valid?
