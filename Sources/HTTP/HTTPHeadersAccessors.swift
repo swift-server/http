@@ -217,6 +217,7 @@ extension HTTPHeaders {
                 return parameters["filename"]
             }
             set {
+                // TOCHECK: Remove path component.
                 parameters["filename"] = newValue
             }
         }
@@ -1586,17 +1587,28 @@ extension HTTPHeaders {
         }).map({ $0.typed })
     }
     
+    /// Parses `key=value` pairs into dictionary. RFC5987 encoded params will be reverted to utf8 string.
     private static func parseParams(rawParams: [String], removeQuotation: Bool) -> [String: String] {
         var params: [String: String] = [:]
         for rawParam in rawParams {
             let arg = rawParam.components(separatedBy: "=")
             if let key = arg.first?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+                /* Keys ended with * are preferred re RFC5987. If a key has * version,
+                 it will be iterated and replaces Ascii-encoded version.
+                 `else if` section neglects normal version if * version is already iterated.
+                 This check guarantees paramters' order won't cause a bug.
+                 */
                 if key.hasSuffix("*") {
                     let decodedKey = key.replacingOccurrences(of: "*", with: "", options: [.backwards, .anchored])
                     let value = arg.dropFirst().joined(separator: "=").trimmingCharacters(in: .whitespacesAndNewlines)
-                    let decodedValue = value.decodingRFC5987
+                    /* Here we use `decodingRFC5987enforced`. We can change this behavior to fallback
+                     to non-astrisk version if available and use `decodingRFC5987`.
+                     I didn't implemented the latter for the sake of better performance.
+                     Both behaviors are ok re section-3.2.1 in RFC 8187.
+                     */
+                    let decodedValue = value.decodingRFC5987enforced
                     params[decodedKey] = decodedValue
-                } else {
+                } else if params.index(forKey: key) == nil {
                     let trimCharset = removeQuotation ? CharacterSet(charactersIn: " ;\r\n\"") : .whitespacesAndNewlines
                     let value = arg.dropFirst().joined(separator: "=").trimmingCharacters(in: trimCharset)
                     params[key] = value
@@ -1629,19 +1641,45 @@ extension HTTPHeaders {
     }
     
     fileprivate static func createParam(_ params: [String: String], quotationValue: Bool = true, quotedKeys: [String] = [], nonquotatedKeys: [String] = [], separator: String = "; ") -> String {
+        
         var result: [String] = []
+        
+        func appendParam(key: String, value: String) {
+            if (quotedKeys.contains(key) || (quotationValue && !nonquotatedKeys.contains(key))) {
+                // Removes quotation enclose if already exists and encloses string again.
+                result.append("\(key)=\"\(value.trimmingCharacters(in: .quoted))\"")
+            } else {
+                // Use value as is.
+                result.append("\(key)=\(value)")
+            }
+        }
+        
         for param in params {
             if param.value.isEmpty {
-                 result.append(param.key)
+                // Indeed the parameter is a token!
+                result.append(param.key)
             } else if param.value.isAscii {
-                if (quotedKeys.contains(param.key) || (quotationValue && !nonquotatedKeys.contains(param.key))) {
-                    result.append("\(param.key)=\"\(param.value.trimmingCharacters(in: .quoted))\"")
-                } else {
-                    result.append("\(param.key)=\(param.value)")
+                /* Historically, HTTP has allowed field content with text in the ISO-8859-1 charset.
+                 In practice, most HTTP header field values use only a subset of the US-ASCII charset.
+                 Newly defined header fields SHOULD limit their field values to US-ASCII octets.
+                 */
+                appendParam(key: param.key, value: param.value)
+            } else { // Value is utf8 rich string!
+                /* Check if value is encodable to utf8 string re RFC 5987.
+                 ISO-8859-1 version is not required re RFC 8187 section-3.2.2 (Sep 2017).
+                 But to support legacy browsers, we still provide ascii-encoded version if possible.
+                 */
+                if let encodedValue = param.value.rfc5987encoded {
+                    let keyval = "\(param.key)*=\(encodedValue)"
+                    result.append(keyval)
                 }
-            } else {
-                let keyval = "\(param.key)*=\(param.value.rfc5987encoded)"
-                result.append(keyval)
+                let value = param.value.ascii.trimmingCharacters(in: .quoted)
+                // If striped string is empty, we neglect this value entirely.
+                if value.isEmpty {
+                    continue
+                }
+                // Adding ASCII version.
+                appendParam(key: param.key, value: value)
             }
         }
         return result.joined(separator: separator)
@@ -1744,7 +1782,7 @@ fileprivate extension Date {
 fileprivate extension CharacterSet {
     static let quoted = CharacterSet(charactersIn: "\"")
     static let quotedWhitespace = CharacterSet(charactersIn: "\" ")
-    static let legal = CharacterSet(charactersIn: "!#$&+-.^_`|~").intersection(.alphanumerics).inverted
+    static let rfc5987Allowed = CharacterSet(charactersIn: "!#$&+-.^_`|~").intersection(.alphanumerics)
 }
 
 fileprivate extension String {
@@ -1757,40 +1795,53 @@ fileprivate extension String {
         return true
     }
     
-    var isoLatinStripped: String {
-        let isoLatinCharset = CharacterSet.init(charactersIn: Unicode.Scalar(32)..<Unicode.Scalar(255))
-        let isoLatin = self.filter({ $0.unicodeScalars.count == 1 ? isoLatinCharset.contains($0.unicodeScalars.first!) : false })
-        return isoLatin
+    var ascii: String {
+        return self.filter({ $0.unicodeScalars.count == 1 ? $0.unicodeScalars.first!.isASCII : false })
     }
     
     /// Returns percent encoded string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
-    var rfc5987encoded: String {
-        let encoded = self.addingPercentEncoding(withAllowedCharacters: .legal) ?? self
-        return "UTF-8''\(encoded)"
+    var rfc5987encoded: String? {
+        return self.addingPercentEncoding(withAllowedCharacters: .rfc5987Allowed).flatMap({ "UTF-8''\($0)" })
     }
     
     /// Converts percent encoded to normal string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
-    var decodingRFC5987: String {
+    var decodingRFC5987: String? {
         let components = self.components(separatedBy: "'")
         guard components.count >= 3 else {
             return self
         }
         let encoding = HTTPHeaders.charsetIANAToStringEncoding(components.first!)
         let string = components.dropFirst(2).joined(separator: "'")
-        return string.removingPercentEscapes(encoding: encoding) ?? string
+        return string.removingPercentEscapes(encoding: encoding)
+    }
+    
+    /// Converts percent encoded to normal string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
+    /// Substitutes undecodable percent encoded characters to a `U+FFFD` (Replacement) character.
+    var decodingRFC5987enforced: String {
+        let components = self.components(separatedBy: "'")
+        guard components.count >= 3 else {
+            return self
+        }
+        let encoding = HTTPHeaders.charsetIANAToStringEncoding(components.first!)
+        let string = components.dropFirst(2).joined(separator: "'")
+        return string.removingPercentEscapes(encoding: encoding, forced: true)!
     }
     
     // Similiar method is deprecated in Foundation, we implemented ours!
-    func removingPercentEscapes(encoding: String.Encoding) -> String? {
-        if encoding == .utf8 {
+    /// - Parameter forced: Forces routine to return non-nil string by substituting
+    ///     a non-decodable octet sequence by a replacement.
+    func removingPercentEscapes(encoding: String.Encoding, forced: Bool = false) -> String? {
+        if encoding == .utf8 && !forced {
             return self.removingPercentEncoding
         }
         
         var str = self
+        var lastcheckedIndex = str.startIndex
         while true {
-            guard let index = str.index(of: "%") else {
+            guard let index = str[lastcheckedIndex...].index(of: "%") else {
                 break
             }
+            lastcheckedIndex = index
             var range = index..<(str.index(index, offsetBy: 3))
             while str[range.upperBound] == "%" {
                 range = range.lowerBound..<str.index(range.upperBound, offsetBy: 3)
@@ -1799,10 +1850,17 @@ fileprivate extension String {
             let bytes: [UInt8] = percentEncoded.split(separator: "%").flatMap({ UInt8($0, radix: 16) })
             
             let charData = Data(bytes: bytes)
-            guard let converted = String(data: charData, encoding: encoding) else {
-                return nil
+            if let converted = String(data: charData, encoding: encoding) {
+                 str.replaceSubrange(range, with: converted)
+            } else {
+                if forced {
+                    return nil
+                } else {
+                    // Another option, though non-standard in RFC, is to use ISO-8859-1 to interpret encoded sequence.
+                    str.replaceSubrange(range, with: "\u{fffd}")
+                }
             }
-            str.replaceSubrange(range, with: converted)
+           
         }
         return str
     }
