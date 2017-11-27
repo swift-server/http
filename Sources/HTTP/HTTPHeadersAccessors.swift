@@ -13,7 +13,7 @@ extension HTTPHeaders {
     /// MIME type directive for `Accept` and `Content-Type` headers.
     public struct MediaType: RawRepresentable, Hashable, Equatable, ExpressibleByStringLiteral {
         private let generalType: String
-        private let type: String
+        private let subType: String
         public typealias RawValue = String
         public typealias StringLiteralType = String
         
@@ -21,11 +21,11 @@ extension HTTPHeaders {
             let linted = rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
             guard let slashIndex = linted.index(of: "/") else {
                 self.generalType = linted
-                self.type = ""
+                self.subType = ""
                 return
             }
             self.generalType = String(linted[linted.startIndex..<slashIndex])
-            self.type = String(linted[linted.index(after: slashIndex)...])
+            self.subType = String(linted[linted.index(after: slashIndex)...])
         }
         
         public init(stringLiteral: String) {
@@ -34,33 +34,33 @@ extension HTTPHeaders {
         
         private init(generalType: String, type: String) {
             self.generalType = generalType
-            self.type = type
+            self.subType = type
         }
         
         public var rawValue: String {
-            return "\(generalType)/\(type)"
+            return "\(generalType)/\(subType)"
         }
         
         public var hashValue: Int {
-            return rawValue.hashValue
+            return self.rawValue.hashValue
         }
         
         public static func == (lhs: MediaType, rhs: MediaType) -> Bool {
-            return lhs.generalType == rhs.generalType &&  lhs.type.replacingOccurrences(of: "x-", with: "", options: .anchored) == rhs.type.replacingOccurrences(of: "x-", with: "", options: .anchored)
+            return lhs.generalType == rhs.generalType &&  lhs.subType.replacingOccurrences(of: "x-", with: "", options: .anchored) == rhs.subType.replacingOccurrences(of: "x-", with: "", options: .anchored)
         }
         
         /// Returns true if media type provided in argument can be returned as `Content-Type`
         /// when this media type is provided by `Accept` header.
         public func canAccept(_ value: MediaType) -> Bool {
             // if self is */* it can accept any type
-            if self == .all || (self.type == "*" && self.generalType == value.generalType) {
+            if self == .all || (self.subType == "*" && self.generalType == value.generalType) {
                 return true
             }
             
             // Removing nonstandard `x-` prefix
             // see [RFC 6838](https://tools.ietf.org/html/rfc6838)
-            let selfType = self.type.replacingOccurrences(of: "x-", with: "", options: .anchored)
-            let valType = value.type.replacingOccurrences(of: "x-", with: "", options: .anchored)
+            let selfType = self.subType.replacingOccurrences(of: "x-", with: "", options: .anchored)
+            let valType = value.subType.replacingOccurrences(of: "x-", with: "", options: .anchored)
             
             // application and text are interchangable as in xml & json types.
             if valType == selfType {
@@ -195,63 +195,101 @@ extension HTTPHeaders {
         static public let multipartByteranges = MediaType(generalType: "multipart", type: "byteranges")
     }
     
-    /// Values available for `Conten-Disposition` header.
-    public enum ContentDisposition: CustomStringConvertible, Equatable {
+    public enum ContentDispositionType: String {
         /// Default value, which indicates file must be shown in browser.
         case inline
         /// Downloadable content, with specifed filename if available.
-        case attachment(filename: String?)
+        case attachment
         /// Form-Data deposition type.
-        case formData(name: String?, filename: String?)
+        case formData = "form-data"
+    }
+    
+    /// Values available for `Conten-Disposition` header.
+    public struct ContentDisposition: CustomStringConvertible, Equatable {
+        /// Content disposition type.
+        public let type: ContentDispositionType
+        /// All parameters associated to content disposition.
+        public var parameters: [String: String]
+        
+        // File name of content.
+        var filename: String? {
+            get {
+                return parameters["filename"]
+            }
+            set {
+                parameters["filename"] = newValue
+            }
+        }
+        
+        // Name of `form-data` content.
+        var name: String? {
+            get {
+                return parameters["name"]
+            }
+            set {
+                parameters["name"] = newValue
+            }
+        }
+        
+        // Modification date of contents.
+        var modificationDate: Date? {
+            get {
+                return parameters["modification-date"].flatMap(Date.init(rfcString:))
+            }
+            set {
+                parameters["modification-date"] = newValue?.format(with: .http)
+            }
+        }
+        
+        // Modification date of contents.
+        var creationDate: Date? {
+            get {
+                return parameters["creation-datete"].flatMap(Date.init(rfcString:))
+            }
+            set {
+                parameters["creation-date"] = newValue?.format(with: .http)
+            }
+        }
+        
+        public init(type: HTTPHeaders.ContentDispositionType, filename: String?) {
+            self.type = type
+            self.parameters = filename.flatMap({ ["filename": $0] }) ?? [:]
+        }
         
         public init?( _ rawValue: String) {
-            guard let type = rawValue.components(separatedBy: ";").first?.lowercased() else {
+            let (typeStr, params) = HTTPHeaders.parseParamsWithToken(rawValue, removeQuotation: true)
+            guard let type = (typeStr?.lowercased()).flatMap(ContentDispositionType.init(rawValue:)) else {
                 return nil
             }
-            
-            let params = HTTPHeaders.parseParams(rawValue, removeQuotation: true)
-            switch type {
-            case "inline", "":
-                self = .inline
-            case "attachment":
-                self = .attachment(filename: params["filename"])
-            case "form-data":
-                self = .formData(name: params["name"], filename: params["filename"])
-            default:
-                return nil
-            }
+            self.type = type
+            self.parameters = params
         }
         
         public var description: String {
-            switch self {
-            case .inline:
-                return "inline"
-            case .attachment(filename: let filename):
-                // We add both IsoLatin and UTF-8 encoded file names for compatibility
-                let isoFileName = filename?.isoLatinStripped
-                let filenameParam = isoFileName.flatMap({ "; filename=\"\($0)\"" }) ?? ""
-                let filenameAstrisk = filename.flatMap({ "; filename*=\($0.rfc5987encoded)" }) ?? ""
-                return "attachment\(filenameParam)\(filenameAstrisk)"
-            case .formData(name: let name, filename: let filename):
-                let nameParam = name.flatMap({ "; name=\"\($0)\"" }) ?? ""
-                let isoFileName = filename?.isoLatinStripped
-                let filenameParam = isoFileName.flatMap({ "; filename=\"\($0)\"" }) ?? ""
-                let filenameAstrisk = filename.flatMap({ "; filename*=\($0.rfc5987encoded)" }) ?? ""
-                return "form-data\(nameParam)\(filenameParam)\(filenameAstrisk)"
+            if parameters.isEmpty {
+                return type.rawValue
             }
+            let paramStr = HTTPHeaders.createParam(parameters, quotationValue: true)
+            return "\(type.rawValue);\(paramStr)"
         }
         
         public static func ==(lhs: HTTPHeaders.ContentDisposition, rhs: HTTPHeaders.ContentDisposition) -> Bool {
-            switch (lhs, rhs) {
-            case (.inline, .inline):
-                return true
-            case let (.attachment(l), .attachment(r)):
-                return l == r
-            case let (.formData(nl, fnl), .formData(nr, fnr)):
-                return nl == nr && fnl == fnr
-            default:
-                return false
-            }
+            return lhs.type == rhs.type && lhs.parameters == rhs.parameters
+        }
+        
+        /// Default value, which indicates file must be shown in browser.
+        public static let inline = ContentDisposition(type: .inline, filename: nil)
+        
+        /// Downloadable content, with specifed filename if available.
+        public static func attachment(fileName: String? = nil) -> HTTPHeaders.ContentDisposition {
+            return self.init(type: .attachment, filename: fileName)
+        }
+        
+        /// Form-Data deposition.
+        public static func formData(name: String? = nil, fileName: String? = nil) -> ContentDisposition {
+            var value = self.init(type: .formData, filename: fileName)
+            value.name = name
+            return value
         }
     }
     
@@ -530,7 +568,7 @@ extension HTTPHeaders {
         }
         
         public var hashValue: Int {
-            return description.hashValue
+            return self.description.hashValue
         }
         
         public var description: String {
@@ -707,23 +745,24 @@ extension HTTPHeaders {
     /// Encoding of body
     public struct Encoding: RawRepresentable, Hashable, Equatable {
         public var rawValue: String
-        public var hashValue: Int
         public typealias RawValue = String
         
         public init(rawValue: String) {
             let linted = rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
                 .replacingOccurrences(of: "x-", with: "", options: .anchored)
             self.rawValue = linted
-            self.hashValue = linted.hashValue
         }
         
         private init(linted: String) {
             self.rawValue = linted
-            self.hashValue = linted.hashValue
+        }
+        
+        public var hashValue: Int {
+            return self.rawValue.hashValue
         }
         
         public static func == (lhs: Encoding, rhs: Encoding) -> Bool {
-            return  lhs.hashValue == rhs.hashValue && lhs.rawValue == rhs.rawValue
+            return lhs.rawValue == rhs.rawValue
         }
         
         /// Accepting all encodings available
@@ -792,18 +831,20 @@ extension HTTPHeaders {
     /// Determines server accepts `Range` header or not
     public struct RangeType: RawRepresentable, Hashable, Equatable {
         public var rawValue: String
-        public var hashValue: Int
         
         public typealias RawValue = String
         
         public init(rawValue: String) {
             let linted = rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
             self.rawValue = linted
-            self.hashValue = linted.hashValue
+        }
+        
+        public var hashValue: Int {
+            return self.rawValue.hashValue
         }
         
         public static func == (lhs: RangeType, rhs: RangeType) -> Bool {
-            return lhs.hashValue == rhs.hashValue && lhs.rawValue == rhs.rawValue
+            return lhs.rawValue == rhs.rawValue
         }
         
         /// Can't accept Range.
