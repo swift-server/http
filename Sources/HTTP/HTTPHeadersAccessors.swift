@@ -12,204 +12,211 @@ extension HTTPHeaders {
     
     /// MIME type directive for `Accept` and `Content-Type` headers.
     public struct MediaType: RawRepresentable, Hashable, Equatable, ExpressibleByStringLiteral {
-        public var rawValue: String
-        public var hashValue: Int
+        private let generalType: String
+        private let type: String
         public typealias RawValue = String
         public typealias StringLiteralType = String
         
         public init(rawValue: String) {
             let linted = rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-            self.rawValue = linted
-            self.hashValue = linted.hashValue
+            guard let slashIndex = linted.index(of: "/") else {
+                self.generalType = linted
+                self.type = ""
+                return
+            }
+            self.generalType = String(linted[linted.startIndex..<slashIndex])
+            self.type = String(linted[linted.index(after: slashIndex)...])
         }
         
         public init(stringLiteral: String) {
             self.init(rawValue: stringLiteral)
         }
         
-        private init(linted: String) {
-            self.rawValue = linted
-            self.hashValue = linted.hashValue
+        private init(generalType: String, type: String) {
+            self.generalType = generalType
+            self.type = type
+        }
+        
+        public var rawValue: String {
+            return "\(generalType)/\(type)"
+        }
+        
+        public var hashValue: Int {
+            return rawValue.hashValue
         }
         
         public static func == (lhs: MediaType, rhs: MediaType) -> Bool {
-            if lhs.hashValue == rhs.hashValue {
-                return lhs.rawValue == rhs.rawValue
-            }
-            return lhs.rawValue.replacingOccurrences(of: "/x-", with: "/") == rhs.rawValue.replacingOccurrences(of: "/x-", with: "/")
+            return lhs.generalType == rhs.generalType &&  lhs.type.replacingOccurrences(of: "x-", with: "", options: .anchored) == rhs.type.replacingOccurrences(of: "x-", with: "", options: .anchored)
         }
         
         /// Returns true if media type provided in argument can be returned as `Content-Type`
         /// when this media type is provided by `Accept` header.
         public func canAccept(_ value: MediaType) -> Bool {
+            // if self is */* it can accept any type
+            if self == .all || (self.type == "*" && self.generalType == value.generalType) {
+                return true
+            }
+            
             // Removing nonstandard `x-` prefix
             // see [RFC 6838](https://tools.ietf.org/html/rfc6838)
-            if self.hashValue == value.hashValue {
-                return true
-            }
+            let selfType = self.type.replacingOccurrences(of: "x-", with: "", options: .anchored)
+            let valType = value.type.replacingOccurrences(of: "x-", with: "", options: .anchored)
             
-            let rhsValue = self.rawValue.replacingOccurrences(of: "/x-", with: "/")
-            let lhsValue = value.rawValue.replacingOccurrences(of: "/x-", with: "/")
-            
-            if rhsValue == lhsValue || rhsValue == "*/*" {
-                return true
-            }
-            
-            // Check if rhs is wildcard and has common general type
-            if rhsValue.hasSuffix("/*") && lhsValue.commonPrefix(with: rhsValue).hasSuffix("/") {
-                return true
-            }
-            
-            // xml has two types, application/xml and text/xml
-            if lhsValue.hasSuffix("/xml") && lhsValue.hasSuffix("/xml"){
-                return true
+            // application and text are interchangable as in xml & json types.
+            if valType == selfType {
+                if self.generalType == value.generalType {
+                    return true
+                }
+                let selfGType = self.generalType == "text" ? "application" : self.generalType
+                let valGType = value.generalType == "text" ? "application" : value.generalType
+                if selfGType == valGType {
+                    return true
+                }
             }
             
             return false
         }
         
         /// Directory
-        static public let directory = MediaType(linted: "text/directory")
+        static public let directory = MediaType(generalType: "text", type: "directory")
         /// Unix directory
-        static public let unixDirectory = MediaType(linted: "inode/directory")
+        static public let unixDirectory = MediaType(generalType: "inode", type: "directory")
         /// Apache server's directory
-        static public let apacheDirectory = MediaType(linted: "httpd/unix-directory")
+        static public let apacheDirectory = MediaType(generalType: "httpd", type: "unix-directory")
         
         // Archive and Binary
         
         /// All types
-        static public let all = MediaType(linted: "*/*")
+        static public let all = MediaType(generalType: "*", type: "*")
         /// Binary stream and unknown types
-        static public let stream = MediaType(linted: "application/octet-stream")
+        static public let stream = MediaType(generalType: "application", type: "octet-stream")
         /// Zip archive
-        static public let zip = MediaType(linted: "application/zip")
+        static public let zip = MediaType(generalType: "application", type: "zip")
         /// Protable document format
-        static public let pdf = MediaType(linted: "application/pdf")
+        static public let pdf = MediaType(generalType: "application", type: "pdf")
         /// ePub book
-        static public let epub = MediaType(linted: "application/epub+zip")
+        static public let epub = MediaType(generalType: "application", type: "epub+zip")
         /// Java archive (jar)
-        static public let javaArchive = MediaType(linted: "application/java-archive")
+        static public let javaArchive = MediaType(generalType: "application", type: "java-archive")
         
         // Texts
         
         /// All Text types
-        static public let text = MediaType(linted: "text/*")
+        static public let text = MediaType(generalType: "text", type: "*")
         /// Text file
-        static public let plainText = MediaType(linted: "text/plain")
+        static public let plainText = MediaType(generalType: "text", type: "plain")
         /// Coma-separated values
-        static public let csv = MediaType(linted: "text/csv")
+        static public let csv = MediaType(generalType: "text", type: "csv")
         /// Hyper-text markup language
-        static public let html = MediaType(linted: "text/html")
+        static public let html = MediaType(generalType: "text", type: "html")
         /// Common style sheet
-        static public let css = MediaType(linted: "text/css")
+        static public let css = MediaType(generalType: "text", type: "css")
         /// eXtended Markup language
-        static public let xml = MediaType(linted: "text/xml")
+        static public let xml = MediaType(generalType: "text", type: "xml")
         /// eXtended Hyper-text markup language
-        static public let xhtml = MediaType(linted: "application/xhtml+xml")
+        static public let xhtml = MediaType(generalType: "application", type: "xhtml+xml")
         /// Javascript code file
-        static public let javascript = MediaType(linted: "application/javascript")
+        static public let javascript = MediaType(generalType: "application", type: "javascript")
         /// Javascript notation
-        static public let json = MediaType(linted: "application/json")
+        static public let json = MediaType(generalType: "application", type: "json")
         
         // Images
         
         /// All Image types
-        static public let image = MediaType(linted: "image/bmp")
+        static public let image = MediaType(generalType: "image", type: "bmp")
         /// Bitmap
-        static public let bmp = MediaType(linted: "image/bmp")
+        static public let bmp = MediaType(generalType: "image", type: "bmp")
         /// Graphics Interchange Format photo
-        static public let gif = MediaType(linted: "image/gif")
+        static public let gif = MediaType(generalType: "image", type: "gif")
         /// JPEG photo
-        static public let jpeg = MediaType(linted: "image/jpeg")
+        static public let jpeg = MediaType(generalType: "image", type: "jpeg")
         /// Portable network graphics
-        static public let png = MediaType(linted: "image/png")
+        static public let png = MediaType(generalType: "image", type: "png")
         /// Scalable vector graphics
-        static public let svg = MediaType(linted: "image/svg+xml")
+        static public let svg = MediaType(generalType: "image", type: "svg+xml")
         /// Scalable vector graphics
-        static public let webp = MediaType(linted: "image/webp")
+        static public let webp = MediaType(generalType: "image", type: "webp")
         
         // Audio & Video
         
         /// All Audio types
-        static public let audio = MediaType(linted: "audio/*")
+        static public let audio = MediaType(generalType: "audio", type: "*")
         /// All Video types
-        static public let video = MediaType(linted: "video/*")
-        /// MPEG Audio (including MP3)
-        static public let mpegAudio = MediaType(linted: "audio/mpeg")
+        static public let video = MediaType(generalType: "video", type: "*")
         /// MPEG Video
-        static public let mpeg = MediaType(linted: "video/mpeg")
-        /// MPEG4 Audio
-        static public let mpeg4Audio = MediaType(linted: "audio/mp4")
+        static public let mpeg = MediaType(generalType: "video", type: "mpeg")
+        /// MPEG Audio (including MP3)
+        static public let mpegAudio = MediaType(generalType: "audio", type: "mpeg")
         /// MPEG4 Video
-        static public let mpeg4 = MediaType(linted: "video/mp4")
+        static public let mpeg4 = MediaType(generalType: "video", type: "mp4")
+        /// MPEG4 Audio
+        static public let mpeg4Audio = MediaType(generalType: "audio", type: "mp4")
         /// Mpeg playlist
-        static public let m3u8 = MediaType(linted: "application/vnd.apple.mpegurl")
+        static public let m3u8 = MediaType(generalType: "application", type: "vnd.apple.mpegurl")
         /// Mpeg playlist for Audio files
-        static public let m3u8Audio = MediaType(linted: "application/vnd.apple.mpegurl.audio")
+        static public let m3u8Audio = MediaType(generalType: "application", type: "vnd.apple.mpegurl.audio")
         /// Mpeg-2 transport stream
-        static public let ts = MediaType(linted: "video/mp2t")
+        static public let ts = MediaType(generalType: "video", type: "mp2t")
         /// OGG Audio
-        static public let ogg = MediaType(linted: "audio/ogg")
+        static public let ogg = MediaType(generalType: "audio", type: "ogg")
         /// WebM Video
-        static public let webm = MediaType(linted: "video/webm")
+        static public let webm = MediaType(generalType: "video", type: "webm")
         /// WebM Audio
-        static public let webmAudio = MediaType(linted: "audio/webm")
+        static public let webmAudio = MediaType(generalType: "audio", type: "webm")
         /// Advanced Audio Coding
-        static public let aac = MediaType(linted: "audio/aac")
+        static public let aac = MediaType(generalType: "audio", type: "aac")
         /// Microsoft Audio Video Interleaved
-        static public let avi = MediaType(linted: "video/x-msvideo")
+        static public let avi = MediaType(generalType: "video", type: "x-msvideo")
         /// Microsoft Wave audio
-        static public let wav = MediaType(linted: "audio/wav")
+        static public let wav = MediaType(generalType: "audio", type: "wav")
         /// Apple QuickTime format
-        static public let quicktime = MediaType(linted: "video/quicktime")
+        static public let quicktime = MediaType(generalType: "video", type: "quicktime")
         /// 3GPP
-        static public let threegp = MediaType(linted: "video/3gpp")
+        static public let threegp = MediaType(generalType: "video", type: "3gpp")
         
         // Font
         
         /// TrueType Font
-        static public let ttf = MediaType(linted: "font/ttf")
+        static public let ttf = MediaType(generalType: "font", type: "ttf")
         /// OpenType font
-        static public let otf = MediaType(linted: "font/otf")
+        static public let otf = MediaType(generalType: "font", type: "otf")
         /// Web Open Font Format
-        static public let woff = MediaType(linted: "font/woff")
+        static public let woff = MediaType(generalType: "font", type: "woff")
         /// Web Open Font Format 2
-        static public let woff2 = MediaType(linted: "font/woff2")
+        static public let woff2 = MediaType(generalType: "font", type: "woff2")
         
         // Multipart
         
         /// Multipart mixed
-        static public let multipart = MediaType(linted: "multipart/mixed")
+        static public let multipart = MediaType(generalType: "multipart", type: "mixed")
         /// Multipart form-data
-        static public let multipartFormData = MediaType(linted: "multipart/form-data")
+        static public let multipartFormData = MediaType(generalType: "multipart", type: "form-data")
         /// Multipart byteranges
-        static public let multipartByteranges = MediaType(linted: "multipart/byteranges")
+        static public let multipartByteranges = MediaType(generalType: "multipart", type: "byteranges")
     }
     
-    /// Values available for `Conten-Disposition` header
+    /// Values available for `Conten-Disposition` header.
     public enum ContentDisposition: CustomStringConvertible, Equatable {
-        /// Default value, which indicates file must be shown in browser
+        /// Default value, which indicates file must be shown in browser.
         case inline
-        /// Downloadable content, with specifed filename if available
+        /// Downloadable content, with specifed filename if available.
         case attachment(filename: String?)
-        /// Form-Data
+        /// Form-Data deposition type.
         case formData(name: String?, filename: String?)
         
         public init?( _ rawValue: String) {
             guard let type = rawValue.components(separatedBy: ";").first?.lowercased() else {
                 return nil
             }
-            let params = HTTPHeaders.parseParams(rawValue)
-            let name = params["name"]?.trimmingCharacters(in: .whitespaces).trimmingCharacters(in: .quoted)
-            let filename = params["filename*"].flatMap(HTTPHeaders.parseRFC5987) ?? params["filename"]
             
+            let params = HTTPHeaders.parseParams(rawValue, removeQuotation: true)
             switch type {
             case "inline", "":
                 self = .inline
             case "attachment":
-                self = .attachment(filename: filename)
+                self = .attachment(filename: params["filename"])
             case "form-data":
-                self = .formData(name: name, filename: filename)
+                self = .formData(name: params["name"], filename: params["filename"])
             default:
                 return nil
             }
@@ -220,15 +227,16 @@ extension HTTPHeaders {
             case .inline:
                 return "inline"
             case .attachment(filename: let filename):
-                let isoFileName = filename.flatMap(HTTPHeaders.isoLatinStripped)
+                // We add both IsoLatin and UTF-8 encoded file names for compatibility
+                let isoFileName = filename?.isoLatinStripped
                 let filenameParam = isoFileName.flatMap({ "; filename=\"\($0)\"" }) ?? ""
-                let filenameAstrisk = filename.flatMap({ "; filename*=\(HTTPHeaders.rfc5987String($0))" }) ?? ""
+                let filenameAstrisk = filename.flatMap({ "; filename*=\($0.rfc5987encoded)" }) ?? ""
                 return "attachment\(filenameParam)\(filenameAstrisk)"
             case .formData(name: let name, filename: let filename):
                 let nameParam = name.flatMap({ "; name=\"\($0)\"" }) ?? ""
-                let isoFileName = filename.flatMap(HTTPHeaders.isoLatinStripped)
+                let isoFileName = filename?.isoLatinStripped
                 let filenameParam = isoFileName.flatMap({ "; filename=\"\($0)\"" }) ?? ""
-                let filenameAstrisk = filename.flatMap({ "; filename*=\(HTTPHeaders.rfc5987String($0))" }) ?? ""
+                let filenameAstrisk = filename.flatMap({ "; filename*=\($0.rfc5987encoded)" }) ?? ""
                 return "form-data\(nameParam)\(filenameParam)\(filenameAstrisk)"
             }
         }
@@ -403,8 +411,9 @@ extension HTTPHeaders {
         }
     }
     
-    /// Defines HTTP Authorization request
-    /// -Note: Paramters may be quoted or not according to RFCs
+    /// Defines HTTP Authorization request.
+    /// - Note: Paramters may be quoted or not according to RFCs.
+    /// - Note: Quotation in parameters' values are preserved as is.
     public enum Authorization: CustomStringConvertible {
         /// Basic base64-encoded method [RFC7617](http://www.iana.org/go/rfc7617)
         case basic(user: String, password: String)
@@ -416,7 +425,7 @@ extension HTTPHeaders {
         case oAuth2(token: String)
         /// Mututal method [RFC8120](http://www.iana.org/go/rfc8120)
         case mutual(params: [String: String])
-        /// Negotiate method [RFC4559, Section 3](http://www.iana.org/go/rfc4559)
+        /// Negotiate method for Kerberos and NTLM [RFC4559, Section 3](http://www.iana.org/go/rfc4559)
         case negotiate(data: Data)
         /// Custom authentication method
         case custom(String, token: String?, params: [String: String])
@@ -447,16 +456,12 @@ extension HTTPHeaders {
                 guard let data = Data(base64Encoded: q) else { return nil }
                 self = .negotiate(data: data)
             default:
-                var params = HTTPHeaders.parseParams(q)
-                var token: String?
-                for param in params {
-                    if param.value.isEmpty {
-                        token = param.key
-                        params[param.key] = nil
-                        break
-                    }
+                if let token = sep.dropFirst().first, !token.contains(";") {
+                    let qFixed = sep.dropFirst(2).joined(separator: " ")
+                    self = .custom(type, token: token, params: HTTPHeaders.parseParams(qFixed))
+                } else {
+                    self = .custom(type, token: nil, params: HTTPHeaders.parseParams(q))
                 }
-                self = .custom(type, token: token, params: params)
             }
         }
         
@@ -467,27 +472,29 @@ extension HTTPHeaders {
                 let b64 = (text.data(using: .ascii) ?? text.data(using: .utf8))?.base64EncodedString() ?? ""
                 return "Basic \(b64)"
             case .digest(let params):
-                let paramsString = params.map({ "\($0.key)=\($0.value)" }).joined(separator: ", ")
+                let nonquotedKeys: [String] = ["stale", "algorithm", "nc", "charset", "userhash", "qop"]
+                let paramsString = HTTPHeaders.createParam(params, quotationValue: true, quotedKeys: [], nonquotatedKeys: nonquotedKeys, separator: ", ")
                 return "Digest \(paramsString)"
             case .oAuth1(let token):
                 return "OAuth \(token)"
             case .oAuth2(let token):
                 return "Bearer \(token)"
             case .mutual(let params):
-                let paramsString = params.map({ "\($0.key)=\($0.value)" }).joined(separator: ", ")
+                let nonquotedKeys: [String] = ["sid", "nc"]
+                let paramsString = HTTPHeaders.createParam(params, quotationValue: true, quotedKeys: [], nonquotatedKeys: nonquotedKeys, separator: ", ")
                 return "Mutual \(paramsString)"
             case .negotiate(let data):
                 return "Negotiate \(data.base64EncodedString())"
             case .custom(let type, let token, let params):
                 let tokenString = token.flatMap({ "\($0) " }) ?? ""
-                let paramsString = params.map({ "\($0.key)=\($0.value)" }).joined(separator: ", ")
+                let paramsString = HTTPHeaders.createParam(params)
                 return "\(type) \(tokenString)\(paramsString)"
             }
         }
     }
     
-    /// Defines HTTP Authentication challenge method required to access
-    public enum ChallengeType: CustomStringConvertible {
+    /// Defines HTTP Authentication challenge method required to access.
+    public enum ChallengeType: CustomStringConvertible, Hashable, Equatable {
         /// Basic method [RFC7617](http://www.iana.org/go/rfc7617)
         case basic
         /// Digest method [RFC7616](http://www.iana.org/go/rfc7616)
@@ -498,9 +505,9 @@ extension HTTPHeaders {
         case oAuth2
         /// Mututal method [RFC8120](http://www.iana.org/go/rfc8120)
         case mutual
-        /// Negotiate method [RFC4559, Section 3](http://www.iana.org/go/rfc4559)
+        /// Negotiate method for Kerberos and NTLM [RFC4559, Section 3](http://www.iana.org/go/rfc4559)
         case negotiate
-        /// Custom authentication method
+        /// Custom authentication method.
         case custom(String)
         
         public init(_ rawValue: String) {
@@ -522,6 +529,10 @@ extension HTTPHeaders {
             }
         }
         
+        public var hashValue: Int {
+            return description.hashValue
+        }
+        
         public var description: String {
             switch self {
             case .basic: return "Basic"
@@ -533,19 +544,29 @@ extension HTTPHeaders {
             case .custom(let type): return type
             }
         }
+        
+        public static func ==(lhs: HTTPHeaders.ChallengeType, rhs: HTTPHeaders.ChallengeType) -> Bool {
+            switch (lhs, rhs) {
+            case (.basic, .basic), (.digest, .digest), (.oAuth1, .oAuth1),
+                 (.oAuth2, .oAuth2), (.mutual, .mutual), (.negotiate, .negotiate):
+                return true
+            case let (.custom(l), .custom(r)):
+                return l == r
+            default:
+                return false
+            }
+        }
     }
     
-    /// Challenge defined in WWW-Authenticate
-    /// -Note: Paramters may be quoted or not according to RFCs
+    /// Challenge defined in WWW-Authenticate or Proxy-Authenticate.
+    /// -Note: Paramters' quotations will be preserved for custom challenge type.
     public struct Challenge: CustomStringConvertible {
         /// Type of challenge
         public let type: ChallengeType
         /// All parameters associated to challenge
         public let parameters: [String: String]
         /// token parameter provided
-        public var token: String? {
-            return parameters.first(where: { $0.value.isEmpty })?.key
-        }
+        public var token: String?
         /// `realm` parameter without quotations
         public var realm: String? {
             return parameters["realm"]?.trimmingCharacters(in: .quoted)
@@ -572,20 +593,30 @@ extension HTTPHeaders {
             guard let type = typeSegment.first.flatMap(ChallengeType.init) else { return nil }
             self.type = type
             let allparams = typeSegment.dropFirst().joined(separator: " ")
-            self.parameters = HTTPHeaders.parseParams(allparams, separator: ",")
+            let removeQ = type == .digest || type == .mutual
+            let parsedParams = HTTPHeaders.parseParams(allparams, separator: ",", removeQuotation: removeQ)
+            self.parameters = parsedParams
         }
         
         public var description: String {
-            let params = parameters.map({
-                !$0.value.isEmpty ? "\($0.key)=\($0.value)" : "\($0.key)"
-                
-            }).joined(separator: ", ")
-            return "\(type.description) \(params)"
+            switch type {
+            case .digest:
+                let nonquotedKeys: [String] = ["stale", "algorithm", "nc", "charset", "userhash"]
+                let params = HTTPHeaders.createParam(parameters, quotationValue: true, quotedKeys: [], nonquotatedKeys: nonquotedKeys, separator: ", ")
+                return "\(type.description) \(params)"
+            case .mutual:
+                let nonquotedKeys: [String] = ["sid", "nc"]
+                let params = HTTPHeaders.createParam(parameters, quotationValue: true, quotedKeys: [], nonquotatedKeys: nonquotedKeys, separator: ", ")
+                return "\(type.description) \(params)"
+            default:
+                let token = self.token.flatMap({ "\($0) "}) ?? ""
+                let params = HTTPHeaders.createParam(parameters, quotationValue: false, quotedKeys: [], nonquotatedKeys: [], separator: ", ")
+                return "\(type.description) \(token)\(params)"
+            }
         }
     }
     
-    /// Challenge defined in WWW-Authenticate
-    /// -Note: Paramters may be quoted or not according to RFCs
+    /// Media type and related parameters in Content-Type.
     public struct ContentType: CustomStringConvertible {
         /// Media type (MIME) of content
         let mediaType: HTTPHeaders.MediaType
@@ -617,7 +648,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// EntryTag used in `ETag`, `If-Modified`, etc
+    /// EntryTag used in `ETag`, `If-Modified`, etc.
     public enum EntryTag: CustomStringConvertible, Equatable, Hashable {
         /// Regular entry tag
         case strong(String)
@@ -637,13 +668,14 @@ extension HTTPHeaders {
                 self = .wildcard
             }
             // Value is strong
-            let linted = rawValue.trimmingCharacters(in: .whitespaces).trimmingCharacters(in: .quotedWhitespace)
+            let linted = rawValue.trimmingCharacters(in: .quotedWhitespace)
             self = .strong(linted)
         }
         
         public var description: String {
             switch self {
             case .strong(let etag):
+                // TODO: Remove non ascii characters
                 let lintedEtag = etag.trimmingCharacters(in: .quotedWhitespace)
                 return "\"\(lintedEtag)\""
             case .weak(let etag):
@@ -680,6 +712,7 @@ extension HTTPHeaders {
         
         public init(rawValue: String) {
             let linted = rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                .replacingOccurrences(of: "x-", with: "", options: .anchored)
             self.rawValue = linted
             self.hashValue = linted.hashValue
         }
@@ -695,7 +728,7 @@ extension HTTPHeaders {
         
         /// Accepting all encodings available
         static public let all = Encoding(linted: "*")
-        /// Send body as is
+        /// Sends body as is
         static public let identity = Encoding(linted: "identity")
         /// Compress body data using lzw method
         static public let compress = Encoding(linted: "compress")
@@ -773,11 +806,11 @@ extension HTTPHeaders {
             return lhs.hashValue == rhs.hashValue && lhs.rawValue == rhs.rawValue
         }
         
-        /// Can't accept Range
+        /// Can't accept Range.
         public static let none = RangeType(rawValue: "none")
-        /// Accept range in bytes(octets)
+        /// Accept range in bytes(octets).
         public static let bytes = RangeType(rawValue: "bytes")
-        /// Accept range in item numbers (non-standard)
+        /// Accept range in item numbers (non-standard).
         public static let items = RangeType(rawValue: "items")
     }
     
@@ -845,18 +878,10 @@ extension HTTPHeaders {
     // `Cookie` header value. An empty array means no value is set in header.
     public var cookie: [HTTPCookie] {
         // Regarding `Cookie2` is obsolete, should we have to integrate it into values?
-        let pairs: [(key: String, val: String)] = (self.storage[.cookie]?.first?.components(separatedBy: ";").flatMap { text in
-            let segments = text.components(separatedBy: "=")
-            guard let key = segments.first?.trimmingCharacters(in: .whitespaces), !key.isEmpty else {
-                return nil
-            }
-            let value = segments.dropFirst().joined(separator: "=")
-            return (key, value)
-            }) ?? []
-        
+        let pairs = self.storage[.cookie]?.first.flatMap({ HTTPHeaders.parseParams($0, separator: ";", removeQuotation: true) }) ?? [:]
         return pairs.flatMap {
             // path should be set otherwise it will fail!
-            return HTTPCookie(properties: [.name : $0.key, .value: $0.val, .path: "/"])
+            return HTTPCookie(properties: [.name : $0.key, .value: $0.value, .path: "/"])
         }
     }
     
@@ -1251,6 +1276,7 @@ extension HTTPHeaders {
     /// `Content-MD5` header value, parsed from Base64 into `Data`.
     public var contentMD5: Data? {
         get {
+            // TODO: Tolerate base64 string not padded with =, Should we?
             return self.storage[.contentMD5]?.first.flatMap { Data(base64Encoded: $0) }
         }
         set {
@@ -1503,19 +1529,6 @@ extension HTTPHeaders {
 }
 
 extension HTTPHeaders {
-    /// Returns percent encoded string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
-    fileprivate static func rfc5987String(_ value: String) -> String {
-        let encoded = value.addingPercentEncoding(withAllowedCharacters: .legal) ?? value
-        return "UTF-8''\(encoded)"
-    }
-    
-    /// Removing non latin characters from string.
-    fileprivate static func isoLatinStripped(_ value: String) -> String {
-        let isoLatinCharset = CharacterSet.init(charactersIn: Unicode.Scalar(32)..<Unicode.Scalar(255))
-        let isoLatin = value.filter({ $0.unicodeScalars.count == 1 ? isoLatinCharset.contains($0.unicodeScalars.first!) : false })
-        return isoLatin
-    }
-    
     fileprivate static func parseQuilified<T>(_ value: [String], _ initializer: (String) -> T) -> [T] {
         return value.flatMap({ (value) -> [String] in
             return value.components(separatedBy: ",")
@@ -1532,32 +1545,65 @@ extension HTTPHeaders {
         }).map({ $0.typed })
     }
     
-    /// Converts percent encoded to normal string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
-    fileprivate static func parseRFC5987(_ value: String) -> String {
-        let components = value.components(separatedBy: "'")
-        guard components.count >= 3 else {
-            return value
-        }
-        let encoding = HTTPHeaders.charsetIANAToStringEncoding(components.first!)
-        let string = components.dropFirst(2).joined(separator: "'")
-        return string.removingPercentEscapes(encoding: encoding) ?? string
-    }
-    
-    /// Converts `name=value` pairs into a dictionary
-    fileprivate static func parseParams(_ value: String, separator: String = ";") -> [String: String] {
-        let rawParams: [String] = value.components(separatedBy: separator).dropFirst().flatMap { param in
-            let result = param.trimmingCharacters(in: .whitespacesAndNewlines)
-            return !result.isEmpty ? result : nil
-        }
+    private static func parseParams(rawParams: [String], removeQuotation: Bool) -> [String: String] {
         var params: [String: String] = [:]
         for rawParam in rawParams {
             let arg = rawParam.components(separatedBy: "=")
             if let key = arg.first?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
-                let value = arg.dropFirst().joined(separator: "=").trimmingCharacters(in: .whitespacesAndNewlines)
-                params[key] = value
+                if key.hasSuffix("*") {
+                    let decodedKey = key.replacingOccurrences(of: "*", with: "", options: [.backwards, .anchored])
+                    let value = arg.dropFirst().joined(separator: "=").trimmingCharacters(in: .whitespacesAndNewlines)
+                    let decodedValue = value.decodingRFC5987
+                    params[decodedKey] = decodedValue
+                } else {
+                    let trimCharset = removeQuotation ? CharacterSet(charactersIn: " ;\r\n\"") : .whitespacesAndNewlines
+                    let value = arg.dropFirst().joined(separator: "=").trimmingCharacters(in: trimCharset)
+                    params[key] = value
+                }
             }
         }
         return params
+    }
+    
+    /// Converts `name=value` pairs into a dictionary
+    fileprivate static func parseParams(_ value: String, separator: String = ";", removeQuotation: Bool = false) -> [String: String] {
+        let rawParams: [String] = value.components(separatedBy: separator).flatMap { param in
+            let result = param.trimmingCharacters(in: .whitespacesAndNewlines)
+            return !result.isEmpty ? result : nil
+        }
+        return parseParams(rawParams: rawParams, removeQuotation: removeQuotation)
+    }
+    
+    /// Converts `name=value` pairs into a dictionary
+    fileprivate static func parseParamsWithToken(_ value: String, separator: String = ";", removeQuotation: Bool = false) -> (token: String?, params: [String: String]) {
+        var rawParams: [String] = value.components(separatedBy: separator).flatMap { param in
+            let result = param.trimmingCharacters(in: .whitespacesAndNewlines)
+            return !result.isEmpty ? result : nil
+        }
+        var token: String?
+        if rawParams.first?.index(of: "=") == nil {
+            token = rawParams.removeFirst()
+        }
+        return (token, parseParams(rawParams: rawParams, removeQuotation: removeQuotation))
+    }
+    
+    fileprivate static func createParam(_ params: [String: String], quotationValue: Bool = true, quotedKeys: [String] = [], nonquotatedKeys: [String] = [], separator: String = "; ") -> String {
+        var result: [String] = []
+        for param in params {
+            if param.value.isEmpty {
+                 result.append(param.key)
+            } else if param.value.isAscii {
+                if (quotedKeys.contains(param.key) || (quotationValue && !nonquotatedKeys.contains(param.key))) {
+                    result.append("\(param.key)=\"\(param.value.trimmingCharacters(in: .quoted))\"")
+                } else {
+                    result.append("\(param.key)=\(param.value)")
+                }
+            } else {
+                let keyval = "\(param.key)*=\(param.value.rfc5987encoded)"
+                result.append(keyval)
+            }
+        }
+        return result.joined(separator: separator)
     }
     
     #if os(macOS) || os(iOS) || os(tvOS)
@@ -1661,6 +1707,38 @@ fileprivate extension CharacterSet {
 }
 
 fileprivate extension String {
+    var isAscii: Bool {
+        for scalar in self.unicodeScalars {
+            if !scalar.isASCII {
+                return false
+            }
+        }
+        return true
+    }
+    
+    var isoLatinStripped: String {
+        let isoLatinCharset = CharacterSet.init(charactersIn: Unicode.Scalar(32)..<Unicode.Scalar(255))
+        let isoLatin = self.filter({ $0.unicodeScalars.count == 1 ? isoLatinCharset.contains($0.unicodeScalars.first!) : false })
+        return isoLatin
+    }
+    
+    /// Returns percent encoded string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
+    var rfc5987encoded: String {
+        let encoded = self.addingPercentEncoding(withAllowedCharacters: .legal) ?? self
+        return "UTF-8''\(encoded)"
+    }
+    
+    /// Converts percent encoded to normal string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
+    var decodingRFC5987: String {
+        let components = self.components(separatedBy: "'")
+        guard components.count >= 3 else {
+            return self
+        }
+        let encoding = HTTPHeaders.charsetIANAToStringEncoding(components.first!)
+        let string = components.dropFirst(2).joined(separator: "'")
+        return string.removingPercentEscapes(encoding: encoding) ?? string
+    }
+    
     // Similiar method is deprecated in Foundation, we implemented ours!
     func removingPercentEscapes(encoding: String.Encoding) -> String? {
         if encoding == .utf8 {
