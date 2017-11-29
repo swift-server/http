@@ -1302,7 +1302,6 @@ extension HTTPHeaders {
             }).map({ HTTPHeaders.Name($0) }) ?? []
         }
         set {
-            // TOCHECK: Only keepAlive is valid?
             if !newValue.isEmpty {
                 self.storage[.connection] = newValue.flatMap { $0.lowercased }
             } else {
@@ -1578,6 +1577,25 @@ extension HTTPHeaders {
                 self.storage[.trailer] = newValue.map { $0.method }
             } else {
                 self.storage[.trailer] = nil
+            }
+        }
+    }
+    
+    /// `Transfer-Encoding` header values. An empty array means no value is set in header.
+    ///
+    /// Transfer-Encoding is a hop-by-hop header, that is applying to a message between two nodes,
+    /// not to a resource itself.
+    public var transferEncoding: [Encoding] {
+        get {
+            return self.storage[.transferEncoding]?.flatMap({ (value) -> [String] in
+                return value.components(separatedBy: ",")
+            }).map(Encoding.init(rawValue:)) ?? []
+        }
+        set {
+            if !newValue.isEmpty {
+                self.storage[.transferEncoding] = newValue.flatMap { $0.rawValue }
+            } else {
+                self.storage[.transferEncoding] = nil
             }
         }
     }
