@@ -45,6 +45,7 @@ extension HTTPHeaders {
             return self.rawValue.hashValue
         }
         
+        /// :nodoc:
         public static func == (lhs: MediaType, rhs: MediaType) -> Bool {
             return lhs.generalType == rhs.generalType &&  lhs.subType.replacingOccurrences(of: "x-", with: "", options: .anchored) == rhs.subType.replacingOccurrences(of: "x-", with: "", options: .anchored)
         }
@@ -195,6 +196,7 @@ extension HTTPHeaders {
         static public let multipartByteranges = MediaType(generalType: "multipart", type: "byteranges")
     }
     
+    /// Content-Disposition type.
     public enum ContentDispositionType: String {
         /// Default value, which indicates file must be shown in browser.
         case inline
@@ -210,6 +212,16 @@ extension HTTPHeaders {
         public let type: ContentDispositionType
         /// All parameters associated to content disposition.
         public var parameters: [String: String]
+        
+        /// :nodoc:
+        public subscript(parameterName: String) -> String? {
+            get {
+                return self.parameters[parameterName]
+            }
+            set {
+                self.parameters[parameterName] = newValue
+            }
+        }
         
         // File name of content.
         var filename: String? {
@@ -274,6 +286,7 @@ extension HTTPHeaders {
             return "\(type.rawValue);\(paramStr)"
         }
         
+        /// :nodoc:
         public static func ==(lhs: HTTPHeaders.ContentDisposition, rhs: HTTPHeaders.ContentDisposition) -> Bool {
             return lhs.type == rhs.type && lhs.parameters == rhs.parameters
         }
@@ -396,9 +409,11 @@ extension HTTPHeaders {
         }
         
         public init?(_ rawValue: String) {
-            let keyVal = rawValue.components(separatedBy: "=").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            let keyVal = rawValue.components(separatedBy: "=").map {
+                $0.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
             guard let key = keyVal.first?.lowercased() else { return nil }
-            let val = keyVal.dropFirst().joined(separator: "=").trimmingCharacters(in: .whitespaces).trimmingCharacters(in: .quoted)
+            let val = keyVal.dropFirst().joined(separator: "=").trimmingCharacters(in: .quotedWhitespace)
             switch key {
             case "no-cache" where val.isEmpty:
                 self = .noCache
@@ -435,6 +450,7 @@ extension HTTPHeaders {
             }
         }
         
+        /// :nodoc:
         public static func ==(lhs: HTTPHeaders.CacheControl, rhs: HTTPHeaders.CacheControl) -> Bool {
             switch (lhs, rhs) {
             case (.noCache, .noCache), (.noStore, .noStore), (.noTransform, .noTransform),
@@ -512,7 +528,7 @@ extension HTTPHeaders {
                 return "Basic \(b64)"
             case .digest(let params):
                 let nonquotedKeys: [String] = ["stale", "algorithm", "nc", "charset", "userhash", "qop"]
-                let paramsString = HTTPHeaders.createParam(params, quotationValue: true, quotedKeys: [], nonquotatedKeys: nonquotedKeys, separator: ", ")
+                let paramsString = HTTPHeaders.createParam(params, quotationValue: true, nonquotatedKeys: nonquotedKeys, separator: ", ")
                 return "Digest \(paramsString)"
             case .oAuth1(let token):
                 return "OAuth \(token)"
@@ -520,7 +536,7 @@ extension HTTPHeaders {
                 return "Bearer \(token)"
             case .mutual(let params):
                 let nonquotedKeys: [String] = ["sid", "nc"]
-                let paramsString = HTTPHeaders.createParam(params, quotationValue: true, quotedKeys: [], nonquotatedKeys: nonquotedKeys, separator: ", ")
+                let paramsString = HTTPHeaders.createParam(params, quotationValue: true, nonquotatedKeys: nonquotedKeys, separator: ", ")
                 return "Mutual \(paramsString)"
             case .negotiate(let data):
                 return "Negotiate \(data.base64EncodedString())"
@@ -564,7 +580,8 @@ extension HTTPHeaders {
             case "negotiate":
                 self = .negotiate
             default:
-                self = .custom(rawValue.components(separatedBy: " ").first?.trimmingCharacters(in: .whitespaces) ?? "")
+                self = .custom(rawValue.components(separatedBy: " ").first?
+                    .trimmingCharacters(in: .whitespaces) ?? "")
             }
         }
         
@@ -615,11 +632,18 @@ extension HTTPHeaders {
             return parameters["charset"].flatMap(HTTPHeaders.charsetIANAToStringEncoding)
         }
         
+        /// :nodoc:
+        public subscript(parameterName: String) -> String? {
+            get {
+                return self.parameters[parameterName]?.trimmingCharacters(in: .quoted)
+            }
+        }
+        
         /// Inits a noew
         public init(type: ChallengeType, token: String? = nil, realm: String? = nil, charset: String.Encoding? = nil, parameters: [String: String] = [:]) {
             self.type = type
             var parameters = parameters
-            parameters["realm"] = (realm?.trimmingCharacters(in: .quoted)).flatMap({ "\"\($0)\""})
+            parameters["realm"] = realm?.trimmingCharacters(in: .quoted)
             parameters["charset"] = charset.flatMap(HTTPHeaders.StringEncodingToIANA)
             if let token = token {
                 parameters[token] = ""
@@ -641,15 +665,15 @@ extension HTTPHeaders {
             switch type {
             case .digest:
                 let nonquotedKeys: [String] = ["stale", "algorithm", "nc", "charset", "userhash"]
-                let params = HTTPHeaders.createParam(parameters, quotationValue: true, quotedKeys: [], nonquotatedKeys: nonquotedKeys, separator: ", ")
+                let params = HTTPHeaders.createParam(parameters, quotationValue: true, nonquotatedKeys: nonquotedKeys, separator: ", ")
                 return "\(type.description) \(params)"
             case .mutual:
                 let nonquotedKeys: [String] = ["sid", "nc"]
-                let params = HTTPHeaders.createParam(parameters, quotationValue: true, quotedKeys: [], nonquotatedKeys: nonquotedKeys, separator: ", ")
+                let params = HTTPHeaders.createParam(parameters, quotationValue: true, nonquotatedKeys: nonquotedKeys, separator: ", ")
                 return "\(type.description) \(params)"
             default:
                 let token = self.token.flatMap({ "\($0) "}) ?? ""
-                let params = HTTPHeaders.createParam(parameters, quotationValue: false, quotedKeys: [], nonquotatedKeys: [], separator: ", ")
+                let params = HTTPHeaders.createParam(parameters, quotationValue: false, separator: ", ")
                 return "\(type.description) \(token)\(params)"
             }
         }
@@ -660,7 +684,7 @@ extension HTTPHeaders {
         /// Media type (MIME) of content
         let mediaType: HTTPHeaders.MediaType
         /// All parameter provided with content type
-        let parameters: [String: String]
+        var parameters: [String: String]
         /// charset parameter of content type
         var charset: String.Encoding? {
             return parameters["charset"].flatMap(HTTPHeaders.charsetIANAToStringEncoding)
@@ -675,10 +699,21 @@ extension HTTPHeaders {
         
         public init?(_ rawValue: String) {
             let typeSegment = rawValue.components(separatedBy: ";")
-            guard let type = (typeSegment.first?.trimmingCharacters(in: .whitespaces)).flatMap(MediaType.init(rawValue:)) else { return nil }
+            guard let type = (typeSegment.first?.trimmingCharacters(in: .whitespaces))
+                .flatMap(MediaType.init(rawValue:)) else { return nil }
             self.mediaType = type
             let allparams = typeSegment.dropFirst().joined(separator: ";")
             self.parameters = HTTPHeaders.parseParams(allparams)
+        }
+        
+        /// :nodoc:
+        public subscript(parameterName: String) -> String? {
+            get {
+                return self.parameters[parameterName]
+            }
+            set {
+                self.parameters[parameterName] = newValue
+            }
         }
         
         public var description: String {
@@ -699,7 +734,9 @@ extension HTTPHeaders {
         public init(_ rawValue: String) {
             // Check begins with W/" in case-insensitive manner to indicate is weak or not
             if rawValue.range(of: "W/\"", options: [.anchored, .caseInsensitive]) != nil {
-                let linted = rawValue.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: "W/\"", with: "", options: [.anchored, .caseInsensitive]).trimmingCharacters(in: .quotedWhitespace)
+                let linted = rawValue.trimmingCharacters(in: .whitespaces)
+                    .replacingOccurrences(of: "W/\"", with: "", options: [.anchored, .caseInsensitive])
+                    .trimmingCharacters(in: .quotedWhitespace)
                 self = .weak(linted)
             }
             // Check value is wildcard
@@ -729,6 +766,7 @@ extension HTTPHeaders {
             return self.description.hashValue
         }
         
+        /// :nodoc:
         public static func ==(lhs: HTTPHeaders.EntryTag, rhs: HTTPHeaders.EntryTag) -> Bool {
             switch (lhs, rhs) {
             case (.wildcard, .wildcard):
@@ -762,6 +800,7 @@ extension HTTPHeaders {
             return self.rawValue.hashValue
         }
         
+        /// :nodoc:
         public static func == (lhs: Encoding, rhs: Encoding) -> Bool {
             return lhs.rawValue == rhs.rawValue
         }
@@ -817,6 +856,7 @@ extension HTTPHeaders {
             return self.description.hashValue
         }
         
+        /// :nodoc:
         public static func ==(lhs: HTTPHeaders.IfRange, rhs: HTTPHeaders.IfRange) -> Bool {
             switch (lhs, rhs) {
             case let (.tag(l), .tag(r)):
@@ -919,12 +959,19 @@ extension HTTPHeaders {
     
     // `Cookie` header value. An empty array means no value is set in header.
     public var cookie: [HTTPCookie] {
-        // Regarding `Cookie2` is obsolete, should we have to integrate it into values?
-        let pairs = self.storage[.cookie]?.first.flatMap({ HTTPHeaders.parseParams($0, separator: ";", removeQuotation: true) }) ?? [:]
-        return pairs.flatMap {
+        return cookieDictionary.flatMap {
             // path should be set otherwise it will fail!
             return HTTPCookie(properties: [.name : $0.key, .value: $0.value, .path: "/"])
         }
+    }
+    
+    // `Cookie` header value. An empty array means no value is set in header.
+    public var cookieDictionary: [String: String] {
+        // Regarding `Cookie2` is obsolete, should we have to integrate it into values?
+        let pairs = (self.storage[.cookie]?.joined(separator: ";")).flatMap({
+            HTTPHeaders.parseParams($0, separator: ";", removeQuotation: true)
+        }) ?? [:]
+        return pairs
     }
     
     /// `Origin` header value.
@@ -1479,28 +1526,19 @@ extension HTTPHeaders {
         return self.storage[.setCookie]?.flatMap({ HTTPCookie.cookies(withResponseHeaderFields: ["Set-Cookie": $0], for: URL(string: "/")!) }) ?? []
     }
     
-    /// Appends a cookie to`Set-Cookie` header values.
-    /// - Parameter setCookie: The cookie object to be appended.
+    /// Appends a cookie to `Set-Cookie` header values.
+    /// - Parameter cookie: The cookie object to be appended.
     public mutating func add(setCookie cookie: HTTPCookie) {
-        if self.storage[.setCookie] == nil {
-            self.storage[.setCookie] = []
-        }
-        
-        var cookieString = "\(cookie.name)"
-        cookieString += !cookie.value.isEmpty ? "=\(cookie)" : ""
-        cookieString += cookie.expiresDate.flatMap({ "; Expires=\($0.format(with: .http))" }) ?? ""
-        cookieString += !(cookie.domain.isEmpty || cookie.domain == "^filecookies^") ? "; Domain=\(cookie.domain)" : ""
-        cookieString += !cookie.path.isEmpty ? "; Path=\(cookie.path)" : ""
-        cookieString += cookie.properties?[.maximumAge].flatMap({ "; Max-Age=\($0)" }) ?? ""
-        cookieString += cookie.properties?[.comment].flatMap({ "; Comment=\"\($0)\"" }) ?? ""
-        cookieString += cookie.isSecure ? "; Secure" : ""
-        cookieString += cookie.isHTTPOnly ? "; HttpOnly" : ""
-        self.storage[.setCookie]?.append(cookieString)
+        let maximumAge = (cookie.properties?[.maximumAge] as? String).flatMap(TimeInterval.init)
+        let comment = cookie.properties?[.comment] as? String
+        self.add(setCookie: cookie.name, value: cookie.value, path: cookie.path,
+                 domain: cookie.domain, expiresDate: cookie.expiresDate, maximumAge: maximumAge,
+                 comment: comment, isSecure: cookie.isSecure, isHTTPOnly: cookie.isHTTPOnly)
     }
     
-    /// Appends a cookie to`Set-Cookie` header values.
+    /// Appends a cookie to `Set-Cookie` header values.
     /// - Parameter name: Name of cookie.
-    /// - Parameter name: Value of cookie. Can be empty string of cookie has no value.
+    /// - Parameter value: Value of cookie. Can be empty string of cookie has no value.
     /// - Parameter path: Indicates a URL path that must exist in the requested resource.
     /// - Parameter domain: Specifies those hosts to which the cookie will be sent.
     /// - Parameter expiresDate: The maximum lifetime of the cookie as an HTTP-date timestamp.
@@ -1514,7 +1552,7 @@ extension HTTPHeaders {
             self.storage[.setCookie] = []
         }
         
-        var cookieString = "\(name)"
+        var cookieString = name
         cookieString += !value.isEmpty ? "=\(cookie)" : ""
         cookieString += expiresDate.flatMap({ "; Expires=\($0.format(with: .http))" }) ?? ""
         cookieString += !(domain.isEmpty || domain == "^filecookies^") ? "; Domain=\(domain)" : ""
@@ -1571,6 +1609,8 @@ extension HTTPHeaders {
 }
 
 extension HTTPHeaders {
+    /// Parses lists that have `q` paramter and sorts the result based on that.
+    /// - Note: This method will remove items with `q=0.0` as they should not be used.
     fileprivate static func parseQuilified<T>(_ value: [String], _ initializer: (String) -> T) -> [T] {
         return value.flatMap({ (value) -> [String] in
             return value.components(separatedBy: ",")
@@ -1601,8 +1641,9 @@ extension HTTPHeaders {
                 if key.hasSuffix("*") {
                     let decodedKey = key.replacingOccurrences(of: "*", with: "", options: [.backwards, .anchored])
                     let value = arg.dropFirst().joined(separator: "=").trimmingCharacters(in: .whitespacesAndNewlines)
-                    /* Here we use `decodingRFC5987enforced`. We can change this behavior to fallback
-                     to non-astrisk version if available and use `decodingRFC5987`.
+                    /* Here we use `decodingRFC5987enforced`. We can change this behavior to use
+                     `decodingRFC5987` and fallback to non-asterisk version if available
+                     and use `decodingRFC5987`.
                      I didn't implemented the latter for the sake of better performance.
                      Both behaviors are ok re section-3.2.1 in RFC 8187.
                      */
@@ -1648,6 +1689,9 @@ extension HTTPHeaders {
             if (quotedKeys.contains(key) || (quotationValue && !nonquotatedKeys.contains(key))) {
                 // Removes quotation enclose if already exists and encloses string again.
                 result.append("\(key)=\"\(value.trimmingCharacters(in: .quoted))\"")
+            } else if nonquotatedKeys.contains(key) {
+                // Remove quotations if key must not have enclosed value
+                result.append("\(key)=\(value.trimmingCharacters(in: .quoted))")
             } else {
                 // Use value as is.
                 result.append("\(key)=\(value)")
@@ -1801,7 +1845,9 @@ fileprivate extension String {
     
     /// Returns percent encoded string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
     var rfc5987encoded: String? {
-        return self.addingPercentEncoding(withAllowedCharacters: .rfc5987Allowed).flatMap({ "UTF-8''\($0)" })
+        return self.addingPercentEncoding(withAllowedCharacters: .rfc5987Allowed).flatMap({
+            "UTF-8''\($0)"
+        })
     }
     
     /// Converts percent encoded to normal string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
@@ -1854,10 +1900,10 @@ fileprivate extension String {
                  str.replaceSubrange(range, with: converted)
             } else {
                 if forced {
-                    return nil
-                } else {
                     // Another option, though non-standard in RFC, is to use ISO-8859-1 to interpret encoded sequence.
                     str.replaceSubrange(range, with: "\u{fffd}")
+                } else {
+                    return nil
                 }
             }
            
