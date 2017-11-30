@@ -23,9 +23,11 @@ extension HTTPHeaders {
     /// Fetch `Accept-Charset` header values, sorted by `q` parameter. An empty array means no value is set in header.
     public var acceptCharset: [String.Encoding] {
         get {
-            return self.storage[.acceptCharset].flatMap({
-                HTTPHeaders.parseQuilified($0, HTTPHeaders.charsetIANAToStringEncoding)
-            }) ?? []
+            return self.storage[.acceptCharset]?.flatMap({ (value) -> [String] in
+                return value.components(separatedBy: ",")
+            }).flatMap({
+                HTTPHeaders.parseQuilified($0, String.Encoding.init(ianaCharset:))
+            }).flatMap({ $0 }) ?? []
         }
     }
     
@@ -39,7 +41,9 @@ extension HTTPHeaders {
     /// Fetch `Accept-Encoding` header values, sorted by `q` parameter. An empty array means no value is set in header.
     public var acceptEncoding: [Encoding] {
         get {
-            return self.storage[.acceptEncoding].flatMap({
+            return self.storage[.acceptEncoding]?.flatMap({ (value) -> [String] in
+                return value.components(separatedBy: ",")
+            }).flatMap({
                 HTTPHeaders.parseQuilified($0, Encoding.init(rawValue:))
             }) ?? []
         }
@@ -48,7 +52,9 @@ extension HTTPHeaders {
     /// Fetch `Accept-Language` header values, sorted by `q` parameter. An empty array means no value is set in header.
     public var acceptLanguage: [Locale] {
         get {
-            return self.storage[.acceptLanguage].flatMap({
+            return self.storage[.acceptLanguage]?.flatMap({ (value) -> [String] in
+                return value.components(separatedBy: ",")
+            }).flatMap({
                 HTTPHeaders.parseQuilified($0, Locale.init(identifier:))
             }) ?? []
         }

@@ -331,7 +331,7 @@ extension HTTPHeaders {
         }
         /// `charset` parameter as String.Encoding
         public var charset: String.Encoding? {
-            return parameters["charset"].flatMap(HTTPHeaders.charsetIANAToStringEncoding)
+            return parameters["charset"].flatMap(String.Encoding.init(ianaCharset:))
         }
         
         /// :nodoc:
@@ -346,7 +346,7 @@ extension HTTPHeaders {
             self.type = type
             var parameters = parameters
             parameters["realm"] = realm?.trimmingCharacters(in: .quoted)
-            parameters["charset"] = charset.flatMap(HTTPHeaders.StringEncodingToIANA)
+            parameters["charset"] = charset.flatMap({ $0.ianaCharset })
             if let token = token {
                 parameters[token] = ""
             }
@@ -688,13 +688,13 @@ extension HTTPHeaders {
         var parameters: [String: String]
         /// charset parameter of content type
         var charset: String.Encoding? {
-            return parameters["charset"].flatMap(HTTPHeaders.charsetIANAToStringEncoding)
+            return parameters["charset"].flatMap(String.Encoding.init(ianaCharset:))
         }
         
         public init(type: HTTPHeaders.MediaType, charset: String.Encoding? = nil, parameters: [String: String] = [:]) {
             self.mediaType = type
             var parameters = parameters
-            parameters["charset"] = charset.flatMap(HTTPHeaders.StringEncodingToIANA)
+            parameters["charset"] = charset.flatMap({ $0.ianaCharset })
             self.parameters = parameters
         }
         
@@ -1124,46 +1124,6 @@ internal extension HTTPHeaders {
         }
         return result.joined(separator: separator)
     }
-    
-    #if os(macOS) || os(iOS) || os(tvOS)
-    #else
-    static private let ianatable: [String.Encoding: String] = [
-    .ascii: "us-ascii", .isoLatin1: "iso-8859-1", .isoLatin2: "iso-8859-2", .utf8: "utf-8",
-    .utf16: "utf-16", .utf16BigEndian: "utf-16be", .utf16LittleEndian: "utf-16le",
-    .utf32: "utf-32", .utf32BigEndian: "utf-32be", .utf32LittleEndian: "utf-32le",
-    .japaneseEUC: "euc-jp",.shiftJIS: "cp932", .iso2022JP: "iso-2022-jp",
-    .windowsCP1251: "windows-1251", .windowsCP1252: "windows-1252", .windowsCP1253: "windows-1253",
-    .windowsCP1254: "windows-1254", .windowsCP1250: "windows-1250",
-    .nextstep: "x-nextstep", .macOSRoman: "macintosh", .symbol: "x-mac-symbol"]
-    #endif
-    
-    internal static func charsetIANAToStringEncoding(_ charset: String) -> String.Encoding {
-        #if os(macOS) || os(iOS) || os(tvOS)
-            let cfEncoding = CFStringConvertIANACharSetNameToEncoding(charset as CFString)
-            if cfEncoding != kCFStringEncodingInvalidId {
-                return String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(cfEncoding))
-            } else {
-                return .isoLatin1
-            }
-        #else
-            // CFStringConvertIANACharSetNameToEncoding is not exposed in SwiftFoundation!
-            // We use this as workaround until SwiftFoundation got fixed.
-            let charset = charset.lowercased()
-            return HTTPHeaders.ianatable.first(where: { return $0.value == charset })?.key ?? .isoLatin1
-        #endif
-    }
-    
-    internal static func StringEncodingToIANA(_ encoding: String.Encoding) -> String {
-        // Default charset for HTTP 1.1 is "iso-8859-1"
-        #if os(macOS) || os(iOS) || os(tvOS)
-            return (CFStringConvertEncodingToIANACharSetName(CFStringConvertNSStringEncodingToEncoding(encoding.rawValue)) as String?) ?? "iso-8859-1"
-        #else
-            // CFStringConvertEncodingToIANACharSetName is not exposed in SwiftFoundation!
-            // We use this as workaround until SwiftFoundation got fixed.
-            return HTTPHeaders.ianatable[encoding] ?? "iso-8859-1"
-        #endif
-    }
-    
 }
 
 internal extension Date {
@@ -1222,7 +1182,8 @@ internal extension Date {
 fileprivate extension CharacterSet {
     static let quoted = CharacterSet(charactersIn: "\"")
     static let quotedWhitespace = CharacterSet(charactersIn: "\" ")
-    static let rfc5987Allowed = CharacterSet(charactersIn: "!#$&+-.^_`|~").intersection(.alphanumerics)
+    // Alphanumeric + "!#$&+-.^_`|~"
+    static let urlRFC5987Allowed = CharacterSet(charactersIn: "!#$&+-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ^_`abcdefghijklmnopqrstuvwxyz|~")
 }
 
 fileprivate extension String {
@@ -1239,34 +1200,37 @@ fileprivate extension String {
         return self.filter({ $0.unicodeScalars.count == 1 ? $0.unicodeScalars.first!.isASCII : false })
     }
     
-    /// Returns percent encoded string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
+    /// Returns utf-8 percent encoded string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
     var rfc5987encoded: String? {
-        return self.addingPercentEncoding(withAllowedCharacters: .rfc5987Allowed).flatMap({
+        return self.addingPercentEncoding(withAllowedCharacters: .urlRFC5987Allowed).flatMap({
             "UTF-8''\($0)"
         })
     }
     
-    /// Converts percent encoded to normal string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
-    var decodingRFC5987: String? {
+    private func rfc5987decoded(forced: Bool) -> String? {
+        // Encoded string is not enclosed by quotation marks
+        guard !self.hasPrefix("\"") && !self.hasSuffix("\"") else {
+            return nil
+        }
+        /// First component is encoding. Second is language which we ignore. Third is data
         let components = self.components(separatedBy: "'")
         guard components.count >= 3 else {
             return self
         }
-        let encoding = HTTPHeaders.charsetIANAToStringEncoding(components.first!)
+        let encoding = String.Encoding(ianaCharset: components.first!) ?? .isoLatin1
         let string = components.dropFirst(2).joined(separator: "'")
-        return string.removingPercentEscapes(encoding: encoding)
+        return string.removingPercentEscapes(encoding: encoding, forced: forced)
+    }
+    
+    /// Converts percent encoded to normal string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
+    var decodingRFC5987: String? {
+        return rfc5987decoded(forced: false)
     }
     
     /// Converts percent encoded to normal string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
     /// Substitutes undecodable percent encoded characters to a `U+FFFD` (Replacement) character.
     var decodingRFC5987enforced: String {
-        let components = self.components(separatedBy: "'")
-        guard components.count >= 3 else {
-            return self
-        }
-        let encoding = HTTPHeaders.charsetIANAToStringEncoding(components.first!)
-        let string = components.dropFirst(2).joined(separator: "'")
-        return string.removingPercentEscapes(encoding: encoding, forced: true)!
+        return rfc5987decoded(forced: true) ?? self
     }
     
     // Similiar method is deprecated in Foundation, we implemented ours!
@@ -1305,5 +1269,46 @@ fileprivate extension String {
             
         }
         return str
+    }
+}
+
+internal extension String.Encoding {
+    #if os(macOS) || os(iOS) || os(tvOS)
+    #else
+    static private let ianatable: [String.Encoding: String] = [
+    .ascii: "us-ascii", .isoLatin1: "iso-8859-1", .isoLatin2: "iso-8859-2", .utf8: "utf-8",
+    .utf16: "utf-16", .utf16BigEndian: "utf-16be", .utf16LittleEndian: "utf-16le",
+    .utf32: "utf-32", .utf32BigEndian: "utf-32be", .utf32LittleEndian: "utf-32le",
+    .japaneseEUC: "euc-jp",.shiftJIS: "cp932", .iso2022JP: "iso-2022-jp",
+    .windowsCP1251: "windows-1251", .windowsCP1252: "windows-1252", .windowsCP1253: "windows-1253",
+    .windowsCP1254: "windows-1254", .windowsCP1250: "windows-1250",
+    .nextstep: "x-nextstep", .macOSRoman: "macintosh", .symbol: "x-mac-symbol"]
+    #endif
+    
+    init?(ianaCharset charset: String) {
+        #if os(macOS) || os(iOS) || os(tvOS)
+        let cfEncoding = CFStringConvertIANACharSetNameToEncoding(charset as CFString)
+        if cfEncoding != kCFStringEncodingInvalidId {
+            self = String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(cfEncoding))
+        } else {
+            return nil
+        }
+        #else
+        // CFStringConvertIANACharSetNameToEncoding is not exposed in SwiftFoundation!
+        // We use this as workaround until SwiftFoundation got fixed.
+        let charset = charset.lowercased()
+        self = HTTPHeaders.ianatable.first(where: { return $0.value == charset })?.key
+        #endif
+    }
+    
+    internal var ianaCharset: String? {
+        // Default charset for HTTP 1.1 is "iso-8859-1"
+        #if os(macOS) || os(iOS) || os(tvOS)
+        return (CFStringConvertEncodingToIANACharSetName(CFStringConvertNSStringEncodingToEncoding(self.rawValue)) as String?)
+        #else
+        // CFStringConvertEncodingToIANACharSetName is not exposed in SwiftFoundation!
+        // We use this as workaround until SwiftFoundation got fixed.
+        return HTTPHeaders.ianatable[self]
+        #endif
     }
 }
