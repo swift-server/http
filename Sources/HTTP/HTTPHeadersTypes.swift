@@ -1496,7 +1496,11 @@ internal extension String.Encoding {
         // CFStringConvertIANACharSetNameToEncoding is not exported in SwiftFoundation!
         // We use this as workaround until SwiftFoundation got fixed.
         let charset = charset.lowercased()
-        self = String.Encoding.ianatable.first(where: { return $0.value == charset })?.key
+        if let encoding = String.Encoding.ianatable.first(where: { return $0.value == charset })?.key {
+            self = encoding
+        } else {
+            return nil
+        }
         #endif
     }
     
