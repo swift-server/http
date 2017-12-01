@@ -63,10 +63,10 @@ extension HTTPHeaders {
     /// `Authorization` header value.
     public var authorization: HTTPHeaders.Authorization? {
         get {
-            return self.storage[.authorization]?.first.flatMap(Authorization.init)
+            return self.storage[.authorization]?.first.flatMap(Authorization.init(rawValue:))
         }
         set {
-            self.storage[.authorization] = newValue.flatMap { [$0.description] }
+            self.storage[.authorization] = newValue.flatMap { [$0.rawValue] }
         }
     }
     
@@ -74,13 +74,12 @@ extension HTTPHeaders {
     public var cookie: [HTTPCookie] {
         return cookieDictionary.flatMap {
             // path should be set otherwise it will fail!
-            return HTTPCookie(properties: [.name : $0.key, .value: $0.value, .path: "/"])
+            return HTTPCookie(properties: [.name : $0.key, .value: $0.value, .path: "/", .domain: "."])
         }
     }
     
     // `Cookie` header value. An empty array means no value is set in header.
     public var cookieDictionary: [String: String] {
-        // Regarding `Cookie2` is obsolete, should we have to integrate it into values?
         let pairs = (self.storage[.cookie]?.joined(separator: ";")).flatMap({
             HTTPHeaders.parseParams($0, separator: ";", removeQuotation: true)
         }) ?? [:]
@@ -112,7 +111,7 @@ extension HTTPHeaders {
         get {
             return (self.storage[.ifMatch] ?? []).flatMap({ (value) -> [String] in
                 return value.components(separatedBy: ",")
-            }).map(EntryTag.init)
+            }).map(EntryTag.init(rawValue:))
         }
     }
     
@@ -121,14 +120,14 @@ extension HTTPHeaders {
         get {
             return (self.storage[.ifNoneMatch] ?? []).flatMap({ (value) -> [String] in
                 return value.components(separatedBy: ",")
-            }).map(EntryTag.init)
+            }).map(EntryTag.init(rawValue:))
         }
     }
     
     /// `If-Range` header etag value.
     public var ifRange: HTTPHeaders.IfRange? {
         get {
-            return self.storage[.ifRange]?.first.flatMap(IfRange.init)
+            return self.storage[.ifRange]?.first.flatMap(IfRange.init(rawValue:))
         }
     }
     
@@ -157,20 +156,25 @@ extension HTTPHeaders {
     }
     
     fileprivate func dissectRanges(_ value: String?) -> [(from: Int64, to: Int64?)] {
-        // Converting real negatives to _ to avoid conflict with - as separator
-        let value = value?.replacingOccurrences(of: "=-", with: "=_").replacingOccurrences(of: "--", with: "-_").replacingOccurrences(of: ",-", with: ",_")
         guard let bytes = value?.components(separatedBy: "=").dropFirst().first?.trimmingCharacters(in: .whitespaces) else {
             return []
         }
         
         var ranges = [(from: Int64, to: Int64?)]()
         for range in bytes.components(separatedBy: ",") {
-            let elements = range.components(separatedBy: "-").map({ $0.trimmingCharacters(in: .whitespaces) })
+            // Replace negative dash with _
+            let range = range.trimmingCharacters(in: .whitespaces)
+                .replacingOccurrences(of: "-", with: "_", options: .anchored)
+                .replacingOccurrences(of: "--", with: "-_")
+            let elements = range.components(separatedBy: "-")
             
             guard let lower = elements.first.flatMap({ Int64($0.replacingOccurrences(of: "_", with: "-")) }) else {
                 continue
             }
-            let upper = elements.dropFirst().first.flatMap { Int64($0.replacingOccurrences(of: "_", with: "-")) }
+            var upper = elements.dropFirst().first.flatMap { Int64($0.replacingOccurrences(of: "_", with: "-")) }
+            if upper == nil && !range.hasSuffix("-") {
+                upper = lower
+            }
             ranges.append((lower, upper))
         }
         return ranges
@@ -228,12 +232,12 @@ extension HTTPHeaders {
     }
     
     /// Returns client's browser name and version using `User-Agent`.
-    public var clientBrowser: (name: String, version: Float?)? {
+    public var clientBrowser: (name: String, version: Double?)? {
         
-        func getVersion(_ value: String) -> (name: String, version: Float?) {
+        func getVersion(_ value: String) -> (name: String, version: Double?) {
             let browser = value.components(separatedBy: "/")
             let name = browser.first ?? "unknown"
-            let version = (browser.dropFirst().first?.trimmingCharacters(in: CharacterSet(charactersIn: " ;()")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Float.init)
+            let version = (browser.dropFirst().first?.trimmingCharacters(in: CharacterSet(charactersIn: " ;()")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Double.init)
             return (name, version)
         }
         
@@ -277,7 +281,7 @@ extension HTTPHeaders {
         }
         // Internet Explorer
         if dissect.first(where: { $0.hasPrefix("MSIE") }) != nil {
-            let version = (dissect.drop(while: { $0 != "MSIE" }).dropFirst().first?.trimmingCharacters(in: CharacterSet(charactersIn: "; )")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Float.init)
+            let version = (dissect.drop(while: { $0 != "MSIE" }).dropFirst().first?.trimmingCharacters(in: CharacterSet(charactersIn: "; )")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Double.init)
             return ("Internet Explorer", version)
         }
         
@@ -295,7 +299,7 @@ extension HTTPHeaders {
         // Gecko based browsers
         if dissect.first(where: { $0.hasPrefix("Gecko/") }) != nil {
             // Gecko version is fixed to 20100101, we have to read rv: value
-            let version = (dissect.first(where: { $0.hasPrefix("rv:") })?.replacingOccurrences(of: "rv:", with: "", options: .anchored).trimmingCharacters(in: CharacterSet(charactersIn: "); ")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Float.init)
+            let version = (dissect.first(where: { $0.hasPrefix("rv:") })?.replacingOccurrences(of: "rv:", with: "", options: .anchored).trimmingCharacters(in: CharacterSet(charactersIn: "); ")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Double.init)
             return ("Gecko", version)
         }
         // Trident based
@@ -343,7 +347,7 @@ extension HTTPHeaders {
         }
         // Check iOS
         if let ios = deviceArray.first(where: { $0.hasPrefix("CPU iPhone OS") || $0.hasPrefix("CPU OS") }) {
-            let version = ios.components(separatedBy: " OS ").dropFirst().first?.replacingOccurrences(of: "_", with: ".") ?? ""
+            let version = ios.components(separatedBy: " OS ").dropFirst().first?.replacingOccurrences(of: "_", with: ".").prefix(while: { $0 != " " }) ?? ""
             return "iOS \(version)"
         }
         
@@ -376,9 +380,10 @@ extension HTTPHeaders {
     /// `Allow` header value. An empty array means no value is set in header.
     public var allow: [HTTPMethod] {
         get {
-            return self.storage[.allow]?.flatMap({ (value) -> [String] in
+            let methods = self.storage[.allow]?.flatMap({ (value) -> [String] in
                 return value.components(separatedBy: ",")
-            }).flatMap({ HTTPMethod($0) }) ?? []
+            })
+            return methods?.flatMap({ HTTPMethod($0) }) ?? []
         }
         set {
             if !newValue.isEmpty {
@@ -396,11 +401,11 @@ extension HTTPHeaders {
         get {
             return self.storage[.cacheControl]?.flatMap({ (value) -> [String] in
                 return value.components(separatedBy: ",")
-            }).flatMap(CacheControl.init) ?? []
+            }).flatMap(CacheControl.init(rawValue:)) ?? []
         }
         set {
             if !newValue.isEmpty {
-                self.storage[.cacheControl] = newValue.flatMap { $0.description }
+                self.storage[.cacheControl] = newValue.flatMap { $0.rawValue }
             } else {
                 self.storage[.cacheControl] = nil
             }
@@ -426,17 +431,17 @@ extension HTTPHeaders {
     /// `Content-Disposition` header value.
     public var contentDisposition: HTTPHeaders.ContentDisposition? {
         get {
-            return self.storage[.contentDisposition]?.first.flatMap(ContentDisposition.init)
+            return self.storage[.contentDisposition]?.first.flatMap(ContentDisposition.init(rawValue:))
         }
         set {
-            self.storage[.contentDisposition] = newValue.flatMap { [$0.description] }
+            self.storage[.contentDisposition] = newValue.flatMap { [$0.rawValue] }
         }
     }
     
     /// `Content-Encoding` header value.
     public var contentEncoding: HTTPHeaders.Encoding? {
         get {
-            return self.storage[.contentEncoding]?.first.flatMap(Encoding.init)
+            return self.storage[.contentEncoding]?.first.flatMap(Encoding.init(rawValue:))
         }
         set {
             self.storage[.contentEncoding] = newValue.flatMap { [$0.rawValue] }
@@ -454,12 +459,11 @@ extension HTTPHeaders {
     }
     
     /// `Content-Length` header value.
-    public var contentLength: Int64? {
+    public var contentLength: UInt64? {
         get {
-            return self.storage[.contentLength]?.first.flatMap { Int64($0) }
+            return self.storage[.contentLength]?.first.flatMap { UInt64($0) }
         }
         set {
-            // TOCHECK: Can't be a negative value.
             self.storage[.contentLength] = newValue.flatMap { [String($0)] }
         }
     }
@@ -470,7 +474,7 @@ extension HTTPHeaders {
             return self.storage[.contentLocation]?.first.flatMap(URL.init(string:))
         }
         set {
-            self.storage[.contentLength] = newValue.flatMap { [$0.absoluteString] }
+            self.storage[.contentLocation] = newValue.flatMap { [$0.absoluteString] }
         }
     }
     
@@ -485,10 +489,10 @@ extension HTTPHeaders {
         }
     }
     
-    fileprivate func dissectContentRange(_ value: String?) -> (from: Int64, to: Int64?, total: Int64?)? {
+    fileprivate func dissectContentRange(_ value: String?) -> (from: UInt64, to: UInt64?, total: UInt64?)? {
         // Converting real negatives to _ to avoid conflict with - as separator
-        let value = value?.replacingOccurrences(of: "=-", with: "=_").replacingOccurrences(of: "--", with: "-_")
-        guard let bytes = value?.components(separatedBy: "=").dropFirst().first?.trimmingCharacters(in: .whitespaces) else {
+        guard let bytes = value?.components(separatedBy: " ")
+            .dropFirst().first?.trimmingCharacters(in: .whitespaces) else {
             return nil
         }
         
@@ -497,9 +501,12 @@ extension HTTPHeaders {
             return nil
         }
         
-        let total = bytes.components(separatedBy: "/").dropFirst().first.flatMap { Int64($0) }
-        let lower = bounds.first.flatMap { Int64($0.replacingOccurrences(of: "_", with: "-")) }
-        let upper = bounds.dropFirst().first.flatMap { Int64($0) }
+        let total = bytes.components(separatedBy: "/").dropFirst().first.flatMap { UInt64($0) }
+        let lower = bounds.first.flatMap(UInt64.init)
+        var upper = bounds.dropFirst().first.flatMap(UInt64.init)
+        if upper == nil && !passes.first!.hasSuffix("-") {
+            upper = lower
+        }
         return (lower ?? 0, upper, total)
     }
     
@@ -510,19 +517,19 @@ extension HTTPHeaders {
         let toString = to.flatMap(String.init) ?? ""
         let totalString = total.flatMap({ "/\($0)" }) ?? "/*"
 
-        return "\(type.rawValue)=\(from)-\(toString)\(totalString)"
+        return "\(type.rawValue) \(from)-\(toString)\(totalString)"
     }
     
     /// Returns `Content-Range` header value.
-    /// - Note: upperbound will be Int64.max in case of open ended Range.
+    /// - Note: upperbound will be UInt64.max in case of open ended Range.
     /// - Important: A negative range means server must return last bytes/items of file
-    public var contentRange: Range<Int64>? {
+    public var contentRange: Range<UInt64>? {
         // TODO: return PartialRangeFrom when possible
         get {
             guard let elements = self.storage[.contentRange]?.first.flatMap({ self.dissectContentRange($0) }) else {
                 return nil
             }
-            let to = elements.to.flatMap({ $0 + 1 }) ?? Int64.max
+            let to = elements.to.flatMap({ $0 + 1 }) ?? UInt64.max
             return elements.from..<to
         }
     }
@@ -530,7 +537,8 @@ extension HTTPHeaders {
     /// Returns `Content-Range` type, usually `.bytes`.
     public var contentRangeType: RangeType? {
         get {
-            return self.storage[.contentRange]?.first?.components(separatedBy: "=").first.flatMap(HTTPHeaders.RangeType.init(rawValue:))
+            return self.storage[.contentRange]?.first?.components(separatedBy: " ")
+                .first.flatMap(HTTPHeaders.RangeType.init(rawValue:))
         }
     }
     
@@ -562,10 +570,10 @@ extension HTTPHeaders {
     /// `Content-Type` header value.
     public var contentType: ContentType? {
         get {
-            return self.storage[.contentType]?.first.flatMap(ContentType.init)
+            return self.storage[.contentType]?.first.flatMap(ContentType.init(rawValue:))
         }
         set {
-            self.storage[.contentType] = newValue.flatMap { [$0.description] }
+            self.storage[.contentType] = newValue.flatMap { [$0.rawValue] }
         }
     }
     
@@ -583,11 +591,11 @@ extension HTTPHeaders {
     /// `ETag` header value.
     public var eTag: EntryTag? {
         get {
-            return self.storage[.eTag]?.first.flatMap(EntryTag.init)
+            return self.storage[.eTag]?.first.flatMap(EntryTag.init(rawValue:))
         }
         set {
             // TOCHECK: wildcard should be ignored
-            self.storage[.eTag] = newValue.flatMap { [$0.description] }
+            self.storage[.eTag] = newValue.flatMap { [$0.rawValue] }
         }
     }
     
@@ -680,14 +688,14 @@ extension HTTPHeaders {
     }
     
     /// `Trailer` header value. An empty array means no value is set in header.
-    public var trailer: [HTTPMethod] {
+    public var trailer: [HTTPHeaders.Name] {
         get {
-            return self.storage[.trailer]?.flatMap({ HTTPMethod($0) }) ?? []
+            return self.storage[.trailer]?.flatMap({ HTTPHeaders.Name($0) }) ?? []
         }
         set {
             if !newValue.isEmpty {
                 // TOCHECK: Forbidden headers ought to be ignored/dropped
-                self.storage[.trailer] = newValue.map { $0.method }
+                self.storage[.trailer] = newValue.map { $0.original }
             } else {
                 self.storage[.trailer] = nil
             }
@@ -730,14 +738,14 @@ extension HTTPHeaders {
     }
     
     /// `Vary` header value. An empty array means no value is set in header.
-    public var vary: [HTTPMethod] {
+    public var vary: [HTTPHeaders.Name] {
         get {
-            return self.storage[.vary]?.flatMap({ HTTPMethod($0) }) ?? []
+            return self.storage[.vary]?.flatMap({ HTTPHeaders.Name($0) }) ?? []
         }
         set {
             if !newValue.isEmpty {
                 // TOCHECK: Forbidden headers ought to be ignored/dropped
-                self.storage[.vary] = newValue.map { $0.method }
+                self.storage[.vary] = newValue.map { $0.original }
             } else {
                 self.storage[.vary] = nil
             }
@@ -747,10 +755,10 @@ extension HTTPHeaders {
     /// `WWW-Authenticate` header value.
     public var wwwAuthenticate: HTTPHeaders.Challenge? {
         get {
-            return self.storage[.wwwAuthenticate]?.first.flatMap(Challenge.init)
+            return self.storage[.wwwAuthenticate]?.first.flatMap(Challenge.init(rawValue:))
         }
         set {
-            self.storage[.wwwAuthenticate] = newValue.flatMap { [$0.description] }
+            self.storage[.wwwAuthenticate] = newValue.flatMap { [$0.rawValue] }
         }
     }
 }

@@ -12,7 +12,7 @@ extension HTTPHeaders {
     /// Defines HTTP Authorization request.
     /// - Note: Paramters may be quoted or not according to RFCs.
     /// - Note: Quotation in parameters' values are preserved as is.
-    public enum Authorization: CustomStringConvertible {
+    public enum Authorization: RawRepresentable {
         /// Basic base64-encoded method [RFC7617](http://www.iana.org/go/rfc7617)
         case basic(user: String, password: String)
         /// Digest method [RFC7616](http://www.iana.org/go/rfc7616)
@@ -28,7 +28,7 @@ extension HTTPHeaders {
         /// Custom authentication method
         case custom(String, token: String?, params: [String: String])
         
-        public init?(_ rawValue: String) {
+        public init?(rawValue: String) {
             let sep = rawValue.components(separatedBy: " ")
             guard let type = sep.first?.trimmingCharacters(in: .whitespaces), !type.isEmpty else {
                 return nil
@@ -37,7 +37,7 @@ extension HTTPHeaders {
             switch type.lowercased() {
             case "basic":
                 guard let data = Data(base64Encoded: q) else { return nil }
-                guard let paramStr = String(data: data, encoding: .ascii) ?? String(data: data, encoding: .utf8) else { return nil }
+                guard let paramStr = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .ascii)else { return nil }
                 let decoded = paramStr.components(separatedBy: ":")
                 guard let user = decoded.first else { return nil }
                 let pass = decoded.dropFirst().joined(separator: ":")
@@ -63,7 +63,7 @@ extension HTTPHeaders {
             }
         }
         
-        public var description: String {
+        public var rawValue: String {
             switch self {
             case .basic(let user, let password):
                 let text = "\(user):\(password)"
@@ -92,7 +92,7 @@ extension HTTPHeaders {
     }
     
     /// Values available for `Cache-Control` header.
-    public enum CacheControl: CustomStringConvertible, Equatable {
+    public enum CacheControl: RawRepresentable, Equatable {
         // Both Request and Response
         
         /// `no-cache` header value. The cache should not store anything about the client request or server response.
@@ -156,7 +156,7 @@ extension HTTPHeaders {
         /// (e.g., proxies) and is ignored by a private cache.
         case sMaxAge(TimeInterval)
         
-        public var description: String {
+        public var rawValue: String {
             switch self {
             case .noCache:
                 return "no-cache"
@@ -192,7 +192,7 @@ extension HTTPHeaders {
             }
         }
         
-        public init?(_ rawValue: String) {
+        public init?(rawValue: String) {
             let keyVal = rawValue.components(separatedBy: "=").map {
                 $0.trimmingCharacters(in: .whitespacesAndNewlines)
             }
@@ -244,14 +244,16 @@ extension HTTPHeaders {
             case let (.maxAge(l), .maxAge(r)), let (.maxStale(l), .maxStale(r)),
                  let (.minFresh(l), .minFresh(r)), let (.sMaxAge(l), .sMaxAge(r)):
                 return Int(l) == Int(r)
+            case let (.custom(ln, lv), .custom(rn, rv)):
+                return ln == rn && lv == rv
             default:
-                return lhs.description == rhs.description
+                return false
             }
         }
     }
     
     /// Defines HTTP Authentication challenge method required to access.
-    public enum ChallengeType: CustomStringConvertible, Hashable, Equatable {
+    public enum ChallengeType: RawRepresentable, Hashable, Equatable {
         /// Basic method [RFC7617](http://www.iana.org/go/rfc7617)
         case basic
         /// Digest method [RFC7616](http://www.iana.org/go/rfc7616)
@@ -267,7 +269,7 @@ extension HTTPHeaders {
         /// Custom authentication method.
         case custom(String)
         
-        public init(_ rawValue: String) {
+        public init(rawValue: String) {
             switch rawValue.lowercased() {
             case "basic":
                 self = .basic
@@ -288,10 +290,10 @@ extension HTTPHeaders {
         }
         
         public var hashValue: Int {
-            return self.description.hashValue
+            return self.rawValue.hashValue
         }
         
-        public var description: String {
+        public var rawValue: String {
             switch self {
             case .basic: return "Basic"
             case .digest: return "Digest"
@@ -318,7 +320,7 @@ extension HTTPHeaders {
     
     /// Challenge defined in WWW-Authenticate or Proxy-Authenticate.
     /// -Note: Paramters' quotations will be preserved for custom challenge type.
-    public struct Challenge: CustomStringConvertible {
+    public struct Challenge: RawRepresentable {
         /// Type of challenge
         public let type: ChallengeType
         /// All parameters associated to challenge
@@ -353,9 +355,9 @@ extension HTTPHeaders {
             self.parameters = parameters
         }
         
-        public init?(_ rawValue: String) {
+        public init?(rawValue: String) {
             let typeSegment = rawValue.components(separatedBy: " ")
-            guard let type = typeSegment.first.flatMap(ChallengeType.init) else { return nil }
+            guard let type = typeSegment.first.flatMap(ChallengeType.init(rawValue:)) else { return nil }
             self.type = type
             let allparams = typeSegment.dropFirst().joined(separator: " ")
             let removeQ = type == .digest || type == .mutual
@@ -363,21 +365,51 @@ extension HTTPHeaders {
             self.parameters = parsedParams
         }
         
-        public var description: String {
+        public var rawValue: String {
             switch type {
             case .digest:
                 let nonquotedKeys: [String] = ["stale", "algorithm", "nc", "charset", "userhash"]
                 let params = HTTPHeaders.createParam(parameters, quotationValue: true, nonquotatedKeys: nonquotedKeys, separator: ", ")
-                return "\(type.description) \(params)"
+                return "\(type.rawValue) \(params)"
             case .mutual:
                 let nonquotedKeys: [String] = ["sid", "nc"]
                 let params = HTTPHeaders.createParam(parameters, quotationValue: true, nonquotatedKeys: nonquotedKeys, separator: ", ")
-                return "\(type.description) \(params)"
+                return "\(type.rawValue) \(params)"
             default:
                 let token = self.token.flatMap({ "\($0) "}) ?? ""
                 let params = HTTPHeaders.createParam(parameters, quotationValue: false, separator: ", ")
-                return "\(type.description) \(token)\(params)"
+                return "\(type.rawValue) \(token)\(params)"
             }
+        }
+        
+        static public func basic(realm: String? = nil, charset: String.Encoding? = .utf8, parameters: [String: String] = [:]) -> Challenge {
+            return Challenge.init(type: .basic, realm: realm, charset: charset, parameters: parameters)
+        }
+        
+        static public func digest(realm: String? = nil, parameters: [String: String] = [:]) -> Challenge {
+            return Challenge.init(type: .digest, realm: realm, parameters: parameters)
+        }
+        
+        static public func oAuth1(realm: String? = nil, parameters: [String: String] = [:]) -> Challenge {
+            return Challenge.init(type: .oAuth1, realm: realm, parameters: parameters)
+        }
+        
+        static public func oAuth2(realm: String? = nil, scope: String? = nil, parameters: [String: String] = [:]) -> Challenge {
+            var params = parameters
+            params["scope"] = scope
+            return Challenge.init(type: .oAuth2, realm: realm, parameters: params)
+        }
+        
+        static public func mutual(realm: String? = nil, parameters: [String: String] = [:]) -> Challenge {
+            return Challenge.init(type: .mutual, realm: realm, parameters: parameters)
+        }
+        
+        static public func negotiate(data: Data? = nil, parameters: [String: String] = [:]) -> Challenge {
+            var params = parameters
+            if let hexData = data?.map({ String(format: "%02hhx", $0) }).joined() {
+                params[hexData] = ""
+            }
+            return Challenge.init(type: .negotiate, parameters: params)
         }
     }
     
@@ -392,7 +424,7 @@ extension HTTPHeaders {
     }
     
     /// Values available for `Content-Disposition` header.
-    public struct ContentDisposition: CustomStringConvertible, Equatable {
+    public struct ContentDisposition: RawRepresentable, Equatable {
         /// Content disposition type.
         public let type: ContentDispositionType
         /// All parameters associated to content disposition.
@@ -409,7 +441,7 @@ extension HTTPHeaders {
         }
         
         // File name of content.
-        var filename: String? {
+        public var filename: String? {
             get {
                 return parameters["filename"]
             }
@@ -420,7 +452,7 @@ extension HTTPHeaders {
         }
         
         // Name of `form-data` content.
-        var name: String? {
+        public var name: String? {
             get {
                 return parameters["name"]
             }
@@ -430,7 +462,7 @@ extension HTTPHeaders {
         }
         
         // Modification date of contents.
-        var modificationDate: Date? {
+        public var modificationDate: Date? {
             get {
                 return parameters["modification-date"].flatMap(Date.init(rfcString:))
             }
@@ -440,7 +472,7 @@ extension HTTPHeaders {
         }
         
         // Modification date of contents.
-        var creationDate: Date? {
+        public var creationDate: Date? {
             get {
                 return parameters["creation-datete"].flatMap(Date.init(rfcString:))
             }
@@ -454,7 +486,7 @@ extension HTTPHeaders {
             self.parameters = parameters
         }
         
-        public init?( _ rawValue: String) {
+        public init?(rawValue: String) {
             let (typeStr, params) = HTTPHeaders.parseParamsWithToken(rawValue, removeQuotation: true)
             guard let type = (typeStr?.lowercased()).flatMap(ContentDispositionType.init(rawValue:)) else {
                 return nil
@@ -463,7 +495,7 @@ extension HTTPHeaders {
             self.parameters = params
         }
         
-        public var description: String {
+        public var rawValue: String {
             if parameters.isEmpty {
                 return type.rawValue
             }
@@ -681,13 +713,13 @@ extension HTTPHeaders {
     }
     
     /// Media type and related parameters in Content-Type.
-    public struct ContentType: CustomStringConvertible {
+    public struct ContentType: RawRepresentable {
         /// Media type (MIME) of content
-        let mediaType: HTTPHeaders.MediaType
+        public let mediaType: HTTPHeaders.MediaType
         /// All parameter provided with content type
-        var parameters: [String: String]
+        public var parameters: [String: String]
         /// charset parameter of content type
-        var charset: String.Encoding? {
+        public var charset: String.Encoding? {
             return parameters["charset"].flatMap(String.Encoding.init(ianaCharset:))
         }
         
@@ -698,7 +730,7 @@ extension HTTPHeaders {
             self.parameters = parameters
         }
         
-        public init?(_ rawValue: String) {
+        public init?(rawValue: String) {
             let typeSegment = rawValue.components(separatedBy: ";")
             guard let type = (typeSegment.first?.trimmingCharacters(in: .whitespaces))
                 .flatMap(MediaType.init(rawValue:)) else { return nil }
@@ -717,9 +749,14 @@ extension HTTPHeaders {
             }
         }
         
-        public var description: String {
-            let params = parameters.map({ " \($0.key)=\($0.value)" }).joined(separator: ",")
-            return "\(mediaType.rawValue)\(params)"
+        public var rawValue: String {
+            let params = parameters.map({ " \($0.key)=\($0.value)" }).joined(separator: ";")
+            if params.isEmpty {
+                return "\(mediaType.rawValue)"
+            } else {
+                return "\(mediaType.rawValue);\(params)"
+            }
+            
         }
     }
     
@@ -772,7 +809,7 @@ extension HTTPHeaders {
     }
     
     /// EntryTag used in `ETag`, `If-Modified`, etc.
-    public enum EntryTag: CustomStringConvertible, Equatable, Hashable {
+    public enum EntryTag: RawRepresentable, Equatable, Hashable {
         /// Regular entry tag
         case strong(String)
         /// Weak entry tag prefixed with `"W/"`
@@ -780,24 +817,27 @@ extension HTTPHeaders {
         /// Equals to `"*"`
         case wildcard
         
-        public init(_ rawValue: String) {
+        public init(rawValue: String) {
+            let rawValue = rawValue.trimmingCharacters(in: .quoted)
             // Check begins with W/" in case-insensitive manner to indicate is weak or not
             if rawValue.range(of: "W/\"", options: [.anchored, .caseInsensitive]) != nil {
                 let linted = rawValue.trimmingCharacters(in: .whitespaces)
                     .replacingOccurrences(of: "W/\"", with: "", options: [.anchored, .caseInsensitive])
                     .trimmingCharacters(in: .quotedWhitespace)
                 self = .weak(linted)
+                return
             }
             // Check value is wildcard
             if rawValue == "*" {
                 self = .wildcard
+                return
             }
             // Value is strong
             let linted = rawValue.trimmingCharacters(in: .quotedWhitespace)
             self = .strong(linted)
         }
         
-        public var description: String {
+        public var rawValue: String {
             switch self {
             case .strong(let etag):
                 // TODO: Remove non ascii characters
@@ -812,7 +852,7 @@ extension HTTPHeaders {
         }
         
         public var hashValue: Int {
-            return self.description.hashValue
+            return self.rawValue.hashValue
         }
         
         /// :nodoc:
@@ -830,31 +870,31 @@ extension HTTPHeaders {
     }
     
     /// Values for `If-Range` header.
-    public enum IfRange: CustomStringConvertible, Equatable, Hashable {
+    public enum IfRange: RawRepresentable, Equatable, Hashable {
         /// An entry tag for `If-Range` to be checked againt `ETag`
         case tag(EntryTag)
         /// an entry tag for `If-Range` to be checked againt `Last-Modified`
         case date(Date)
         
-        public init( _ rawValue: String) {
+        public init(rawValue: String) {
             if let parsedDate = Date(rfcString: rawValue) {
                 self = .date(parsedDate)
             } else {
-                self = .tag(EntryTag(rawValue))
+                self = .tag(EntryTag(rawValue: rawValue))
             }
         }
         
-        public var description: String {
+        public var rawValue: String {
             switch self {
             case .date(let date):
                 return date.format(with: .http)
             case .tag(let tag):
-                return tag.description
+                return tag.rawValue
             }
         }
         
         public var hashValue: Int {
-            return self.description.hashValue
+            return self.rawValue.hashValue
         }
         
         /// :nodoc:
@@ -867,6 +907,44 @@ extension HTTPHeaders {
             default:
                 return false
             }
+        }
+    }
+    
+    /// How the connection and may be used to set a timeout and a maximum amount of requests.
+    public struct KeepAlive: RawRepresentable, Hashable, Equatable {
+        /// Minimum amount of time an idle connection has to be kept opened (in seconds).
+        public let timeout: TimeInterval
+        /// Maximum number of requests that can be sent on this connection before closing it.
+        public var max: Int?
+        
+        public typealias RawValue = String
+        
+        public init?(rawValue: String) {
+            let params = HTTPHeaders.parseParams(rawValue, removeQuotation: true)
+            guard let timeout = params["timeout"].flatMap(TimeInterval.init) else {
+                return nil
+            }
+            self.timeout = timeout
+            self.max = params["max"].flatMap(Int.init)
+        }
+        
+        public init(timeout: TimeInterval, maxTries: Int? = nil) {
+            self.timeout = timeout
+            self.max = maxTries
+        }
+        
+        public var rawValue: String {
+            let maxStr = max.flatMap({ "; max=\($0)"}) ?? ""
+            return "timeout=\(Int(timeout))\(maxStr)"
+        }
+        
+        public var hashValue: Int {
+            return self.rawValue.hashValue
+        }
+        
+        /// :nodoc:
+        public static func == (lhs: KeepAlive, rhs: KeepAlive) -> Bool {
+            return lhs.timeout == rhs.timeout && lhs.max == rhs.max
         }
     }
     
@@ -887,10 +965,11 @@ extension HTTPHeaders {
             self.parameters = HTTPHeaders.parseParams(components.dropFirst().joined(separator: ">"), removeQuotation: true)
         }
         
-        public init(url: URL, relation: String?, title: String? = nil, parameters: [String: String] = [:]) {
+        public init(url: URL, relation: RelationType?, relationURL: URL? = nil, title: String? = nil, parameters: [String: String] = [:]) {
             self.url = url
             self.parameters = parameters
-            self.parameters["rel"] = relation
+            self.parameters["rel"] = relation?.rawValue
+            self.relationURL = relationURL
             self.parameters["title"] = title
         }
         
@@ -908,19 +987,35 @@ extension HTTPHeaders {
             return lhs.url == rhs.url && lhs.parameters == rhs.parameters
         }
         
-        /// Link `rel` parameter
-        var relation: String? {
+        /// Link `rel` parameter's type
+        public var relationType: RelationType? {
             get {
-                // TODO: We can use associate enum with cases: https://tools.ietf.org/html/rfc5988#section-6.2.2
-                return parameters["rel"]
+                return parameters["rel"].flatMap(RelationType.init(rawValue:))
             }
             set {
-                parameters["rel"] = newValue
+                let urlStr = parameters["rel"]?.components(separatedBy: " ")
+                    .dropFirst().joined(separator: " ") ?? ""
+                parameters["rel"] = (newValue?.rawValue).flatMap({ "\($0)\(urlStr)"})
+            }
+        }
+        
+        /// Link `rel` parameter's url
+        public var relationURL: URL? {
+            get {
+                let urlStr = parameters["rel"]?.components(separatedBy: " ").dropFirst().joined(separator: " ")
+                return urlStr.flatMap(URL.init(string:))
+            }
+            set {
+                guard let type = parameters["rel"]?.components(separatedBy: " ").first, !type.isEmpty else {
+                    return
+                }
+                let urlStr = newValue.flatMap({ " \($0.absoluteString)" }) ?? ""
+                parameters["rel"] = "\(type)\(urlStr)"
             }
         }
         
         /// Link `anchor` parameter
-        var anchor: URL? {
+        public var anchor: URL? {
             get {
                 return parameters["anchor"].flatMap(URL.init(string:))
             }
@@ -930,7 +1025,7 @@ extension HTTPHeaders {
         }
         
         /// Link `hreflang` parameter
-        var language: Locale? {
+        public var language: Locale? {
             get {
                 return parameters["hreflang"].flatMap(Locale.init(identifier:))
             }
@@ -940,7 +1035,7 @@ extension HTTPHeaders {
         }
         
         /// Link `media` parameter
-        var media: MediaType? {
+        public var media: MediaType? {
             get {
                 return parameters["media"].flatMap(MediaType.init(rawValue:))
             }
@@ -950,7 +1045,7 @@ extension HTTPHeaders {
         }
         
         /// Link `title` parameter
-        var title: String? {
+        public var title: String? {
             get {
                 return parameters["title"]
             }
@@ -960,13 +1055,114 @@ extension HTTPHeaders {
         }
         
         /// Link `type` parameter
-        var type: MediaType? {
+        public var type: MediaType? {
             get {
                 return parameters["type"].flatMap(MediaType.init(rawValue:))
             }
             set {
                 parameters["type"] = newValue?.rawValue
             }
+        }
+        
+        public struct RelationType: RawRepresentable, Equatable, Hashable {
+            public var rawValue: String
+            
+            public init?(rawValue: String) {
+                self.rawValue = rawValue.components(separatedBy: " ").first!.lowercased()
+            }
+            
+            public var hashValue: Int {
+                return self.rawValue.hashValue
+            }
+            
+            /// :nodoc:
+            public static func == (lhs: RelationType, rhs: RelationType) -> Bool {
+                return lhs.rawValue == rhs.rawValue
+            }
+            
+            // List: https://tools.ietf.org/html/rfc5988#section-6.2.2
+            
+            /// Designates a substitute for the link's context.
+            public static let alternate = RelationType(rawValue: "alternate")
+            /// Refers to an appendix.
+            public static let appendix = RelationType(rawValue: "appendix")
+            /// Refers to a bookmark or entry point.
+            public static let bookmark = RelationType(rawValue: "bookmark")
+            /// Refers to a chapter in a collection of resources.
+            public static let chapter = RelationType(rawValue: "chapter")
+            /// Refers to a table of contents
+            public static let contents = RelationType(rawValue: "contents")
+            /// Refers to a copyright statement that applies to the link's context.
+            public static let copyright = RelationType(rawValue: "copyright")
+            /// Refers to a resource containing the most recent item(s) in a collection of resources.
+            public static let current = RelationType(rawValue: "current")
+            /// Refers to a resource providing information about the link's context.
+            public static let describedby = RelationType(rawValue: "describedby")
+            /// Refers to a resource that can be used to edit the link's context.
+            public static let edit = RelationType(rawValue: "edit")
+            /// Refers to a resource that can be used to edit media associated with the link's context.
+            public static let editMedia = RelationType(rawValue: "edit-media")
+            /// Identifies a related resource that is potentially large and might require special handling.
+            public static let enclosure = RelationType(rawValue: "enclosure")
+            /// An IRI that refers to the furthest preceding resource in a series of resources.
+            public static let first = RelationType(rawValue: "first")
+            /// Refers to a glossary of terms.
+            public static let glossary = RelationType(rawValue: "glossary")
+            /// Refers to a resource offering help (more information,
+            /// links to other sources information, etc.)
+            public static let help = RelationType(rawValue: "help")
+            /// Refers to a hub that enables registration for notification of updates to the context.
+            public static let hub = RelationType(rawValue: "hub")
+            /// Refers to an index.
+            public static let index = RelationType(rawValue: "index")
+            /// An IRI that refers to the furthest following resource in a series of resources.
+            public static let last = RelationType(rawValue: "last")
+            /// Points to a resource containing the latest (e.g., current) version of the context.
+            public static let latestVersion = RelationType(rawValue: "latest-version")
+            /// Refers to a license associated with the link's context.
+            public static let license = RelationType(rawValue: "license")
+            /// Refers to the next resource in a ordered series of resources.
+            public static let next = RelationType(rawValue: "next")
+            /// Refers to the immediately following archive resource.
+            public static let nextArchive = RelationType(rawValue: "next-archive")
+            /// Indicates a resource where payment is accepted.
+            public static let payment = RelationType(rawValue: "payment")
+            /// Refers to the previous resource in an ordered series of resources.  Synonym for `previous`.
+            public static let prev = RelationType(rawValue: "prev")
+            /// Points to a resource containing the predecessor version in the version history.
+            public static let predecessorVersion = RelationType(rawValue: "predecessor-version")
+            /// Refers to the previous resource in an ordered series of resources.  Synonym for `prev`.
+            public static let previous = RelationType(rawValue: "previous")
+            /// Refers to the immediately preceding archive resource.
+            public static let prevArchive = RelationType(rawValue: "prev-archive")
+            /// Identifies a related resource.
+            public static let related = RelationType(rawValue: "related")
+            /// Identifies a resource that is a reply to the context of the link.
+            public static let replies = RelationType(rawValue: "replies")
+            /// Refers to a section in a collection of resources.
+            public static let section = RelationType(rawValue: "section")
+            /// Conveys an identifier for the link's context.
+            public static let selfRelation = RelationType(rawValue: "self")
+            /// Indicates a URI that can be used to retrieve a service document.
+            public static let service = RelationType(rawValue: "service")
+            /// Refers to the first resource in a collection of resources.
+            public static let start = RelationType(rawValue: "start")
+            /// Refers to an external style sheet.
+            public static let stylesheet = RelationType(rawValue: "stylesheet")
+            /// Refers to a resource serving as a subsection in a collection of resources.
+            public static let subsection = RelationType(rawValue: "subsection")
+            /// Points to a resource containing the successor version in the version history.
+            public static let successorVersion = RelationType(rawValue: "successor-version")
+            /// Refers to a parent document in a hierarchy of documents.
+            public static let up = RelationType(rawValue: "up")
+            /// points to a resource containing the version history for the context.
+            public static let versionHistory = RelationType(rawValue: "version-history")
+            /// Identifies a resource that is the source of the information in the link's context.
+            public static let via = RelationType(rawValue: "via")
+            /// Points to a working copy for this resource.
+            public static let workingCopy = RelationType(rawValue: "working-copy")
+            /// Points to the versioned resource from which this working copy was obtained.
+            public static let workingCopyOf = RelationType(rawValue: "working-copy-of")
         }
     }
     
@@ -1011,8 +1207,11 @@ internal extension HTTPHeaders {
         return value.flatMap({ (value) -> [String] in
             return value.components(separatedBy: ",")
         }).flatMap({ (value) -> (typed: T, q: Double)? in
-            let typed = initializer(value)
-            let q = parseParams(value)["q"].flatMap(Double.init) ?? 1
+            let (typedStr, params) = parseParamsWithToken(value, removeQuotation: false)
+            guard let typed = typedStr.flatMap(initializer) else {
+                return nil
+            }
+            let q = params["q"].flatMap(Double.init) ?? 1
             // Removing values with q=0 according to [RFC7231](https://tools.ietf.org/html/rfc7231)
             if q == 0 {
                 return nil
@@ -1149,13 +1348,13 @@ internal extension Date {
         fileprivate static let allValues: [RFCStandards] = [.rfc1123, .rfc850, .iso8601, .asctime]
     }
     
-    private static let defaultLocale = Locale(identifier: "en_US_POSIX")
-    private static let defaultTimezone = TimeZone(identifier: "UTC")
+    private static let posixLocale = Locale(identifier: "en_US_POSIX")
+    private static let utcTimezone = TimeZone(identifier: "UTC")
     
     /// Checks date string against various RFC standards and returns `Date`.
     init?(rfcString: String) {
         let dateFor: DateFormatter = DateFormatter()
-        dateFor.locale = Date.defaultLocale
+        dateFor.locale = Date.posixLocale
         
         for standard in RFCStandards.allValues {
             dateFor.dateFormat = standard.rawValue
@@ -1173,8 +1372,8 @@ internal extension Date {
     func format(with standard: RFCStandards, locale: Locale? = nil, timeZone: TimeZone? = nil) -> String {
         let fm = DateFormatter()
         fm.dateFormat = standard.rawValue
-        fm.timeZone = timeZone ?? Date.defaultTimezone
-        fm.locale = locale ?? Date.defaultLocale
+        fm.timeZone = timeZone ?? Date.utcTimezone
+        fm.locale = locale ?? Date.posixLocale
         return fm.string(from: self)
     }
 }
@@ -1294,21 +1493,20 @@ internal extension String.Encoding {
             return nil
         }
         #else
-        // CFStringConvertIANACharSetNameToEncoding is not exposed in SwiftFoundation!
+        // CFStringConvertIANACharSetNameToEncoding is not exported in SwiftFoundation!
         // We use this as workaround until SwiftFoundation got fixed.
         let charset = charset.lowercased()
-        self = HTTPHeaders.ianatable.first(where: { return $0.value == charset })?.key
+        self = String.Encoding.ianatable.first(where: { return $0.value == charset })?.key
         #endif
     }
     
     internal var ianaCharset: String? {
-        // Default charset for HTTP 1.1 is "iso-8859-1"
         #if os(macOS) || os(iOS) || os(tvOS)
         return (CFStringConvertEncodingToIANACharSetName(CFStringConvertNSStringEncodingToEncoding(self.rawValue)) as String?)
         #else
-        // CFStringConvertEncodingToIANACharSetName is not exposed in SwiftFoundation!
+        // CFStringConvertEncodingToIANACharSetName is not exported in SwiftFoundation!
         // We use this as workaround until SwiftFoundation got fixed.
-        return HTTPHeaders.ianatable[self]
+        return String.Encoding.ianatable[self]
         #endif
     }
 }
