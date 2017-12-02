@@ -383,7 +383,7 @@ extension HTTPHeaders {
             let methods = self.storage[.allow]?.flatMap({ (value) -> [String] in
                 return value.components(separatedBy: ",")
             })
-            return methods?.flatMap({ HTTPMethod($0) }) ?? []
+            return methods?.flatMap({ HTTPMethod($0.trimmingCharacters(in: .whitespaces)) }) ?? []
         }
         set {
             if !newValue.isEmpty {
@@ -673,7 +673,7 @@ extension HTTPHeaders {
         }
         
         var cookieString = name
-        cookieString += !value.isEmpty ? "=\(cookie)" : ""
+        cookieString += !value.isEmpty ? "=\(value)" : ""
         cookieString += expiresDate.flatMap({ "; Expires=\($0.format(with: .http))" }) ?? ""
         cookieString += !(domain.isEmpty || domain == "^filecookies^") ? "; Domain=\(domain)" : ""
         cookieString += !path.isEmpty ? "; Path=\(path)" : ""

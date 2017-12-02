@@ -37,7 +37,7 @@ extension HTTPHeaders {
             switch type.lowercased() {
             case "basic":
                 guard let data = Data(base64Encoded: q) else { return nil }
-                guard let paramStr = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .ascii)else { return nil }
+                guard let paramStr = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .ascii) else { return nil }
                 let decoded = paramStr.components(separatedBy: ":")
                 guard let user = decoded.first else { return nil }
                 let pass = decoded.dropFirst().joined(separator: ":")
@@ -500,7 +500,11 @@ extension HTTPHeaders {
                 return type.rawValue
             }
             let paramStr = HTTPHeaders.createParam(parameters, quotationValue: true)
-            return "\(type.rawValue);\(paramStr)"
+            if paramStr.isEmpty {
+                return type.rawValue
+            } else {
+                return "\(type.rawValue); \(paramStr)"
+            }
         }
         
         /// :nodoc:
@@ -975,7 +979,7 @@ extension HTTPHeaders {
         
         public var rawValue: String {
             let paramStr = HTTPHeaders.createParam(parameters, quotationValue: true)
-            return "<\(url.absoluteString)>; /\(paramStr)"
+            return "<\(url.absoluteString)>; \(paramStr)"
         }
         
         public var hashValue: Int {

@@ -12,6 +12,7 @@ import XCTest
 
 class HeadersAccessorsTests: XCTestCase {
     func testRequestHeaders() {
+        let date = Date(timeIntervalSinceReferenceDate: 467105280)
         let headers: HTTPHeaders = [
             .accept: "text/html, application/xhtml+xml;q=0.5, text/xml;q=0.9, */*;q=0.8",
             .acceptCharset: "iso-8859-1;q=0.5, utf-8",
@@ -22,6 +23,7 @@ class HeadersAccessorsTests: XCTestCase {
             .contentLength: "200",
             .cookie: "PHPSESSID=298zf09hf012fh2; csrftoken=\"u32t4o3tb3gg43\"; _gat=1;",
             .host: "developer.cdn.mozilla.net",
+            .ifRange: "Wed, 21 Oct 2015 07:28:00 GMT",
             .ifMatch: "W/\"67ab43\", \"54ed21\", \"7892dd\"",
             .ifNoneMatch: "*",
             .ifModifiedSince: "Wed, 21 Oct 2015 07:28:00 GMT",
@@ -37,6 +39,8 @@ class HeadersAccessorsTests: XCTestCase {
         XCTAssertEqual(headers.acceptEncoding, [.brotli, .gzip, .all])
         XCTAssertEqual(headers.acceptLanguage.flatMap({ $0.languageCode }), [
             "ru", "ru", "en", "en"])
+        XCTAssertEqual(headers.acceptLanguage.flatMap({ $0.regionCode }), [
+            "RU", "US"])
         switch headers.authorization! {
         case .basic(user: let user, password: let passw):
             XCTAssertEqual(user, "aladdin")
@@ -48,9 +52,10 @@ class HeadersAccessorsTests: XCTestCase {
         XCTAssertEqual(headers.contentLength, 200)
         XCTAssertEqual(headers.cookieDictionary["csrftoken"], "u32t4o3tb3gg43")
         XCTAssertEqual(headers.host?.host, "developer.cdn.mozilla.net")
+        XCTAssertEqual(headers.ifRange, .date(date))
         XCTAssertEqual(headers.ifMatch, [.weak("67ab43"), .strong("54ed21"), .strong("7892dd")])
         XCTAssertEqual(headers.ifNoneMatch, [.wildcard])
-        XCTAssertEqual(headers.ifModifiedSince?.timeIntervalSinceReferenceDate, 467105280)
+        XCTAssertEqual(headers.ifModifiedSince, date)
         XCTAssertEqual(headers.ifUnmodifiedSince?.timeIntervalSinceReferenceDate, 467105280)
         XCTAssertEqual(headers.origin, URL(string: "https://developer.mozilla.org"))
         XCTAssertEqual(headers.rangeType, .bytes)
@@ -84,6 +89,7 @@ class HeadersAccessorsTests: XCTestCase {
             .link: "</feed>; rel=\"alternate\"",
             .location: "https://developer.mozilla.org/",
             .pragma: "no-cache",
+            .setCookie: "NID=118=ZQ-phHa3O6-jdaMl-DfV_m2bodlR_D; expires=Wed, 21 Oct 2015 07:28:00 GMT; path=/; domain=.google.com; HttpOnly",
             .trailer: "Expires",
             .transferEncoding: "gzip, chunked",
             .vary: "User-Agent",
@@ -91,7 +97,7 @@ class HeadersAccessorsTests: XCTestCase {
             ]
         XCTAssertEqual(headers.acceptRanges, .bytes)
         XCTAssertEqual(headers.age, 24.0)
-        //XCTAssertTrue(headers.allow.contains(.head))
+        XCTAssertTrue (headers.allow.contains(.head))
         XCTAssertEqual(headers.cacheControl, [.`public`, .maxAge(31536000)])
         XCTAssertEqual(headers.connection, [.keepAlive])
         XCTAssertEqual(headers.contentDisposition?.type, .attachment)
@@ -111,6 +117,12 @@ class HeadersAccessorsTests: XCTestCase {
         XCTAssertEqual(headers.link.first?.url, URL(string: "/feed"))
         XCTAssertEqual(headers.link.first?.relationType, .alternate)
         XCTAssertEqual(headers.pragma, .noCache)
+        XCTAssertEqual(headers.setCookie.first?.name, "NID")
+        XCTAssertEqual(headers.setCookie.first?.value, "118=ZQ-phHa3O6-jdaMl-DfV_m2bodlR_D")
+        XCTAssertEqual(headers.setCookie.first?.expiresDate, date)
+        XCTAssertEqual(headers.setCookie.first?.path, "/")
+        XCTAssertEqual(headers.setCookie.first?.domain, ".google.com")
+        XCTAssertEqual(headers.setCookie.first?.isHTTPOnly, true)
         XCTAssertEqual(headers.trailer, [.expires])
         XCTAssertEqual(headers.transferEncoding, [.gzip, .chunked])
         XCTAssertEqual(headers.vary, [.userAgent])
@@ -121,56 +133,113 @@ class HeadersAccessorsTests: XCTestCase {
     
     func testResponseHeadersWrite() {
         /*
-         These accessors set underlying string storage directly, thus there is a converting
-         forth back from typed header to raw string.
+         Note: These accessors set underlying string storage directly, thus there is a converting
+         forth and back from typed header to raw string.
          If we change underlying storage architecture anytime, we must rewrite this method.
         */
+        let date = Date(timeIntervalSinceReferenceDate: 467105280)
         var headers = HTTPHeaders()
+        
         headers.acceptRanges = .none
         XCTAssertEqual(headers.acceptRanges, .none)
+        
         headers.age = 2000.25
         XCTAssertEqual(headers.age, 2000)
+        
         headers.allow = [.get, .post, .head]
-        //XCTAssertEqual(headers[.allow], "GET, POST, HEAD")
+        XCTAssertEqual(headers[.allow], "GET,POST,HEAD")
+        
         headers.cacheControl = [.maxAge(2000.2)]
         XCTAssertEqual(headers.cacheControl, [.maxAge(2000)])
+        
         headers.connection = [.keepAlive]
         XCTAssertEqual(headers.connection, [.keepAlive])
+        
+        headers.contentDisposition = .inline
+        XCTAssertEqual(headers[.contentDisposition], "inline")
+        
         headers.contentDisposition = .attachment(fileName: "file√utf.çav")
+        XCTAssertEqual(headers[.contentDisposition],
+                       "attachment; filename*=UTF-8''file%E2%88%9Autf.%C3%A7av; filename=\"fileutf.av\"")
         XCTAssertEqual(headers.contentDisposition?.type, .attachment)
         XCTAssertEqual(headers.contentDisposition?.filename, "file√utf.çav")
+        
         headers.contentEncoding = .brotli
         XCTAssertEqual(headers.contentEncoding, .brotli)
+        
         headers.contentLanguage = Locale(identifier: "de_DE")
         XCTAssertEqual(headers.contentLanguage?.languageCode, "de")
+        
         headers.contentLocation = URL(string: "https://developer.mozilla.org/en-US/docs/Web/JavaScript")
         XCTAssertEqual(headers.contentLocation?.scheme, "https")
+        
         headers.set(contentRange: 200..<1001, size: 10000)
         XCTAssertEqual(headers.contentRange, 200..<1001)
+        
+        headers.set(contentRange: 200..., size: 10000)
+        XCTAssertEqual(headers.contentRange, 200..<UInt64.max)
         XCTAssertEqual(headers.contentRangeType, .bytes)
+        
         headers.contentType = HTTPHeaders.ContentType(type: .html, charset: .utf8)
         XCTAssertEqual(headers.contentType?.mediaType, .html)
         XCTAssertEqual(headers.contentType?.charset, .utf8)
+        
         headers.date = Date(timeIntervalSinceReferenceDate: 467105280.1)
         XCTAssertEqual(headers.date?.timeIntervalSinceReferenceDate, 467105280)
+        
         headers.eTag = .weak("0815")
+        XCTAssertEqual(headers[.eTag], "W/\"0815\"")
         XCTAssertEqual(headers.eTag, .weak("0815"))
+        
         headers.expires = Date(timeIntervalSinceReferenceDate: 467105280.1)
-        XCTAssertEqual(headers.expires?.timeIntervalSinceReferenceDate, 467105280)
+        XCTAssertEqual(headers.expires?.timeIntervalSinceReferenceDate, date.timeIntervalSinceReferenceDate)
+        
         headers.lastModified  = Date(timeIntervalSinceReferenceDate: 467105280.1)
-        XCTAssertEqual(headers.expires?.timeIntervalSinceReferenceDate, 467105280)
+        XCTAssertEqual(headers.lastModified, date)
+        
         headers.link = [HTTPHeaders.Link(url: URL(string: "/relative/path")!, relation: .prev)]
+        XCTAssertEqual(headers[.link], "</relative/path>; rel=\"prev\"")
+        XCTAssertEqual(headers.link.first?.url, URL(string: "/relative/path"))
+        XCTAssertEqual(headers.link.first?.relationType, .prev)
+        
         headers.pragma = .noCache
         XCTAssertEqual(headers.pragma, .noCache)
+        
+        headers.add(setCookie: "NID", value: "118=ZQ-phHa3O6-jdaMl-DfV_m2bodlR_D", path: "/",
+                    domain: ".google.com", expiresDate: date, isHTTPOnly: true)
+        XCTAssertEqual(headers.setCookie.first?.name, "NID")
+        XCTAssertEqual(headers.setCookie.first?.value, "118=ZQ-phHa3O6-jdaMl-DfV_m2bodlR_D")
+        XCTAssertEqual(headers.setCookie.first?.expiresDate, date)
+        XCTAssertEqual(headers.setCookie.first?.path, "/")
+        XCTAssertEqual(headers.setCookie.first?.domain, ".google.com")
+        XCTAssertEqual(headers.setCookie.first?.isHTTPOnly, true)
+        
+        headers[.setCookie] = nil
+        let cookie = HTTPCookie(properties: [
+            .name : "NID",
+            .value:"118=ZQ-phHa3O6-jdaMl-DfV_m2bodlR_D",
+            .domain: ".google.com",
+            .expires: date,
+            .path: "/",
+            .secure: true])!
+        headers.add(setCookie: cookie)
+        XCTAssertEqual(headers.setCookie.first?.name, "NID")
+        XCTAssertEqual(headers.setCookie.first?.value, "118=ZQ-phHa3O6-jdaMl-DfV_m2bodlR_D")
+        XCTAssertEqual(headers.setCookie.first?.expiresDate, date)
+        XCTAssertEqual(headers.setCookie.first?.path, "/")
+        XCTAssertEqual(headers.setCookie.first?.domain, ".google.com")
+        XCTAssertEqual(headers.setCookie.first?.isSecure, true)
+        
         headers.transferEncoding = [.gzip, .chunked]
         XCTAssertEqual(headers.transferEncoding, [.gzip, .chunked])
+        
         headers.vary = [.userAgent]
         XCTAssertEqual(headers.vary, [.userAgent])
-        headers.wwwAuthenticate = HTTPHeaders.Challenge.basic(realm: "Access to the staging site", charset: .utf8)
+        
+        headers.wwwAuthenticate = .basic(realm: "Access to the staging site", charset: .utf8)
         XCTAssertEqual(headers.wwwAuthenticate?.type, .basic)
         XCTAssertEqual(headers.wwwAuthenticate?.realm, "Access to the staging site")
         XCTAssertEqual(headers.wwwAuthenticate?.charset, .utf8)
-        
     }
     
     static var allTests = [
