@@ -284,8 +284,7 @@ extension HTTPHeaders {
             case "negotiate":
                 self = .negotiate
             default:
-                self = .custom(rawValue.components(separatedBy: " ").first?
-                    .trimmingCharacters(in: .whitespaces) ?? "")
+                self = .custom(rawValue.prefix(until: " ").trimmingCharacters(in: .whitespaces))
             }
         }
         
@@ -1010,7 +1009,7 @@ extension HTTPHeaders {
                 return urlStr.flatMap(URL.init(string:))
             }
             set {
-                guard let type = parameters["rel"]?.components(separatedBy: " ").first, !type.isEmpty else {
+                guard let type = parameters["rel"]?.prefix(until: " "), !type.isEmpty else {
                     return
                 }
                 let urlStr = newValue.flatMap({ " \($0.absoluteString)" }) ?? ""
@@ -1072,7 +1071,7 @@ extension HTTPHeaders {
             public var rawValue: String
             
             public init?(rawValue: String) {
-                self.rawValue = rawValue.components(separatedBy: " ").first!.lowercased()
+                self.rawValue = rawValue.prefix(until: " ").lowercased()
             }
             
             public var hashValue: Int {
@@ -1410,6 +1409,7 @@ fileprivate extension String {
         })
     }
     
+    @inline(__always)
     private func rfc5987decoded(forced: Bool) -> String? {
         // Encoded string is not enclosed by quotation marks
         guard !self.hasPrefix("\"") && !self.hasSuffix("\"") else {
@@ -1472,6 +1472,13 @@ fileprivate extension String {
             
         }
         return str
+    }
+}
+
+internal extension String {
+    @inline(__always)
+    internal func prefix(until: Character) -> Substring {
+        return self.prefix(while: { $0 != until })
     }
 }
 

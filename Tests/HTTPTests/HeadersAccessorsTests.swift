@@ -131,7 +131,7 @@ class HeadersAccessorsTests: XCTestCase {
         XCTAssertEqual(headers.wwwAuthenticate?.charset, .utf8)
     }
     
-    func testResponseHeadersWrite() {
+    func testResponseHeadersSetter() {
         /*
          Note: These accessors set underlying string storage directly, thus there is a converting
          forth and back from typed header to raw string.
@@ -199,7 +199,7 @@ class HeadersAccessorsTests: XCTestCase {
         
         headers.link = [HTTPHeaders.Link(url: URL(string: "/relative/path")!, relation: .prev)]
         XCTAssertEqual(headers[.link], "</relative/path>; rel=\"prev\"")
-        XCTAssertEqual(headers.link.first?.url, URL(string: "/relative/path"))
+        XCTAssertEqual(headers.link.first?.url.path, "/relative/path")
         XCTAssertEqual(headers.link.first?.relationType, .prev)
         
         headers.pragma = .noCache
@@ -243,8 +243,9 @@ class HeadersAccessorsTests: XCTestCase {
     }
     
     static var allTests = [
-        ("testResponseHeaders", testRequestHeaders),
-        ("testResponseHeaders", testRequestHeaders),
+        ("testRequestHeaders", testRequestHeaders),
+        ("testResponseHeadersGetter", testResponseHeadersGetter),
+        ("testResponseHeadersSetter", testResponseHeadersSetter),
         ]
 }
 
