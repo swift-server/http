@@ -1477,8 +1477,9 @@ fileprivate extension String {
 
 internal extension String {
     @inline(__always)
-    internal func prefix(until: Character) -> Substring {
-        return self.prefix(while: { $0 != until })
+    internal func prefix(until: Character) -> String {
+        // TOOTIMIZE: Return Substring, when Substring.trim() implemented in linux.
+        return String(self.prefix(while: { $0 != until }))
     }
 }
 

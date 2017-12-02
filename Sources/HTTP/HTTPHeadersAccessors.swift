@@ -209,7 +209,7 @@ extension HTTPHeaders {
     public var rangeType: RangeType? {
         get {
             return (self.storage[.range]?.first?.prefix(until: "="))
-                .flatMap(String.init).flatMap(HTTPHeaders.RangeType.init(rawValue:))
+                .flatMap(HTTPHeaders.RangeType.init(rawValue:))
         }
     }
     
@@ -348,7 +348,8 @@ extension HTTPHeaders {
         }
         // Check iOS
         if let ios = deviceArray.first(where: { $0.hasPrefix("CPU iPhone OS") || $0.hasPrefix("CPU OS") }) {
-            let version = ios.components(separatedBy: " OS ").dropFirst().first?.replacingOccurrences(of: "_", with: ".").prefix(until: " ") ?? ""
+            let version = ios.components(separatedBy: " OS ").dropFirst().first?
+                .replacingOccurrences(of: "_", with: ".").prefix(until: " ") ?? ""
             return "iOS \(version)"
         }
         
