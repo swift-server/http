@@ -754,13 +754,48 @@ extension HTTPHeaders {
         }
     }
     
-    /// `WWW-Authenticate` header value.
-    public var wwwAuthenticate: HTTPHeaders.Challenge? {
+    /// `WWW-Authenticate` header value. An empty array means no value is set in header.
+    public var wwwAuthenticate: [HTTPHeaders.Challenge] {
         get {
-            return self.storage[.wwwAuthenticate]?.first.flatMap(Challenge.init(rawValue:))
+            /*
+             According to [RFC7235 section-4.1](https://tools.ietf.org/html/rfc7235#section-4.1) :
+             "User agents are advised to take special care in parsing the field value, as it might
+             contain more than one challenge, and each challenge can contain a comma-separated list
+             of authentication parameters."
+             
+             Unlike others, parameters of a challenge is separated by comma instead of semicolon,
+             This makes parsing field with multiple challenges a little tricky as challenges are
+             also separated by comma.
+             
+             Here we separate string by comma, detect if an element if this separated array is
+             a challenge type, if so, create a new challenge string else, add element to previous.
+             
+             To detect an element is challenge type or not, we check either it has `=` or not, elements
+             that has `=` before a space are parameters and will be added to last challenge.
+            */
+            guard let segments_uc = self.storage[.wwwAuthenticate]?.flatMap({ (value) -> [String] in
+                return value.components(separatedBy: ",")
+            }) else {
+                return []
+            }
+            
+            let challenges: [String] = segments_uc.reduce(into: []) { c, segment  in
+                let token = segment.trimmingCharacters(in: .whitespaces).prefix(until: " ")
+                if token.index(of: "=") != nil, let last = c.popLast() {
+                    c.append("\(last), \(segment)")
+                } else {
+                    c.append(segment)
+                }
+            }
+            
+            return challenges.flatMap(Challenge.init(rawValue:))
         }
         set {
-            self.storage[.wwwAuthenticate] = newValue.flatMap { [$0.rawValue] }
+            if !newValue.isEmpty {
+                self.storage[.wwwAuthenticate] = newValue.flatMap { $0.rawValue }
+            } else {
+                self.storage[.wwwAuthenticate] = nil
+            }
         }
     }
 }

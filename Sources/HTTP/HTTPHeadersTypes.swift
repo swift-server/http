@@ -376,7 +376,8 @@ extension HTTPHeaders {
                 return "\(type.rawValue) \(params)"
             default:
                 let token = self.token.flatMap({ "\($0) "}) ?? ""
-                let params = HTTPHeaders.createParam(parameters, quotationValue: false, separator: ", ")
+                let nonquotedKeys: [String] = ["charset"]
+                let params = HTTPHeaders.createParam(parameters, quotationValue: true, nonquotatedKeys: nonquotedKeys, separator: ", ")
                 return "\(type.rawValue) \(token)\(params)"
             }
         }

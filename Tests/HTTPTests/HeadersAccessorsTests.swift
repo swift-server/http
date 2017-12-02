@@ -126,9 +126,9 @@ class HeadersAccessorsTests: XCTestCase {
         XCTAssertEqual(headers.trailer, [.expires])
         XCTAssertEqual(headers.transferEncoding, [.gzip, .chunked])
         XCTAssertEqual(headers.vary, [.userAgent])
-        XCTAssertEqual(headers.wwwAuthenticate?.type, .basic)
-        XCTAssertEqual(headers.wwwAuthenticate?.realm, "Access to the staging site")
-        XCTAssertEqual(headers.wwwAuthenticate?.charset, .utf8)
+        XCTAssertEqual(headers.wwwAuthenticate.first?.type, .basic)
+        XCTAssertEqual(headers.wwwAuthenticate.first?.realm, "Access to the staging site")
+        XCTAssertEqual(headers.wwwAuthenticate.first?.charset, .utf8)
     }
     
     func testResponseHeadersSetter() {
@@ -236,10 +236,16 @@ class HeadersAccessorsTests: XCTestCase {
         headers.vary = [.userAgent]
         XCTAssertEqual(headers.vary, [.userAgent])
         
-        headers.wwwAuthenticate = .basic(realm: "Access to the staging site", charset: .utf8)
-        XCTAssertEqual(headers.wwwAuthenticate?.type, .basic)
-        XCTAssertEqual(headers.wwwAuthenticate?.realm, "Access to the staging site")
-        XCTAssertEqual(headers.wwwAuthenticate?.charset, .utf8)
+        headers.wwwAuthenticate = [.basic(realm: "Access to the staging site", charset: .utf8), .oAuth2(realm: "Access to the staging site", scope: "all")]
+        let firstAuth = headers.wwwAuthenticate.first
+        XCTAssertEqual(firstAuth?.type, .basic)
+        XCTAssertEqual(firstAuth?.realm, "Access to the staging site")
+        XCTAssertEqual(firstAuth?.charset, .utf8)
+        let secondAuth = headers.wwwAuthenticate.dropFirst().first
+        XCTAssertEqual(secondAuth?.type, .oAuth2)
+        print(headers[.wwwAuthenticate]!)
+        XCTAssertEqual(secondAuth?.realm, "Access to the staging site")
+        XCTAssertEqual(secondAuth?["scope"], "all")
     }
     
     static var allTests = [
