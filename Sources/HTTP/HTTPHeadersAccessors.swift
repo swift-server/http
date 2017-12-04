@@ -512,7 +512,7 @@ extension HTTPHeaders {
         return (lower ?? 0, upper, total)
     }
     
-    fileprivate func createRange(from: Int64, to: Int64? = nil, total: Int64? = nil, type: HTTPHeaders.RangeType = .bytes) -> String? {
+    fileprivate func createRange(from: UInt64, to: UInt64? = nil, total: UInt64? = nil, type: HTTPHeaders.RangeType = .bytes) -> String? {
         guard from >= 0, (to ?? 0) >= 0, (total ?? 1) >= 1 else {
             return total.flatMap({ "*/\($0)" })
         }
@@ -545,29 +545,28 @@ extension HTTPHeaders {
     }
     
     /// Set `Content-Range` header.
-    public mutating func set(contentRange: Range<Int64>, size: Int64? = nil, type: HTTPHeaders.RangeType = .bytes) {
-        // TOCHECK: size >= contentRange.count, type != .none
-        let upper: Int64? = contentRange.upperBound == Int64.max ? nil : (contentRange.upperBound - 1)
+    public mutating func set<R: RangeExpression>(contentRange: R, size: UInt64? = nil, type: HTTPHeaders.RangeType = .bytes) where R.Bound == UInt64 {
+        // TOFIX: set(contentRange: ...UInt64.max) will cause crash
+        // TOCHECK: type != .none
+        let r = CountableRange<UInt64>.init(uncheckedBounds: (lower: 0, upper: UInt64.max))
+        let contentRange: Range<UInt64> = contentRange.relative(to: r)
+        let upper: UInt64? = contentRange.upperBound == UInt64.max ? nil : (contentRange.upperBound - 1)
         let rangeStr = createRange(from: contentRange.lowerBound, to: upper, total: size, type: type)
         self.storage[.contentRange] = rangeStr.flatMap { [$0] }
     }
     
-    /// Set `Content-Range` header, set upperbound to `Int64.max` to set an opened-end range.
-    public mutating func set(contentRange: ClosedRange<Int64>, size: Int64? = nil, type: HTTPHeaders.RangeType = .bytes) {
-        // TOCHECK: size >= contentRange.count, type != .none
-        let upper: Int64? = contentRange.upperBound == Int64.max ? nil : (contentRange.upperBound - 1)
-        let rangeStr = createRange(from: contentRange.lowerBound, to: upper, total: size, type: type)
+    /// Set `Content-Range` header.
+    public mutating func set<R: RangeExpression>(contentRange: R, size: Int? = nil, type: HTTPHeaders.RangeType = .bytes) where R.Bound == Int {
+        // TOFIX: set(contentRange: ...Int.max) will cause crash
+        // TOCHECK: type != .none
+        let r = CountableRange<Int>.init(uncheckedBounds: (lower: 0, upper: Int.max))
+        let contentRange: Range<Int> = contentRange.relative(to: r)
+        let lower: UInt64 = UInt64(exactly: contentRange.lowerBound) ?? 0
+        let upper: UInt64? = contentRange.upperBound == Int.max ? nil : UInt64(exactly: contentRange.upperBound - 1)
+        let size = size.flatMap(UInt64.init(exactly:))
+        let rangeStr = createRange(from: lower, to: upper, total: size, type: type)
         self.storage[.contentRange] = rangeStr.flatMap { [$0] }
     }
-    
-    #if swift(>=4.0)
-    /// Set half-open `Content-Range`.
-    public mutating func set(contentRange: PartialRangeFrom<Int64>, size: Int64? = nil, type: HTTPHeaders.RangeType = .bytes) {
-        // TOCHECK: size >= 0, type != .none
-        let rangeStr = createRange(from: contentRange.lowerBound, total: size, type: type)
-        self.storage[.contentRange] = rangeStr.flatMap { [$0] }
-    }
-    #endif
     
     /// `Content-Type` header value.
     public var contentType: ContentType? {

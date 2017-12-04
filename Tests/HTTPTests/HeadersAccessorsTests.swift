@@ -29,7 +29,7 @@ class HeadersAccessorsTests: XCTestCase {
             .ifModifiedSince: "Wed, 21 Oct 2015 07:28:00 GMT",
             .ifUnmodifiedSince: "Wed, 21 Oct 2015 07:28:00 GMT",
             .origin: "https://developer.mozilla.org",
-            .range: "bytes=200-1000, 2000-6576, 19000-, -3",
+            .range: "bytes=200-1000, -2000-, 19000-, -3, 2000-1000",
             .referer: "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
             .te: "trailers, deflate;q=0.5, gzip;q=0.0",
             .userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_1 like Mac OS X) AppleWebKit/603.1.30 (KHTML, like Gecko) Version/10.0 Mobile/14E304 Safari/602.1",
@@ -59,7 +59,8 @@ class HeadersAccessorsTests: XCTestCase {
         XCTAssertEqual(headers.ifUnmodifiedSince?.timeIntervalSinceReferenceDate, 467105280)
         XCTAssertEqual(headers.origin, URL(string: "https://developer.mozilla.org"))
         XCTAssertEqual(headers.rangeType, .bytes)
-        XCTAssertEqual(headers.range, [200..<1001, 2000..<6577, 19000..<Int64.max, -3..<(-2)])
+        // 2000-1000 range is invalid and won't be parsed.
+        XCTAssertEqual(headers.range, [200..<1001, -2000..<0, 19000..<Int64.max, -3..<(-2)])
         XCTAssertEqual(headers.referer?.path, "/en-US/docs/Web/JavaScript")
         XCTAssertEqual(headers.te, [.trailers, .deflate])
         let browser = headers.clientBrowser
@@ -117,12 +118,13 @@ class HeadersAccessorsTests: XCTestCase {
         XCTAssertEqual(headers.link.first?.url, URL(string: "/feed"))
         XCTAssertEqual(headers.link.first?.relationType, .alternate)
         XCTAssertEqual(headers.pragma, .noCache)
-        XCTAssertEqual(headers.setCookie.first?.name, "NID")
-        XCTAssertEqual(headers.setCookie.first?.value, "118=ZQ-phHa3O6-jdaMl-DfV_m2bodlR_D")
-        XCTAssertEqual(headers.setCookie.first?.expiresDate, date)
-        XCTAssertEqual(headers.setCookie.first?.path, "/")
-        XCTAssertEqual(headers.setCookie.first?.domain, ".google.com")
-        XCTAssertEqual(headers.setCookie.first?.isHTTPOnly, true)
+        let setCookie = headers.setCookie.first
+        XCTAssertEqual(setCookie?.name, "NID")
+        XCTAssertEqual(setCookie?.value, "118=ZQ-phHa3O6-jdaMl-DfV_m2bodlR_D")
+        XCTAssertEqual(setCookie?.expiresDate, date)
+        XCTAssertEqual(setCookie?.path, "/")
+        XCTAssertEqual(setCookie?.domain, ".google.com")
+        XCTAssertEqual(setCookie?.isHTTPOnly, true)
         XCTAssertEqual(headers.trailer, [.expires])
         XCTAssertEqual(headers.transferEncoding, [.gzip, .chunked])
         XCTAssertEqual(headers.vary, [.userAgent])
@@ -177,6 +179,7 @@ class HeadersAccessorsTests: XCTestCase {
         XCTAssertEqual(headers.contentRange, 200..<1001)
         
         headers.set(contentRange: 200..., size: 10000)
+        XCTAssertEqual(headers[.contentRange], "bytes 200-/10000")
         XCTAssertEqual(headers.contentRange, 200..<UInt64.max)
         XCTAssertEqual(headers.contentRangeType, .bytes)
         
@@ -207,12 +210,13 @@ class HeadersAccessorsTests: XCTestCase {
         
         headers.add(setCookie: "NID", value: "118=ZQ-phHa3O6-jdaMl-DfV_m2bodlR_D", path: "/",
                     domain: ".google.com", expiresDate: date, isHTTPOnly: true)
-        XCTAssertEqual(headers.setCookie.first?.name, "NID")
-        XCTAssertEqual(headers.setCookie.first?.value, "118=ZQ-phHa3O6-jdaMl-DfV_m2bodlR_D")
-        XCTAssertEqual(headers.setCookie.first?.expiresDate, date)
-        XCTAssertEqual(headers.setCookie.first?.path, "/")
-        XCTAssertEqual(headers.setCookie.first?.domain, ".google.com")
-        XCTAssertEqual(headers.setCookie.first?.isHTTPOnly, true)
+        let setCookie = headers.setCookie.first
+        XCTAssertEqual(setCookie?.name, "NID")
+        XCTAssertEqual(setCookie?.value, "118=ZQ-phHa3O6-jdaMl-DfV_m2bodlR_D")
+        XCTAssertEqual(setCookie?.expiresDate, date)
+        XCTAssertEqual(setCookie?.path, "/")
+        XCTAssertEqual(setCookie?.domain, ".google.com")
+        XCTAssertEqual(setCookie?.isHTTPOnly, true)
         
         headers[.setCookie] = nil
         let cookie = HTTPCookie(properties: [
@@ -223,12 +227,13 @@ class HeadersAccessorsTests: XCTestCase {
             .path: "/",
             .secure: true])!
         headers.add(setCookie: cookie)
-        XCTAssertEqual(headers.setCookie.first?.name, "NID")
-        XCTAssertEqual(headers.setCookie.first?.value, "118=ZQ-phHa3O6-jdaMl-DfV_m2bodlR_D")
-        XCTAssertEqual(headers.setCookie.first?.expiresDate, date)
-        XCTAssertEqual(headers.setCookie.first?.path, "/")
-        XCTAssertEqual(headers.setCookie.first?.domain, ".google.com")
-        XCTAssertEqual(headers.setCookie.first?.isSecure, true)
+        let setCookie2 = headers.setCookie.first
+        XCTAssertEqual(setCookie2?.name, "NID")
+        XCTAssertEqual(setCookie2?.value, "118=ZQ-phHa3O6-jdaMl-DfV_m2bodlR_D")
+        XCTAssertEqual(setCookie2?.expiresDate, date)
+        XCTAssertEqual(setCookie2?.path, "/")
+        XCTAssertEqual(setCookie2?.domain, ".google.com")
+        XCTAssertEqual(setCookie2?.isSecure, true)
         
         headers.transferEncoding = [.gzip, .chunked]
         XCTAssertEqual(headers.transferEncoding, [.gzip, .chunked])
@@ -243,7 +248,6 @@ class HeadersAccessorsTests: XCTestCase {
         XCTAssertEqual(firstAuth?.charset, .utf8)
         let secondAuth = headers.wwwAuthenticate.dropFirst().first
         XCTAssertEqual(secondAuth?.type, .oAuth2)
-        print(headers[.wwwAuthenticate]!)
         XCTAssertEqual(secondAuth?.realm, "Access to the staging site")
         XCTAssertEqual(secondAuth?["scope"], "all")
     }
