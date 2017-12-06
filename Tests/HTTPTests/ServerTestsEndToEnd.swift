@@ -9,7 +9,7 @@
 import XCTest
 import Dispatch
 
-@testable import HTTP
+import HTTP
 
 class ServerTestsEndToEnd: XCTestCase {
     func testOkEndToEnd() {
@@ -19,6 +19,7 @@ class ServerTestsEndToEnd: XCTestCase {
         let server = HTTPServer(with: options, requestHandler: OkHandler().handle)
         do {
             try server.start()
+            RunLoop.main.run()
             let session = URLSession(configuration: .default)
             let url = URL(string: "http://localhost:\(server.port)/")!
             print("Test \(#function) on port \(server.port)")
