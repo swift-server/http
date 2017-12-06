@@ -712,3 +712,12 @@ struct TCPError: Swift.Error, Encodable {
         )
     }
 }
+
+
+#if os(Linux)
+    import Glibc
+
+    // fix some constants on linux
+    let SOCK_STREAM = Int32(Glibc.SOCK_STREAM.rawValue)
+    let IPPROTO_TCP = Int32(Glibc.IPPROTO_TCP)
+#endif
