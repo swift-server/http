@@ -29,7 +29,7 @@ internal final class TCPServer {
     /// Creates a TCP server from an existing TCP socket.
     init(socket: TCPSocket, eventLoops: [DispatchQueue]) {
         self.socket = socket
-        self.queue = DispatchQueue(label: "codes.vapor.net.tcp.server", qos: .background)
+        self.queue = DispatchQueue(label: "org.swift.server.accept", qos: .background)
         self.eventLoops = eventLoops
         self.eventLoopsIterator = LoopIterator(collection: eventLoops)
     }
@@ -79,8 +79,6 @@ internal final class TCPServer {
 
 
 /// TCP client stream.
-///
-/// [Learn More →](https://docs.vapor.codes/3.0/sockets/tcp-client/)
 internal final class TCPClient {
     /// This client's dispatch queue. Use this
     /// for all async operations performed as a
@@ -113,8 +111,6 @@ internal final class TCPClient {
     var onClose: OnClose?
 
     /// Creates a new Remote Client from the a socket
-    ///
-    /// [Learn More →](https://docs.vapor.codes/3.0/sockets/tcp-client/#creating-and-connecting-a-socket)
     init(socket: TCPSocket, on eventLoop: DispatchQueue) {
         self.socket = socket
         self.eventLoop = eventLoop
@@ -150,16 +146,12 @@ internal final class TCPClient {
     }
 
     /// Handles DispatchData input
-    ///
-    /// [Learn More →](https://docs.vapor.codes/3.0/sockets/tcp-client/#communicating)
     func write(_ input: DispatchData) {
         inputBuffer.append(Data(input))
         ensureWriteSourceResumed()
     }
 
     /// Handles Data input
-    ///
-    /// [Learn More →](https://docs.vapor.codes/3.0/sockets/tcp-client/#communicating)
     func write(_ input: Data) {
         inputBuffer.append(input)
         ensureWriteSourceResumed()
@@ -230,8 +222,6 @@ internal final class TCPClient {
     typealias ReadHandler = (UnsafeBufferPointer<UInt8>) -> ()
 
     /// Starts receiving data from the client
-    ///
-    /// [Learn More →](https://docs.vapor.codes/3.0/sockets/tcp-client/#communicating)
     func start(onRead: @escaping ReadHandler) {
         let source = DispatchSource.makeReadSource(
             fileDescriptor: socket.descriptor,
