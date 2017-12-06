@@ -457,7 +457,7 @@ extension TCPSocket {
             var size = socklen_t(MemoryLayout<sockaddr>.size)
 
             #if os(Linux)
-                let descriptor = Glibcaccept(self.descriptor, address, &size)
+                let descriptor = Glibc.accept(self.descriptor, address, &size)
             #else
                 let descriptor = Darwin.accept(self.descriptor, address, &size)
             #endif
