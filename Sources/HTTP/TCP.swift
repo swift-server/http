@@ -311,6 +311,9 @@ internal struct TCPSocket {
     /// True if the socket should re-use addresses
     let shouldReuseAddress: Bool
 
+    /// The socket's address
+    var address: Address?
+
     /// A read source that's used to check when the connection is readable
     internal var readSource: DispatchSourceRead?
 
@@ -327,6 +330,7 @@ internal struct TCPSocket {
         self.descriptor = established
         self.isNonBlocking = isNonBlocking
         self.shouldReuseAddress = shouldReuseAddress
+        self.address = address
     }
 
     /// Creates a new TCP socket
