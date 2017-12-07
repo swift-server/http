@@ -45,13 +45,6 @@ public class HTTPServer {
     }
     return queues
   }()
-
-  /// Queue used to run `accept()` on.
-  /// `accept()` can take time (AFAIK there is no NIO variant of it), run it
-  /// multithreaded. GCD will decide the thread count and such for us.
-  private let acceptQueue =
-                DispatchQueue(label: "de.zeezide.swift.server.http.accept",
-                              attributes: .concurrent)
   
   public init() {
   }
@@ -83,10 +76,9 @@ public class HTTPServer {
     /* Setup Listen Source */
 
     listenSource = DispatchSource.makeReadSource(fileDescriptor: fd,
-                                                 queue: acceptQueue)
+                                                 queue: queue)
     listenSource?.setEventHandler {
-      // if we don't pass it over, we need to synchronize access to the fd!
-      self.handleListenEvent(on: fd, handler: handler, localAddress: address)
+      self.handleListenEvent(on: fd, handler: handler)
     }
     
     listenSource?.resume()
@@ -129,11 +121,9 @@ public class HTTPServer {
   private(set) public var connectionCount : Int32 = 0
   
   
-  private func handleListenEvent(on fd        : Int32,
-                                 handler      : @escaping HTTPRequestHandler,
-                                 localAddress : sockaddr_in)
+  private func handleListenEvent(on fd   : Int32,
+                                 handler : @escaping HTTPRequestHandler)
   {
-    // Running in the accept-queue (concurrent)
     // TBD:
     // - what are we doing with accept errors??
     // - do we need a 'shutdown' mode? I don't think so, the accept will just
@@ -169,16 +159,12 @@ public class HTTPServer {
         }
       #endif
       
-      // We need to synchronize on the queue to grab a new base queue, and to
-      // register out connection w/ the server (though that has dubious value).
-      queue.async {
-        self.handleAcceptedSocket(newFD, handler: handler)
-      }
+      self.handleAcceptedSocket(on: newFD, handler: handler)
     }
     while true // we break when we would block or on error
   }
   
-  private func handleAcceptedSocket(_ fd    : Int32,
+  private func handleAcceptedSocket(on fd   : Int32,
                                     handler : @escaping HTTPRequestHandler)
   {
     if acceptCount == Int.max { acceptCount = 0 } // wow, this is stable code!
