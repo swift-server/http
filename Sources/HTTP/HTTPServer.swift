@@ -27,24 +27,26 @@ public class HTTPServer {
     case socketError(SocketError)
   }
   
+  /// The address ther server was bound to locally. If no port was passed in,
+  /// this will hold the kernel selected port of the server.
   private  var boundAddress   : sockaddr_in? = nil
   
+  /// The source connected to the server socket. This notifies the server if new
+  /// connections come in. The server will then accept the socket and spawn a
+  /// new connection.
   private  var listenSource   : DispatchSourceRead?
   
   internal let queue =
                  DispatchQueue(label: "de.zeezide.swift.server.http.server")
   private  var connections = [ HTTPConnection ]()
   
-  private  var acceptCount       = 0
-  private  let handlerBaseQueues : [ DispatchQueue ] = {
-    var queues = [ DispatchQueue ]()
-    for i in 0..<ProcessInfo.processInfo.processorCount {
-      let q = DispatchQueue(label: "de.zeezide.swift.server.http.handler\(i)")
-      queues.append(q)
-      q.async { _ = 46 + 2 } // warm up threads
-    }
-    return queues
-  }()
+  /// Count the number of connections ever accepted for statistics.
+  private  var acceptCount = 0
+  
+  /// Optional closure to select a DispatchQueue which is going to be used as
+  /// the target queue for the connection queues.
+  private  let selectBaseQueue : (() -> DispatchQueue)? = nil
+    // TODO: move to Options
   
   public init() {
   }
@@ -107,7 +109,7 @@ public class HTTPServer {
     }
     boundAddress = nil
     
-    queue.async {
+    queue.async { // TBD: this may not be necessary
       self.connections.forEach { $0.serverWillStop() }
     }
   }
@@ -170,20 +172,17 @@ public class HTTPServer {
     if acceptCount == Int.max { acceptCount = 0 } // wow, this is stable code!
     else { acceptCount += 1 }
     
-    // Simple round robin.
-    let baseQueue = handlerBaseQueues[acceptCount % handlerBaseQueues.count]
-    
     // Create a new queue, but share the base queue (and its thread).
     let connectionQueue =
       DispatchQueue(label  : "de.zeezide.swift.server.http.con\(acceptCount)",
-                    target : baseQueue)
+                    target : selectBaseQueue?() ?? nil)
     
     // Create connection, register and start it.
     let connection = HTTPConnection(fd: fd, queue: connectionQueue,
                                     requestHandler: handler, server: self)
     connections.append(connection)
     #if os(Linux)
-      // TODO
+      // TODO: maybe just use NSLock? Or pthread_mutex.
     #else
       OSAtomicIncrement32(&connectionCount)
     #endif
@@ -193,6 +192,7 @@ public class HTTPServer {
   }
   
   internal func _connectionIsDone(_ connection: HTTPConnection) {
+    // Called from arbitrary queue (i.e. the connection queue)
     queue.async {
       guard let idx = self.connections.index(where: { $0 === connection }) else {
         assert(false, "did not find finished connection: \(connection)")
