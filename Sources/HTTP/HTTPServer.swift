@@ -5,6 +5,11 @@
 //  Created by Helge Hess on 22.10.17.
 //  Copyright © 2017 ZeeZide GmbH. All rights reserved.
 //
+//  Copyright (c) 2017 Swift Server API project authors
+//  Licensed under Apache License v2.0 with Runtime Library Exception
+//
+//  See http://swift.org/LICENSE.txt for license information
+//
 
 import Foundation
 import Dispatch
@@ -16,6 +21,29 @@ import Dispatch
 
 public class HTTPServer {
   
+  /// Configuration options for creating HTTPServer
+  open class Options {
+    /// HTTPServer to be created on a given `port`
+    /// Note: For Port=0, the kernel assigns a random port. This will cause HTTPServer.port value
+    /// to diverge from HTTPServer.Options.port
+    public let port: Int
+
+    public let backlog: Int = 4096
+
+    /// Optional closure to select a DispatchQueue which is going to be used as
+    /// the target queue for the connection queues.
+    public let selectBaseQueue: (() -> DispatchQueue)? = nil
+
+    ///  Create an instance of HTTPServerOptions
+    public init(onPort: Int = 0) {
+      port = onPort
+    }
+  }
+  public let options: Options
+  
+  /// To process incoming requests
+  internal let handler: HTTPRequestHandler
+
   public enum SocketError : Swift.Error {
     case setupFailed      (Int32)
     case couldNotSetOption(Int32)
@@ -43,12 +71,11 @@ public class HTTPServer {
   /// Count the number of connections ever accepted for statistics.
   private  var acceptCount = 0
   
-  /// Optional closure to select a DispatchQueue which is going to be used as
-  /// the target queue for the connection queues.
-  private  let selectBaseQueue : (() -> DispatchQueue)? = nil
-    // TODO: move to Options
-  
-  public init() {
+  /// Create an instance of the server. This needs to be followed with a call
+  /// to `start(port:handler:)`
+  public init(with newOptions: Options, requestHandler: @escaping HTTPRequestHandler) {
+    options = newOptions
+    handler = requestHandler
   }
   deinit {
     stop()
@@ -57,19 +84,14 @@ public class HTTPServer {
   
   /// Start the HTTP server on the given `port` number, using a
   /// `HTTPRequestHandler` to process incoming requests.
-  public func start(port: Int? = nil,
-                    handler: @escaping HTTPRequestHandler) throws
-  {
+  public func start() throws {
     // - port as Int=0 vs Int? - Int? is better design
-    try start(address: sockaddr_in(port: port), handler: handler)
+    try start(address: sockaddr_in(port: options.port))
   }
   
   /// Start the HTTP server on the given `port` number, using a
   /// `HTTPRequestHandler` to process incoming requests.
-  func start(address : sockaddr_in,
-             backlog : Int = 511,
-             handler : @escaping HTTPRequestHandler) throws
-  {
+  func start(address : sockaddr_in) throws {
     /* setup socket */
     
     let ( fd, address ) = try createSocket(boundTo: address)
@@ -80,14 +102,14 @@ public class HTTPServer {
     listenSource = DispatchSource.makeReadSource(fileDescriptor: fd,
                                                  queue: queue)
     listenSource?.setEventHandler {
-      self.handleListenEvent(on: fd, handler: handler)
+      self.handleListenEvent(on: fd)
     }
     
     listenSource?.resume()
     
     /* Listen */
     
-    let rc = listen(fd, Int32(backlog))
+    let rc = listen(fd, Int32(options.backlog))
     if rc != 0 {
       let error = errno
       listenSource?.cancel()
@@ -123,9 +145,7 @@ public class HTTPServer {
   private(set) public var connectionCount : Int32 = 0
   
   
-  private func handleListenEvent(on fd   : Int32,
-                                 handler : @escaping HTTPRequestHandler)
-  {
+  private func handleListenEvent(on fd: Int32) {
     // TBD:
     // - what are we doing with accept errors??
     // - do we need a 'shutdown' mode? I don't think so, the accept will just
@@ -161,28 +181,28 @@ public class HTTPServer {
         }
       #endif
       
-      self.handleAcceptedSocket(on: newFD, handler: handler)
+      self.handleAcceptedSocket(on: newFD)
     }
     while true // we break when we would block or on error
   }
   
-  private func handleAcceptedSocket(on fd   : Int32,
-                                    handler : @escaping HTTPRequestHandler)
-  {
+  private func handleAcceptedSocket(on fd: Int32) {
     if acceptCount == Int.max { acceptCount = 0 } // wow, this is stable code!
     else { acceptCount += 1 }
     
     // Create a new queue, but share the base queue (and its thread).
     let connectionQueue =
       DispatchQueue(label  : "de.zeezide.swift.server.http.con\(acceptCount)",
-                    target : selectBaseQueue?() ?? nil)
+                    target : options.selectBaseQueue?() ?? nil)
     
     // Create connection, register and start it.
     let connection = HTTPConnection(fd: fd, queue: connectionQueue,
                                     requestHandler: handler, server: self)
     connections.append(connection)
+
     #if os(Linux)
       // TODO: maybe just use NSLock? Or pthread_mutex.
+      connectionCount += 1
     #else
       OSAtomicIncrement32(&connectionCount)
     #endif
@@ -200,7 +220,8 @@ public class HTTPServer {
       }
       
       #if os(Linux)
-        // TODO
+        // TODO: lock
+        connectionCount -= 1
       #else
         OSAtomicDecrement32(&self.connectionCount)
       #endif

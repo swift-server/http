@@ -25,7 +25,9 @@ extension HTTPVersion: Hashable {
     public var hashValue: Int {
         return (major << 8) | minor
     }
+}
 
+extension HTTPVersion {
     /// :nodoc:
     public static func == (lhs: HTTPVersion, rhs: HTTPVersion) -> Bool {
         return lhs.major == rhs.major && lhs.minor == rhs.minor
@@ -46,12 +48,11 @@ extension HTTPVersion: Comparable {
             return lhs.minor < rhs.minor
         }
     }
-
 }
 
 extension HTTPVersion: CustomStringConvertible {
     /// :nodoc:
     public var description: String {
-        return "HTTP/" + major.description + "." + minor.description
+        return "HTTP/\(major).\(minor)"
     }
 }
