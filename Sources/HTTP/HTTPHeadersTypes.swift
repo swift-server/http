@@ -1576,7 +1576,7 @@ internal extension String.Encoding {
         #else
         // CFStringConvertEncodingToIANACharSetName is not exported in SwiftFoundation!
         // We use this as workaround until SwiftFoundation got fixed.
-        return String.Encoding.ianatable[self].first!
+        return String.Encoding.ianatable[self]?.first!
         #endif
     }
 }
