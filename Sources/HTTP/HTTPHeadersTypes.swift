@@ -14,6 +14,7 @@ extension HTTPHeaders {
     /// - Note: Quotation in parameters' values are preserved as is.
     public enum Authorization: RawRepresentable {
         /// Basic base64-encoded method [RFC7617](http://www.iana.org/go/rfc7617)
+        /// - Note: User and password are not normalized.
         case basic(user: String, password: String)
         /// Digest method [RFC7616](http://www.iana.org/go/rfc7616)
         case digest(params: [String: String])
@@ -37,10 +38,21 @@ extension HTTPHeaders {
             switch type.lowercased() {
             case "basic":
                 guard let data = Data(base64Encoded: q) else { return nil }
-                guard let paramStr = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .ascii) else { return nil }
+                // Charset must be determined in WWW-Authenticate. We have no access.
+                // RFC 7617: The only allowed value is "UTF-8"
+                guard let paramStr = String(data: data, encoding: .utf8) else { return nil }
                 let decoded = paramStr.components(separatedBy: ":")
                 guard let user = decoded.first else { return nil }
                 let pass = decoded.dropFirst().joined(separator: ":")
+                /* RFC 7617: "The server expects character data to be converted to Unicode Normalization Form C"
+                 TODO: Discussion; we must normalize user/pass at this level or leave it for developer?
+                       Normalizing at this level may cause bug as developer may forget to save normalized
+                       form of user/password in database and fails to authenticate.
+                       Swift strings are compared in normalized form and this should not be a great concern
+                       if implementation is not relied on sql query.
+                 */
+                // let userNFC = user.precomposedStringWithCanonicalMapping
+                // let passNFC = pass.precomposedStringWithCanonicalMapping
                 self = .basic(user: user, password: pass)
             case "digest":
                 self = .digest(params: HTTPHeaders.parseParams(q))
@@ -66,8 +78,8 @@ extension HTTPHeaders {
         public var rawValue: String {
             switch self {
             case .basic(let user, let password):
-                let text = "\(user):\(password)"
-                let b64 = (text.data(using: .ascii) ?? text.data(using: .utf8))?.base64EncodedString() ?? ""
+                let text = "\(user):\(password)".precomposedStringWithCanonicalMapping
+                let b64 = text.data(using: .utf8)?.base64EncodedString() ?? ""
                 return "Basic \(b64)"
             case .digest(let params):
                 let nonquotedKeys: [String] = ["stale", "algorithm", "nc", "charset", "userhash", "qop"]
@@ -338,12 +350,12 @@ extension HTTPHeaders {
         /// :nodoc:
         public subscript(parameterName: String) -> String? {
             get {
-                return self.parameters[parameterName]?.trimmingCharacters(in: .quoted)
+                return self.parameters[parameterName.lowercased()]?.trimmingCharacters(in: .quoted)
             }
         }
         
-        /// Inits a noew
-        public init(type: ChallengeType, token: String? = nil, realm: String? = nil, charset: String.Encoding? = nil, parameters: [String: String] = [:]) {
+        /// Inits a new Challenge
+        public init(type: ChallengeType, token: String? = nil, realm: String? = nil, charset: String.Encoding? = .utf8, parameters: [String: String] = [:]) {
             self.type = type
             var parameters = parameters
             parameters["realm"] = realm?.trimmingCharacters(in: .quoted)
@@ -433,10 +445,10 @@ extension HTTPHeaders {
         /// :nodoc:
         public subscript(parameterName: String) -> String? {
             get {
-                return self.parameters[parameterName]
+                return self.parameters[parameterName.lowercased()]
             }
             set {
-                self.parameters[parameterName] = newValue
+                self.parameters[parameterName.lowercased()] = newValue
             }
         }
         
@@ -644,7 +656,7 @@ extension HTTPHeaders {
         // Images
         
         /// All Image types
-        static public let image = MediaType(generalType: "image", type: "bmp")
+        static public let image = MediaType(generalType: "image", type: "*")
         /// Bitmap
         static public let bmp = MediaType(generalType: "image", type: "bmp")
         /// Graphics Interchange Format photo
@@ -655,7 +667,7 @@ extension HTTPHeaders {
         static public let png = MediaType(generalType: "image", type: "png")
         /// Scalable vector graphics
         static public let svg = MediaType(generalType: "image", type: "svg+xml")
-        /// Scalable vector graphics
+        /// WebP Image
         static public let webp = MediaType(generalType: "image", type: "webp")
         
         // Audio & Video
@@ -746,10 +758,10 @@ extension HTTPHeaders {
         /// :nodoc:
         public subscript(parameterName: String) -> String? {
             get {
-                return self.parameters[parameterName]
+                return self.parameters[parameterName.lowercased()]
             }
             set {
-                self.parameters[parameterName] = newValue
+                self.parameters[parameterName.lowercased()] = newValue
             }
         }
         
@@ -845,11 +857,9 @@ extension HTTPHeaders {
             switch self {
             case .strong(let etag):
                 // TODO: Remove non ascii characters
-                let lintedEtag = etag.trimmingCharacters(in: .quotedWhitespace)
-                return "\"\(lintedEtag)\""
+                return "\"\(etag)\""
             case .weak(let etag):
-                let lintedEtag = etag.replacingOccurrences(of: "W/\"", with: "", options: [.anchored, .caseInsensitive]).trimmingCharacters(in: .quotedWhitespace)
-                return "W/\"\(lintedEtag)\""
+                return "W/\"\(etag)\""
             case .wildcard:
                 return "*"
             }
@@ -1329,15 +1339,17 @@ internal extension HTTPHeaders {
     }
 }
 
-internal extension Date {
+public extension Date {
     /// Date formats used commonly in internet messaging defined by various RFCs.
-    enum RFCStandards: String {
+    public enum RFCStandards: String {
         /// Date format defined by usenet, commonly used in old implementations.
         case rfc850 = "EEEE',' dd'-'MMM'-'yy HH':'mm':'ss z"
         /// Date format defined by RFC 1123 for http.
         case rfc1123 = "EEE',' dd' 'MMM' 'yyyy HH':'mm':'ss z"
-        /// Date format defined by ISO 8601, also defined in RFC 3339. Used by Dropbox.
-        case iso8601 = "yyyy'-'MM'-'dd'T'HH':'mm':'ssZ"
+        /// Date format defined by ISO 8601, also defined in RFC 3339.
+        case iso8601 = "yyyy'-'MM'-'dd'T'HH':'mm':'ssZZZZZ"
+        /// Date format defined by ISO 8601 with milliseconds, defined in RFC 3339 as rare case.
+        case rfc3339Extended = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'SSSSZZZZZ"
         /// Date string returned by asctime() function.
         case asctime = "EEE MMM d HH':'mm':'ss yyyy"
         
@@ -1348,15 +1360,24 @@ internal extension Date {
         /// Equivalent to and defined by RFC 850.
         public static let usenet = RFCStandards.rfc850
         
-        // Sorted by commonness
-        fileprivate static let allValues: [RFCStandards] = [.rfc1123, .rfc850, .iso8601, .asctime]
+        /* re. [RFC 7231 section-7.1.1.1](https://tools.ietf.org/html/rfc7231#section-7.1.1.1)
+         "HTTP servers and client MUST accept all three HTTP-date formats" which are IMF-fixdate,
+         obsolete RFC 850 format and ANSI C's asctime() format.
+         
+         ISO 8601 format is common in JSON and XML fields, defined by RFC 3339 as a timestamp format.
+         Though not mandated, we check string against that to allow using related initializer in
+         wider and more general sitations.
+         
+         These values are sorted by frequency.
+         */
+        fileprivate static let allValues: [RFCStandards] = [.rfc1123, .rfc850, .asctime, .iso8601, .rfc3339Extended]
     }
     
     private static let posixLocale = Locale(identifier: "en_US_POSIX")
     private static let utcTimezone = TimeZone(identifier: "UTC")
     
     /// Checks date string against various RFC standards and returns `Date`.
-    init?(rfcString: String) {
+    public init?(rfcString: String) {
         let dateFor: DateFormatter = DateFormatter()
         dateFor.locale = Date.posixLocale
         
@@ -1373,7 +1394,7 @@ internal extension Date {
     
     /// Formats date according to RFCs standard.
     /// - Note: local and timezone paramters should be nil for `.http` standard
-    func format(with standard: RFCStandards, locale: Locale? = nil, timeZone: TimeZone? = nil) -> String {
+    internal func format(with standard: RFCStandards, locale: Locale? = nil, timeZone: TimeZone? = nil) -> String {
         let fm = DateFormatter()
         fm.dateFormat = standard.rawValue
         fm.timeZone = timeZone ?? Date.utcTimezone
@@ -1421,9 +1442,14 @@ fileprivate extension String {
         guard components.count >= 3 else {
             return self
         }
-        let encoding = String.Encoding(ianaCharset: components.first!) ?? .isoLatin1
         let string = components.dropFirst(2).joined(separator: "'")
-        return string.removingPercentEscapes(encoding: encoding, forced: forced)
+        if let encoding = String.Encoding(ianaCharset: components.first!) {
+            return string.removingPercentEscapes(encoding: encoding, forced: forced)
+        } else {
+            // Can't determine encoding. Trying to decode with utf8 and isolatin1.
+            return string.removingPercentEscapes(encoding: .utf8, forced: forced) ??
+                   string.removingPercentEscapes(encoding: .isoLatin1, forced: forced)
+        }
     }
     
     /// Converts percent encoded to normal string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
@@ -1484,20 +1510,44 @@ internal extension String {
     }
 }
 
+public extension String.Encoding {
+    /// This is not a real encoding, it's a placeholder for `"*"` in `Accept-Charset`.
+    public static let wildcard = String.Encoding(rawValue: 0xFFFFFFFF)
+}
+
 internal extension String.Encoding {
     #if os(macOS) || os(iOS) || os(tvOS)
     #else
-    static private let ianatable: [String.Encoding: String] = [
-    .ascii: "us-ascii", .isoLatin1: "iso-8859-1", .isoLatin2: "iso-8859-2", .utf8: "utf-8",
-    .utf16: "utf-16", .utf16BigEndian: "utf-16be", .utf16LittleEndian: "utf-16le",
-    .utf32: "utf-32", .utf32BigEndian: "utf-32be", .utf32LittleEndian: "utf-32le",
-    .japaneseEUC: "euc-jp",.shiftJIS: "cp932", .iso2022JP: "iso-2022-jp",
-    .windowsCP1251: "windows-1251", .windowsCP1252: "windows-1252", .windowsCP1253: "windows-1253",
-    .windowsCP1254: "windows-1254", .windowsCP1250: "windows-1250",
-    .nextstep: "x-nextstep", .macOSRoman: "macintosh", .symbol: "x-mac-symbol"]
+    static private let ianatable: [String.Encoding: [String]] = [
+        .ascii: ["us-ascii", "us", "iso-ir-6", "iso646-us", "ibm367", "cp367", "csascii"],
+        .utf8: ["utf-8", "utf8", "csutf8"],
+        .isoLatin1: ["iso-8859-1", "iso_8859-1", "iso-ir-100", "latin1", "l1", "ibm819", "cp819", "csisolatin1"],
+        .nextstep: ["x-nextstep"],
+        .japaneseEUC: ["euc-jp", "cseucpkdfmtjapanese"],
+        .symbol: ["x-mac-symbol"],
+        .shiftJIS: ["shift_jis", "cp932", "ms_kanji", "csshiftjis"],
+        .isoLatin2: ["iso-8859-2", "iso_8859-2", "iso-ir-101", "latin2", "l2", "csisolatin2"],
+        .utf16: ["utf-16", "utf16", "csutf16"], // = .unicode
+        .windowsCP1251: ["windows-1251", "cswindows1251"],
+        .windowsCP1252: ["windows-1252", "cswindows1252"],
+        .windowsCP1253: ["windows-1253", "cswindows1253"],
+        .windowsCP1254: ["windows-1254", "cswindows1254"],
+        .windowsCP1250: ["windows-1250", "cswindows1250"],
+        .iso2022JP: ["iso-2022-jp", "csiso2022jp"],
+        .macOSRoman: ["macintosh", "mac", "csmacintosh"],
+        .utf16BigEndian: ["utf-16be", "utf16be", "csutf16be"],
+        .utf16LittleEndian: ["utf-16le", "utf16le", "csutf16le"],
+        .utf32: ["utf-32", "utf32", "csutf32"],
+        .utf32BigEndian: ["utf-32be", "utf32be", "csutf32be"],
+        .utf32LittleEndian: ["utf-32le", "utf32le", "csutf32le"],
+    ]
     #endif
     
     init?(ianaCharset charset: String) {
+        if charset == "*" {
+            self = String.Encoding.wildcard
+            return
+        }
         #if os(macOS) || os(iOS) || os(tvOS)
         let cfEncoding = CFStringConvertIANACharSetNameToEncoding(charset as CFString)
         if cfEncoding != kCFStringEncodingInvalidId {
@@ -1509,7 +1559,7 @@ internal extension String.Encoding {
         // CFStringConvertIANACharSetNameToEncoding is not exported in SwiftFoundation!
         // We use this as workaround until SwiftFoundation got fixed.
         let charset = charset.lowercased()
-        if let encoding = String.Encoding.ianatable.first(where: { return $0.value == charset })?.key {
+        if let encoding = String.Encoding.ianatable.first(where: { return $0.value.contains(charset) })?.key {
             self = encoding
         } else {
             return nil
@@ -1518,12 +1568,15 @@ internal extension String.Encoding {
     }
     
     internal var ianaCharset: String? {
+        if self == String.Encoding.wildcard {
+            return "*"
+        }
         #if os(macOS) || os(iOS) || os(tvOS)
         return (CFStringConvertEncodingToIANACharSetName(CFStringConvertNSStringEncodingToEncoding(self.rawValue)) as String?)
         #else
         // CFStringConvertEncodingToIANACharSetName is not exported in SwiftFoundation!
         // We use this as workaround until SwiftFoundation got fixed.
-        return String.Encoding.ianatable[self]
+        return String.Encoding.ianatable[self].first!
         #endif
     }
 }

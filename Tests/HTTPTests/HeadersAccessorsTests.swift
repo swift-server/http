@@ -15,8 +15,8 @@ class HeadersAccessorsTests: XCTestCase {
         let date = Date(timeIntervalSinceReferenceDate: 467105280)
         let headers: HTTPHeaders = [
             .accept: "text/html, application/xhtml+xml;q=0.5, text/xml;q=0.9, */*;q=0.8",
-            .acceptCharset: "iso-8859-1;q=0.5, utf-8",
-            .acceptEncoding: "br;q=1.0, gzip;q=0.8, *;q=0.1",
+            .acceptCharset: "iso-8859-1;q=0.5 , utf-8, * ; q=0.5",
+            .acceptEncoding: "br;q=1.0, gzip ;q=0.8, *; q=0.1",
             .acceptLanguage: "ru-RU, ru;q=0.8, en-US;q=0.6, en;q=0.4",
             .authorization: "Basic YWxhZGRpbjpvcGVuc2VzYW1l", // aladdin:opensesame
             .cacheControl: "no-cache, no-store, must-revalidate",
@@ -35,7 +35,7 @@ class HeadersAccessorsTests: XCTestCase {
             .userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_1 like Mac OS X) AppleWebKit/603.1.30 (KHTML, like Gecko) Version/10.0 Mobile/14E304 Safari/602.1",
             ]
         XCTAssertEqual(headers.accept, [.html, .xml, .all, .xhtml])
-        XCTAssertEqual(headers.acceptCharset, [.utf8, .isoLatin1])
+        XCTAssertEqual(headers.acceptCharset, [.utf8, .isoLatin1, .wildcard])
         XCTAssertEqual(headers.acceptEncoding, [.brotli, .gzip, .all])
         XCTAssertEqual(headers.acceptLanguage.flatMap({ $0.languageCode }), [
             "ru", "ru", "en", "en"])

@@ -86,7 +86,7 @@ extension HTTPHeaders {
         return pairs
     }
     
-    /// `Origin` header value.
+    /// `Host` header value.
     public var host: URL? {
         get {
             return self.storage[.host]?.first.flatMap {
@@ -492,7 +492,6 @@ extension HTTPHeaders {
     }
     
     fileprivate func dissectContentRange(_ value: String?) -> (from: UInt64, to: UInt64?, total: UInt64?)? {
-        // Converting real negatives to _ to avoid conflict with - as separator
         guard let bytes = value?.components(separatedBy: " ")
             .dropFirst().first?.trimmingCharacters(in: .whitespaces) else {
             return nil
