@@ -344,7 +344,8 @@ extension HTTPHeaders {
         }
         /// `charset` parameter as String.Encoding
         public var charset: String.Encoding? {
-            return parameters["charset"].flatMap(String.Encoding.init(ianaCharset:))
+            return (parameters["charset"]?.trimmingCharacters(in: .quoted))
+                .flatMap(String.Encoding.init(ianaCharset:))
         }
         
         /// :nodoc:
