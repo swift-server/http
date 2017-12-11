@@ -265,7 +265,7 @@ extension HTTPHeaders {
     }
     
     /// Defines HTTP Authentication challenge method required to access.
-    public enum ChallengeType: RawRepresentable, Hashable, Equatable {
+    public enum AuthentcationScheme: RawRepresentable, Hashable, Equatable {
         /// Basic method [RFC7617](http://www.iana.org/go/rfc7617)
         case basic
         /// Digest method [RFC7616](http://www.iana.org/go/rfc7616)
@@ -316,7 +316,7 @@ extension HTTPHeaders {
             }
         }
         
-        public static func ==(lhs: HTTPHeaders.ChallengeType, rhs: HTTPHeaders.ChallengeType) -> Bool {
+        public static func ==(lhs: HTTPHeaders.AuthentcationScheme, rhs: HTTPHeaders.AuthentcationScheme) -> Bool {
             switch (lhs, rhs) {
             case (.basic, .basic), (.digest, .digest), (.oAuth1, .oAuth1),
                  (.oAuth2, .oAuth2), (.mutual, .mutual), (.negotiate, .negotiate):
@@ -333,7 +333,7 @@ extension HTTPHeaders {
     /// -Note: Paramters' quotations will be preserved for custom challenge type.
     public struct Challenge: RawRepresentable {
         /// Type of challenge
-        public let type: ChallengeType
+        public let scheme: AuthentcationScheme
         /// All parameters associated to challenge
         public let parameters: [String: String]
         /// token parameter provided
@@ -355,8 +355,9 @@ extension HTTPHeaders {
         }
         
         /// Inits a new Challenge
-        public init(type: ChallengeType, token: String? = nil, realm: String? = nil, charset: String.Encoding? = .utf8, parameters: [String: String] = [:]) {
-            self.type = type
+        public init(scheme: AuthentcationScheme, token: String? = nil, realm: String? = nil,
+                    charset: String.Encoding? = .utf8, parameters: [String: String] = [:]) {
+            self.scheme = scheme
             var parameters = parameters
             parameters["realm"] = realm?.trimmingCharacters(in: .quoted)
             parameters["charset"] = charset.flatMap({ $0.ianaCharset })
@@ -368,52 +369,52 @@ extension HTTPHeaders {
         
         public init?(rawValue: String) {
             let typeSegment = rawValue.components(separatedBy: " ")
-            guard let type = typeSegment.first.flatMap(ChallengeType.init(rawValue:)) else { return nil }
-            self.type = type
+            guard let scheme = typeSegment.first.flatMap(AuthentcationScheme.init(rawValue:)) else { return nil }
+            self.scheme = scheme
             let allparams = typeSegment.dropFirst().joined(separator: " ")
-            let removeQ = type == .digest || type == .mutual
+            let removeQ = scheme == .digest || scheme == .mutual
             let parsedParams = HTTPHeaders.parseParams(allparams, separator: ",", removeQuotation: removeQ)
             self.parameters = parsedParams
         }
         
         public var rawValue: String {
-            switch type {
+            switch scheme {
             case .digest:
                 let nonquotedKeys: [String] = ["stale", "algorithm", "nc", "charset", "userhash"]
                 let params = HTTPHeaders.createParam(parameters, quotationValue: true, nonquotatedKeys: nonquotedKeys, separator: ", ")
-                return "\(type.rawValue) \(params)"
+                return "\(scheme.rawValue) \(params)"
             case .mutual:
                 let nonquotedKeys: [String] = ["sid", "nc"]
                 let params = HTTPHeaders.createParam(parameters, quotationValue: true, nonquotatedKeys: nonquotedKeys, separator: ", ")
-                return "\(type.rawValue) \(params)"
+                return "\(scheme.rawValue) \(params)"
             default:
                 let token = self.token.flatMap({ "\($0) "}) ?? ""
                 let nonquotedKeys: [String] = ["charset"]
                 let params = HTTPHeaders.createParam(parameters, quotationValue: true, nonquotatedKeys: nonquotedKeys, separator: ", ")
-                return "\(type.rawValue) \(token)\(params)"
+                return "\(scheme.rawValue) \(token)\(params)"
             }
         }
         
         static public func basic(realm: String? = nil, charset: String.Encoding? = .utf8, parameters: [String: String] = [:]) -> Challenge {
-            return Challenge.init(type: .basic, realm: realm, charset: charset, parameters: parameters)
+            return Challenge.init(scheme: .basic, realm: realm, charset: charset, parameters: parameters)
         }
         
         static public func digest(realm: String? = nil, parameters: [String: String] = [:]) -> Challenge {
-            return Challenge.init(type: .digest, realm: realm, parameters: parameters)
+            return Challenge.init(scheme: .digest, realm: realm, parameters: parameters)
         }
         
         static public func oAuth1(realm: String? = nil, parameters: [String: String] = [:]) -> Challenge {
-            return Challenge.init(type: .oAuth1, realm: realm, parameters: parameters)
+            return Challenge.init(scheme: .oAuth1, realm: realm, parameters: parameters)
         }
         
         static public func oAuth2(realm: String? = nil, scope: String? = nil, parameters: [String: String] = [:]) -> Challenge {
             var params = parameters
             params["scope"] = scope
-            return Challenge.init(type: .oAuth2, realm: realm, parameters: params)
+            return Challenge.init(scheme: .oAuth2, realm: realm, parameters: params)
         }
         
         static public func mutual(realm: String? = nil, parameters: [String: String] = [:]) -> Challenge {
-            return Challenge.init(type: .mutual, realm: realm, parameters: parameters)
+            return Challenge.init(scheme: .mutual, realm: realm, parameters: parameters)
         }
         
         static public func negotiate(data: Data? = nil, parameters: [String: String] = [:]) -> Challenge {
@@ -421,7 +422,7 @@ extension HTTPHeaders {
             if let hexData = data?.map({ String(format: "%02hhx", $0) }).joined() {
                 params[hexData] = ""
             }
-            return Challenge.init(type: .negotiate, parameters: params)
+            return Challenge.init(scheme: .negotiate, parameters: params)
         }
     }
     
@@ -579,7 +580,8 @@ extension HTTPHeaders {
         
         /// :nodoc:
         public static func == (lhs: MediaType, rhs: MediaType) -> Bool {
-            return lhs.generalType == rhs.generalType &&  lhs.subType.replacingOccurrences(of: "x-", with: "", options: .anchored) == rhs.subType.replacingOccurrences(of: "x-", with: "", options: .anchored)
+            return lhs.generalType == rhs.generalType && lhs.subType.replacingOccurrences(of: "x-", with: "", options: .anchored)
+                == rhs.subType.replacingOccurrences(of: "x-", with: "", options: .anchored)
         }
         
         /// Returns true if media type provided in argument can be returned as `Content-Type`
@@ -1186,8 +1188,8 @@ extension HTTPHeaders {
         case noCache = "no-cache"
     }
     
-    /// Determines server accepts `Range` header or not
-    public struct RangeType: RawRepresentable, Hashable, Equatable {
+    /// `Accept-Range` values, `Range` and `Content-Range` value's unit.
+    public struct RangeUnit: RawRepresentable, Hashable, Equatable {
         public var rawValue: String
         
         public typealias RawValue = String
@@ -1201,20 +1203,20 @@ extension HTTPHeaders {
             return self.rawValue.hashValue
         }
         
-        public static func == (lhs: RangeType, rhs: RangeType) -> Bool {
+        public static func == (lhs: RangeUnit, rhs: RangeUnit) -> Bool {
             return lhs.rawValue == rhs.rawValue
         }
         
         /// Can't accept Range.
-        public static let none = RangeType(rawValue: "none")
+        public static let none = RangeUnit(rawValue: "none")
         /// Accept range in bytes(octets).
-        public static let bytes = RangeType(rawValue: "bytes")
+        public static let bytes = RangeUnit(rawValue: "bytes")
         /// Accept range in item numbers (non-standard).
-        public static let items = RangeType(rawValue: "items")
+        public static let items = RangeUnit(rawValue: "items")
     }
 }
 
-internal extension HTTPHeaders {
+extension HTTPHeaders {
     /// Parses lists that have `q` paramter and sorts the result based on that.
     /// - Note: This method will remove items with `q=0.0` as they should not be used.
     internal static func parseQuilified<T>(_ value: [String], _ initializer: (String) -> T) -> [T] {
@@ -1290,11 +1292,13 @@ internal extension HTTPHeaders {
         return (token, parseParams(rawParams: rawParams, removeQuotation: removeQuotation))
     }
     
-    fileprivate static func createParam(_ params: [String: String], quotationValue: Bool = true, quotedKeys: [String] = [], nonquotatedKeys: [String] = [], separator: String = "; ") -> String {
+    fileprivate static func createParam(_ params: [String: String], quotationValue: Bool = true, quotedKeys: [String] = [],
+                                        nonquotatedKeys: [String] = [], separator: String = "; ") -> String {
         
         var result: [String] = []
         
         func appendParam(key: String, value: String) {
+            let key = key.lowercased()
             if (quotedKeys.contains(key) || (quotationValue && !nonquotatedKeys.contains(key))) {
                 // Removes quotation enclose if already exists and encloses string again.
                 result.append("\(key)=\"\(value.trimmingCharacters(in: .quoted))\"")
@@ -1308,31 +1312,33 @@ internal extension HTTPHeaders {
         }
         
         for param in params {
+            let key = param.key.lowercased()
             if param.value.isEmpty {
                 // Indeed the parameter is a token!
-                result.append(param.key)
+                result.append(key)
             } else if param.value.isAscii {
-                /* Historically, HTTP has allowed field content with text in the ISO-8859-1 charset.
-                 In practice, most HTTP header field values use only a subset of the US-ASCII charset.
+                /* re. [RFC7230 section-3.2.4](https://tools.ietf.org/html/rfc7230#section-3.2.4)
+                 Historically, HTTP has allowed field content with text in the ISO-8859-1 charset,
+                 supporting other charsets only through use of RFC2047 encoding.  In practice,
+                 most HTTP header field values use only a subset of the US-ASCII charset.
                  Newly defined header fields SHOULD limit their field values to US-ASCII octets.
+                 A recipient SHOULD treat other octets in field content (obs-text) as opaque data.
                  */
-                appendParam(key: param.key, value: param.value)
-            } else { // Value is utf8 rich string!
+                appendParam(key: key, value: param.value)
+            } else /* Value is utf8 rich string! */ {
                 /* Check if value is encodable to utf8 string re RFC 5987.
                  ISO-8859-1 version is not required re RFC 8187 section-3.2.2 (Sep 2017).
                  But to support legacy browsers, we still provide ascii-encoded version if possible.
                  */
                 if let encodedValue = param.value.rfc5987encoded {
-                    let keyval = "\(param.key)*=\(encodedValue)"
+                    let keyval = "\(key)*=\(encodedValue)"
                     result.append(keyval)
                 }
-                let value = param.value.ascii.trimmingCharacters(in: .quoted)
-                // If striped string is empty, we neglect this value entirely.
-                if value.isEmpty {
-                    continue
-                }
+                let asciiValue = param.value.ascii().trimmingCharacters(in: .quoted)
                 // Adding ASCII version.
-                appendParam(key: param.key, value: value)
+                if !asciiValue.isEmpty {
+                    appendParam(key: key, value: asciiValue)
+                }
             }
         }
         return result.joined(separator: separator)
@@ -1342,35 +1348,39 @@ internal extension HTTPHeaders {
 public extension Date {
     /// Date formats used commonly in internet messaging defined by various RFCs.
     public enum RFCStandards: String {
-        /// Date format defined by usenet, commonly used in old implementations.
+        /// Obsolete (2-digit year) date format defined by RFC 822 for http.
+        case rfc822 = "EEE',' dd' 'MMM' 'yy HH':'mm':'ss z"
+        /// Obsolete (2-digit year) date format defined by RFC 850 for usenet.
         case rfc850 = "EEEE',' dd'-'MMM'-'yy HH':'mm':'ss z"
         /// Date format defined by RFC 1123 for http.
         case rfc1123 = "EEE',' dd' 'MMM' 'yyyy HH':'mm':'ss z"
-        /// Date format defined by ISO 8601, also defined in RFC 3339.
-        case iso8601 = "yyyy'-'MM'-'dd'T'HH':'mm':'ssZZZZZ"
-        /// Date format defined by ISO 8601 with milliseconds, defined in RFC 3339 as rare case.
-        case rfc3339Extended = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'SSSSZZZZZ"
+        /// Date format defined by RFC 3339, as a profile of ISO 8601.
+        case rfc3339 = "yyyy'-'MM'-'dd'T'HH':'mm':'ssZZZZZ"
+        /// Date format defined RFC 3339 as rare case with milliseconds.
+        case rfc3339Extended = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'SSSZZZZZ"
         /// Date string returned by asctime() function.
         case asctime = "EEE MMM d HH':'mm':'ss yyyy"
         
+        //  Defining a http alias allows changing default time format if a new RFC becomes standard.
         /// Equivalent to and defined by RFC 1123.
         public static let http = RFCStandards.rfc1123
-        /// Equivalent to and defined by ISO 8610.
-        public static let rfc3339 = RFCStandards.iso8601
         /// Equivalent to and defined by RFC 850.
         public static let usenet = RFCStandards.rfc850
         
-        /* re. [RFC 7231 section-7.1.1.1](https://tools.ietf.org/html/rfc7231#section-7.1.1.1)
+        /* re. [RFC7231 section-7.1.1.1](https://tools.ietf.org/html/rfc7231#section-7.1.1.1)
          "HTTP servers and client MUST accept all three HTTP-date formats" which are IMF-fixdate,
          obsolete RFC 850 format and ANSI C's asctime() format.
          
          ISO 8601 format is common in JSON and XML fields, defined by RFC 3339 as a timestamp format.
-         Though not mandated, we check string against that to allow using related initializer in
+         Though not mandated, we check string against them to allow using Date(rfcString:) in
          wider and more general sitations.
+         
+         We use RFC 822 instead of RFC 1123 to convert from string because NSDateFormatter can parse
+         both 2-digit and 4-digit year correctly when `dateFormat` year is 2-digit.
          
          These values are sorted by frequency.
          */
-        fileprivate static let allValues: [RFCStandards] = [.rfc1123, .rfc850, .asctime, .iso8601, .rfc3339Extended]
+        fileprivate static let parsingCases: [RFCStandards] = [.rfc822, .rfc850, .asctime, .rfc3339, .rfc3339Extended]
     }
     
     private static let posixLocale = Locale(identifier: "en_US_POSIX")
@@ -1381,7 +1391,7 @@ public extension Date {
         let dateFor: DateFormatter = DateFormatter()
         dateFor.locale = Date.posixLocale
         
-        for standard in RFCStandards.allValues {
+        for standard in RFCStandards.parsingCases {
             dateFor.dateFormat = standard.rawValue
             if let date = dateFor.date(from: rfcString) {
                 self = date
@@ -1412,6 +1422,7 @@ fileprivate extension CharacterSet {
 
 fileprivate extension String {
     var isAscii: Bool {
+        // slower method: return self.canBeConverted(to: .ascii)
         for scalar in self.unicodeScalars {
             if !scalar.isASCII {
                 return false
@@ -1420,11 +1431,14 @@ fileprivate extension String {
         return true
     }
     
-    var ascii: String {
-        return self.filter({ $0.unicodeScalars.count == 1 ? $0.unicodeScalars.first!.isASCII : false })
+    func ascii(replaceWithQuestionMark: Bool = false) -> String {
+        // Form D allows to preserve accented characters in asscii form
+        return self.decomposedStringWithCanonicalMapping.unicodeScalars.flatMap({
+            $0.isASCII ? $0 : (replaceWithQuestionMark ? "?" : nil)
+        }).map(String.init).joined()
     }
     
-    /// Returns utf-8 percent encoded string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
+    /// Returns utf-8 percent encoded string according to [RFC8187](https://tools.ietf.org/html/rfc8187)
     var rfc5987encoded: String? {
         return self.addingPercentEncoding(withAllowedCharacters: .urlRFC5987Allowed).flatMap({
             "UTF-8''\($0)"
@@ -1452,12 +1466,12 @@ fileprivate extension String {
         }
     }
     
-    /// Converts percent encoded to normal string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
+    /// Converts percent encoded to normal string according to [RFC8187](https://tools.ietf.org/html/rfc8187)
     var decodingRFC5987: String? {
         return rfc5987decoded(forced: false)
     }
     
-    /// Converts percent encoded to normal string according to [RFC 8187](https://tools.ietf.org/html/rfc8187)
+    /// Converts percent encoded to normal string according to [RFC8187](https://tools.ietf.org/html/rfc8187)
     /// Substitutes undecodable percent encoded characters to a `U+FFFD` (Replacement) character.
     var decodingRFC5987enforced: String {
         return rfc5987decoded(forced: true) ?? self

@@ -8,10 +8,16 @@
 
 import Foundation
 
+/*
+ TOOPTIMZE: Caching typed values for cpu-intensive request headers: `accept`, `authorization`,
+        `cookiesDictionary`, `cacheControl`,`range`, `clientBrowser`, `clientOperatingSystem`.
+ Caching typed values after first-time access (lazy) and clearing them in `storage { didSet }`
+ Response headers are usually set-only in servers, caching response header values is redundant.
+*/
 extension HTTPHeaders {
     // MARK: Request Headers
     
-    /// Fetch `Accept` header values, sorted by `q` parameter. An empty array means no value is set in header.
+    /// `Accept` header values, sorted by `q` parameter. An empty array means no value is set in header.
     public var accept: [MediaType] {
         get {
             return self.storage[.accept].flatMap({
@@ -20,7 +26,8 @@ extension HTTPHeaders {
         }
     }
     
-    /// Fetch `Accept-Charset` header values, sorted by `q` parameter. An empty array means no value is set in header.
+    /// `Accept-Charset` header values, sorted by `q` parameter. An empty array means no value is set in header.
+    /// - Note: A "*" value will be reflected as `String.Encoding.wildcard` (0xFFFFFFFF)
     public var acceptCharset: [String.Encoding] {
         get {
             return self.storage[.acceptCharset]?.flatMap({ (value) -> [String] in
@@ -38,7 +45,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// Fetch `Accept-Encoding` header values, sorted by `q` parameter. An empty array means no value is set in header.
+    /// `Accept-Encoding` header values, sorted by `q` parameter. An empty array means no value is set in header.
     public var acceptEncoding: [Encoding] {
         get {
             return self.storage[.acceptEncoding]?.flatMap({ (value) -> [String] in
@@ -49,7 +56,7 @@ extension HTTPHeaders {
         }
     }
     
-    /// Fetch `Accept-Language` header values, sorted by `q` parameter. An empty array means no value is set in header.
+    /// `Accept-Language` header values, sorted by `q` parameter. An empty array means no value is set in header.
     public var acceptLanguage: [Locale] {
         get {
             return self.storage[.acceptLanguage]?.flatMap({ (value) -> [String] in
@@ -70,7 +77,7 @@ extension HTTPHeaders {
         }
     }
     
-    // `Cookie` header value. An empty array means no value is set in header.
+    // `Cookie` header values. An empty array means no value is set in header.
     public var cookie: [HTTPCookie] {
         return cookieDictionary.flatMap {
             // path should be set otherwise it will fail!
@@ -78,7 +85,7 @@ extension HTTPHeaders {
         }
     }
     
-    // `Cookie` header value. An empty array means no value is set in header.
+    // `Cookie` header values. An empty array means no value is set in header.
     public var cookieDictionary: [String: String] {
         let pairs = (self.storage[.cookie]?.joined(separator: ";")).flatMap({
             HTTPHeaders.parseParams($0, separator: ";", removeQuotation: true)
@@ -180,15 +187,31 @@ extension HTTPHeaders {
         return ranges
     }
     
-    /// Returns `Range` header values. An empty array means no value is set in header.
-    /// - Note: upperbound will be Int64.max for positive ranges and 0 for negative
-    ///   ranges in case of open ended Range.
-    /// - Note: Server response should be `multipart/byteranges` in case of more than one range is returned.
-    ///    See [MDN's HTTP range requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests) for more info.
-    /// - Important: A negative range means server must return last bytes/items of file.
+    /**
+     Returns `Range` header values. An empty array means no value is set in header.
+     
+     - Note: upperbound will be Int64.max for positive ranges and 0 for negative
+       ranges in case of open ended Range.
+     
+     - Note: Server response should be `multipart/byteranges` in case that more than one range is
+         present. See [MDN's HTTP range requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests)
+         for more info.
+     
+     - Important: A negative range means server must return last bytes/items of resource. Server should interpret
+        and send appropriate response fornegative ranges or respond with `416 Range Not Satisfiable`.
+    */
     public var range: [Range<Int64>] {
         // TODO: return PartialRangeFrom when possible
         get {
+            /* re. [RFC7233 section-3.1](https://tools.ietf.org/html/rfc7233#section-3.1)
+             "A server that supports range requests MAY ignore or reject a Range header field that
+             consists of more than two overlapping ranges, or a set of many small ranges that are
+             not listed in ascending order, since both are indications of either a broken client
+             or a deliberate denial-of-service attack."
+             
+             We DO NOT perform any validation including these mentioned. Server implementation
+             MUST check and reject requests with overnumbered or overlapping ranges.
+             */
             guard let ranges = (self.storage[.range]?.joined(separator: ",")).flatMap({ self.dissectRanges($0) }) else {
                 return []
             }
@@ -205,11 +228,13 @@ extension HTTPHeaders {
         }
     }
     
-    /// Returns `Range` type, usually `.bytes`
-    public var rangeType: RangeType? {
+    /// Returns `Range` unit, usually `.bytes`.
+    /// - Important: An origin server MUST ignore a Range header field that contains a
+    //      range unit it does not understand.
+    public var rangeUnit: RangeUnit? {
         get {
             return (self.storage[.range]?.first?.prefix(until: "="))
-                .flatMap(HTTPHeaders.RangeType.init(rawValue:))
+                .flatMap(HTTPHeaders.RangeUnit.init(rawValue:))
         }
     }
     
@@ -238,7 +263,8 @@ extension HTTPHeaders {
         func getVersion(_ value: String) -> (name: String, version: Double?) {
             let browser = value.components(separatedBy: "/")
             let name = browser.first ?? "unknown"
-            let version = (browser.dropFirst().first?.trimmingCharacters(in: CharacterSet(charactersIn: " ;()")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Double.init)
+            let version = (browser.dropFirst().first?.trimmingCharacters(in: CharacterSet(charactersIn: " ;()"))
+                .components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Double.init)
             return (name, version)
         }
         
@@ -250,7 +276,7 @@ extension HTTPHeaders {
         
         // Many common browsers begins with `"Mozila/5.0"`
         guard agent.hasPrefix("Mozilla/") else {
-            // Presto-based Opera, Crawlers, Custom apps
+            // Presto-based Opera, CURL, Crawlers, Custom apps...
             return dissect.first.flatMap(getVersion)
         }
         
@@ -282,7 +308,9 @@ extension HTTPHeaders {
         }
         // Internet Explorer
         if dissect.first(where: { $0.hasPrefix("MSIE") }) != nil {
-            let version = (dissect.drop(while: { $0 != "MSIE" }).dropFirst().first?.trimmingCharacters(in: CharacterSet(charactersIn: "; )")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Double.init)
+            let version = (dissect.drop(while: { $0 != "MSIE" }).dropFirst().first?
+                .trimmingCharacters(in: CharacterSet(charactersIn: "; )")).components(separatedBy: ".")
+                .prefix(2).joined(separator: ".")).flatMap(Double.init)
             return ("Internet Explorer", version)
         }
         
@@ -300,7 +328,9 @@ extension HTTPHeaders {
         // Gecko based browsers
         if dissect.first(where: { $0.hasPrefix("Gecko/") }) != nil {
             // Gecko version is fixed to 20100101, we have to read rv: value
-            let version = (dissect.first(where: { $0.hasPrefix("rv:") })?.replacingOccurrences(of: "rv:", with: "", options: .anchored).trimmingCharacters(in: CharacterSet(charactersIn: "); ")).components(separatedBy: ".").prefix(2).joined(separator: ".")).flatMap(Double.init)
+            let version = (dissect.first(where: { $0.hasPrefix("rv:") })?.replacingOccurrences(of: "rv:", with: "", options: .anchored)
+                .trimmingCharacters(in: CharacterSet(charactersIn: "); ")).components(separatedBy: ".")
+                .prefix(2).joined(separator: ".")).flatMap(Double.init)
             return ("Gecko", version)
         }
         // Trident based
@@ -312,9 +342,13 @@ extension HTTPHeaders {
         return dissect.first.flatMap({ getVersion($0) }) ?? ("Mozila", 5.0)
     }
     
-    /// Returns client's operating system name and version (if available) using `User-Agent`.
-    /// - Note: return value for macOS begins with `"Intel Mac OS X"` or `"PPC Mac OS X"`.
-    /// - Note: return value for iOS begins with `"iOS"`.
+    /**
+     Returns client's operating system name and version (if available) using `User-Agent`.
+     
+     - Note: return value for macOS begins with `"Intel Mac OS X"` or `"PPC Mac OS X"`.
+     
+     - Note: return value for iOS begins with `"iOS"`.
+    */
     public var clientOperatingSystem: String? {
         guard let agent = self.storage[.userAgent]?.first else {
             return nil
@@ -326,7 +360,8 @@ extension HTTPHeaders {
         
         // Extract first paranthesis enclosed substring
         let deviceString = String(agent[parIndex..<(agent.index(of: ")") ?? agent.endIndex)])
-        var deviceArray = deviceString.trimmingCharacters(in: CharacterSet(charactersIn: " ;()")).components(separatedBy: ";").map({ $0.trimmingCharacters(in: .whitespaces) })
+        var deviceArray = deviceString.trimmingCharacters(in: CharacterSet(charactersIn: " ;()"))
+            .components(separatedBy: ";").map({ $0.trimmingCharacters(in: .whitespaces) })
         // Remove frequent but meaningless ids
         let isX11 = deviceArray.index(of: "X11") != nil
         let removable: [String] = ["X11", "U", "I", "compatible", "Macintosh"]
@@ -359,9 +394,9 @@ extension HTTPHeaders {
     // MARK: Response Headers
     
     /// `Accept-Ranges` header value.
-    public var acceptRanges: RangeType? {
+    public var acceptRanges: RangeUnit? {
         get {
-            return self.storage[.acceptRanges]?.first.flatMap(RangeType.init(rawValue:))
+            return self.storage[.acceptRanges]?.first.flatMap(RangeUnit.init(rawValue:))
         }
         set {
             self.storage[.acceptRanges] = newValue.flatMap { [$0.rawValue] }
@@ -483,8 +518,13 @@ extension HTTPHeaders {
     /// `Content-MD5` header value, parsed from Base64 into `Data`.
     public var contentMD5: Data? {
         get {
-            // TODO: Tolerate base64 string not padded with =, Should we?
-            return self.storage[.contentMD5]?.first.flatMap { Data(base64Encoded: $0) }
+            // Base64 padding is optional [RFC4648 section 3.2]. NSData won't accept if value is not padded.
+            guard let b64String = self.storage[.contentMD5]?.first else {
+                return nil
+            }
+            let padCount = (4 - (b64String.count % 4))
+            let padded = b64String + String(repeating: "=", count: padCount)
+            return Data(base64Encoded: padded)
         }
         set {
             self.storage[.contentMD5] = newValue.flatMap { [$0.base64EncodedString()] }
@@ -511,14 +551,11 @@ extension HTTPHeaders {
         return (lower ?? 0, upper, total)
     }
     
-    fileprivate func createRange(from: UInt64, to: UInt64? = nil, total: UInt64? = nil, type: HTTPHeaders.RangeType = .bytes) -> String? {
-        guard from >= 0, (to ?? 0) >= 0, (total ?? 1) >= 1 else {
-            return total.flatMap({ "*/\($0)" })
-        }
+    fileprivate func createRange(from: UInt64, to: UInt64? = nil, total: UInt64? = nil, unit: HTTPHeaders.RangeUnit = .bytes) -> String? {
         let toString = to.flatMap(String.init) ?? ""
         let totalString = total.flatMap({ "/\($0)" }) ?? "/*"
 
-        return "\(type.rawValue) \(from)-\(toString)\(totalString)"
+        return "\(unit.rawValue) \(from)-\(toString)\(totalString)"
     }
     
     /// Returns `Content-Range` header value.
@@ -535,36 +572,42 @@ extension HTTPHeaders {
         }
     }
     
-    /// Returns `Content-Range` type, usually `.bytes`.
-    public var contentRangeType: RangeType? {
+    /// Returns `Content-Range` unit, usually `.bytes`.
+    public var contentRangeUnit: RangeUnit? {
         get {
             return self.storage[.contentRange]?.first?.components(separatedBy: " ")
-                .first.flatMap(HTTPHeaders.RangeType.init(rawValue:))
+                .first.flatMap(HTTPHeaders.RangeUnit.init(rawValue:))
         }
     }
     
     /// Set `Content-Range` header.
-    public mutating func set<R: RangeExpression>(contentRange: R, size: UInt64? = nil, type: HTTPHeaders.RangeType = .bytes) where R.Bound == UInt64 {
-        // TOFIX: set(contentRange: ...UInt64.max) will cause crash
-        // TOCHECK: type != .none
+    public mutating func set<R: RangeExpression>(contentRange: R, size: UInt64? = nil, unit: HTTPHeaders.RangeUnit = .bytes) where R.Bound == UInt64 {
+        // TOFIX: set(contentRange: ...UInt64.max) will cause crash.
+        // TOCHECK: unit != .none
         let r = CountableRange<UInt64>.init(uncheckedBounds: (lower: 0, upper: UInt64.max))
         let contentRange: Range<UInt64> = contentRange.relative(to: r)
         let upper: UInt64? = contentRange.upperBound == UInt64.max ? nil : (contentRange.upperBound - 1)
-        let rangeStr = createRange(from: contentRange.lowerBound, to: upper, total: size, type: type)
+        let rangeStr = createRange(from: contentRange.lowerBound, to: upper, total: size, unit: unit)
         self.storage[.contentRange] = rangeStr.flatMap { [$0] }
     }
     
     /// Set `Content-Range` header.
-    public mutating func set<R: RangeExpression>(contentRange: R, size: Int? = nil, type: HTTPHeaders.RangeType = .bytes) where R.Bound == Int {
-        // TOFIX: set(contentRange: ...Int.max) will cause crash
+    public mutating func set<R: RangeExpression>(contentRange: R, size: Int? = nil, unit: HTTPHeaders.RangeUnit = .bytes) where R.Bound == Int {
+        // TOFIX: set(contentRange: ...Int.max) will cause crash.
         // TOCHECK: type != .none
         let r = CountableRange<Int>.init(uncheckedBounds: (lower: 0, upper: Int.max))
         let contentRange: Range<Int> = contentRange.relative(to: r)
         let lower: UInt64 = UInt64(exactly: contentRange.lowerBound) ?? 0
         let upper: UInt64? = contentRange.upperBound == Int.max ? nil : UInt64(exactly: contentRange.upperBound - 1)
         let size = size.flatMap(UInt64.init(exactly:))
-        let rangeStr = createRange(from: lower, to: upper, total: size, type: type)
+        let rangeStr = createRange(from: lower, to: upper, total: size, unit: unit)
         self.storage[.contentRange] = rangeStr.flatMap { [$0] }
+    }
+    
+    /// Set `Content-Range` header for `416 Range Not Satisfiable` status code.
+    public mutating func set(contentRangeSize: UInt64, unit: HTTPHeaders.RangeUnit = .bytes) {
+        // TOCHECK: unit != .none
+        self.storage[.contentRange] = ["\(unit.rawValue) */\(contentRangeSize)"]
     }
     
     /// `Content-Type` header value.
@@ -643,7 +686,9 @@ extension HTTPHeaders {
     
     /// `Set-Cookie` header values. An empty array means no value is set in header.
     public var setCookie: [HTTPCookie] {
-        return self.storage[.setCookie]?.flatMap({ HTTPCookie.cookies(withResponseHeaderFields: ["Set-Cookie": $0], for: URL(string: "/")!) }) ?? []
+        return self.storage[.setCookie]?.flatMap({
+            HTTPCookie.cookies(withResponseHeaderFields: ["Set-Cookie": $0], for: URL(string: "/")!)
+        }) ?? []
     }
     
     /// Appends a cookie to `Set-Cookie` header values.
@@ -651,23 +696,36 @@ extension HTTPHeaders {
     public mutating func add(setCookie cookie: HTTPCookie) {
         let maximumAge = (cookie.properties?[.maximumAge] as? String).flatMap(TimeInterval.init)
         let comment = cookie.properties?[.comment] as? String
-        self.add(setCookie: cookie.name, value: cookie.value, path: cookie.path,
-                 domain: cookie.domain, expiresDate: cookie.expiresDate, maximumAge: maximumAge,
-                 comment: comment, isSecure: cookie.isSecure, isHTTPOnly: cookie.isHTTPOnly)
+        
+        let known: [HTTPCookiePropertyKey] = [.name, .value, .path, .domain, .expires, .maximumAge, .comment,
+                                              .secure, HTTPCookiePropertyKey("HTTPOnly")]
+        let otherKeys = cookie.properties?.keys.filter({ !known.contains($0) })
+        var otherParams = [String: String]()
+        for key in otherKeys ?? [] {
+            otherParams[key.rawValue] = cookie.properties?[key] as? String
+        }
+        
+        self.add(setCookie: cookie.name, value: cookie.value, path: cookie.path, domain: cookie.domain,
+                 expiresDate: cookie.expiresDate, maximumAge: maximumAge, comment: comment,
+                 isSecure: cookie.isSecure, isHTTPOnly: cookie.isHTTPOnly, others: otherParams)
     }
     
-    /// Appends a cookie to `Set-Cookie` header values.
-    /// - Parameter name: Name of cookie.
-    /// - Parameter value: Value of cookie. Can be empty string of cookie has no value.
-    /// - Parameter path: Indicates a URL path that must exist in the requested resource.
-    /// - Parameter domain: Specifies those hosts to which the cookie will be sent.
-    /// - Parameter expiresDate: The maximum lifetime of the cookie as an HTTP-date timestamp.
-    /// - Parameter maximumAge: Number of seconds until the cookie expires.
-    /// - Parameter comment: Comment of cookie application shown in browser settings to user.
-    /// - Parameter isSecure: Cookie has `Secure` attribute. HTTPS encrypted sites will be supported if ture.
-    /// - Parameter isHTTPOnly: Cookie has `HTTPOnly` attribute, unaccessible by javascript.
-    /// - Parameter others: Other possible parameters for cookie.
-    public mutating func add(setCookie name: String, value: String, path: String, domain: String, expiresDate: Date? = nil, maximumAge: TimeInterval? = nil, comment: String? = nil, isSecure: Bool = false, isHTTPOnly: Bool = false, others: [String: String] = [:]) {
+    /**
+     Appends a cookie to `Set-Cookie` header values.
+     - Parameter name: Name of cookie.
+     - Parameter value: Value of cookie. Can be empty string of cookie has no value.
+     - Parameter path: Indicates a URL path that must exist in the requested resource.
+     - Parameter domain: Specifies those hosts to which the cookie will be sent.
+     - Parameter expiresDate: The maximum lifetime of the cookie as an HTTP-date timestamp.
+     - Parameter maximumAge: Number of seconds until the cookie expires.
+     - Parameter comment: Comment of cookie application shown in browser settings to user.
+     - Parameter isSecure: Cookie has `Secure` attribute. HTTPS encrypted sites will be supported if ture.
+     - Parameter isHTTPOnly: Cookie has `HTTPOnly` attribute, unaccessible by javascript.
+     - Parameter others: Other possible parameters for cookie.
+    */
+    public mutating func add(setCookie name: String, value: String, path: String, domain: String,
+                             expiresDate: Date? = nil, maximumAge: TimeInterval? = nil, comment: String? = nil,
+                             isSecure: Bool = false, isHTTPOnly: Bool = false, others: [String: String] = [:]) {
         if self.storage[.setCookie] == nil {
             self.storage[.setCookie] = []
         }
@@ -701,11 +759,12 @@ extension HTTPHeaders {
             }
         }
     }
-    
-    /// `Transfer-Encoding` header values. An empty array means no value is set in header.
-    ///
-    /// Transfer-Encoding is a hop-by-hop header, that is applying to a message between two nodes,
-    /// not to a resource itself.
+    /**
+     `Transfer-Encoding` header values. An empty array means no value is set in header.
+     
+     Transfer-Encoding is a hop-by-hop header, that is applying to a message between two nodes,
+     not to a resource itself.
+    */
     public var transferEncoding: [Encoding] {
         get {
             return self.storage[.transferEncoding]?.flatMap({ (value) -> [String] in
@@ -756,7 +815,7 @@ extension HTTPHeaders {
     public var wwwAuthenticate: [HTTPHeaders.Challenge] {
         get {
             /*
-             According to [RFC7235 section-4.1](https://tools.ietf.org/html/rfc7235#section-4.1) :
+             re. [RFC7235 section-4.1](https://tools.ietf.org/html/rfc7235#section-4.1) :
              "User agents are advised to take special care in parsing the field value, as it might
              contain more than one challenge, and each challenge can contain a comma-separated list
              of authentication parameters."

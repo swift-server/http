@@ -58,7 +58,7 @@ class HeadersAccessorsTests: XCTestCase {
         XCTAssertEqual(headers.ifModifiedSince, date)
         XCTAssertEqual(headers.ifUnmodifiedSince?.timeIntervalSinceReferenceDate, 467105280)
         XCTAssertEqual(headers.origin, URL(string: "https://developer.mozilla.org"))
-        XCTAssertEqual(headers.rangeType, .bytes)
+        XCTAssertEqual(headers.rangeUnit, .bytes)
         // 2000-1000 range is invalid and won't be parsed.
         XCTAssertEqual(headers.range, [200..<1001, -2000..<0, 19000..<Int64.max, -3..<(-2)])
         XCTAssertEqual(headers.referer?.path, "/en-US/docs/Web/JavaScript")
@@ -128,7 +128,7 @@ class HeadersAccessorsTests: XCTestCase {
         XCTAssertEqual(headers.trailer, [.expires])
         XCTAssertEqual(headers.transferEncoding, [.gzip, .chunked])
         XCTAssertEqual(headers.vary, [.userAgent])
-        XCTAssertEqual(headers.wwwAuthenticate.first?.type, .basic)
+        XCTAssertEqual(headers.wwwAuthenticate.first?.scheme, .basic)
         XCTAssertEqual(headers.wwwAuthenticate.first?.realm, "Access to the staging site")
         XCTAssertEqual(headers.wwwAuthenticate.first?.charset, .utf8)
     }
@@ -162,7 +162,7 @@ class HeadersAccessorsTests: XCTestCase {
         
         headers.contentDisposition = .attachment(fileName: "file√utf.çav")
         XCTAssertEqual(headers[.contentDisposition],
-                       "attachment; filename*=UTF-8''file%E2%88%9Autf.%C3%A7av; filename=\"fileutf.av\"")
+                       "attachment; filename*=UTF-8''file%E2%88%9Autf.%C3%A7av; filename=\"fileutf.cav\"")
         XCTAssertEqual(headers.contentDisposition?.type, .attachment)
         XCTAssertEqual(headers.contentDisposition?.filename, "file√utf.çav")
         
@@ -181,7 +181,7 @@ class HeadersAccessorsTests: XCTestCase {
         headers.set(contentRange: 200..., size: 10000)
         XCTAssertEqual(headers[.contentRange], "bytes 200-/10000")
         XCTAssertEqual(headers.contentRange, 200..<UInt64.max)
-        XCTAssertEqual(headers.contentRangeType, .bytes)
+        XCTAssertEqual(headers.contentRangeUnit, .bytes)
         
         headers.contentType = HTTPHeaders.ContentType(type: .html, charset: .utf8)
         XCTAssertEqual(headers.contentType?.mediaType, .html)
@@ -243,11 +243,11 @@ class HeadersAccessorsTests: XCTestCase {
         
         headers.wwwAuthenticate = [.basic(realm: "Access to the staging site", charset: .utf8), .oAuth2(realm: "Access to the staging site", scope: "all")]
         let firstAuth = headers.wwwAuthenticate.first
-        XCTAssertEqual(firstAuth?.type, .basic)
+        XCTAssertEqual(firstAuth?.scheme, .basic)
         XCTAssertEqual(firstAuth?.realm, "Access to the staging site")
         XCTAssertEqual(firstAuth?.charset, .utf8)
         let secondAuth = headers.wwwAuthenticate.dropFirst().first
-        XCTAssertEqual(secondAuth?.type, .oAuth2)
+        XCTAssertEqual(secondAuth?.scheme, .oAuth2)
         XCTAssertEqual(secondAuth?.realm, "Access to the staging site")
         XCTAssertEqual(secondAuth?["scope"], "all")
     }
@@ -256,6 +256,6 @@ class HeadersAccessorsTests: XCTestCase {
         ("testRequestHeaders", testRequestHeaders),
         ("testResponseHeadersGetter", testResponseHeadersGetter),
         ("testResponseHeadersSetter", testResponseHeadersSetter),
-        ]
+    ]
 }
 
