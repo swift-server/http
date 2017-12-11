@@ -13,6 +13,7 @@ XCTMain([
     // HTTPTests
     testCase(VersionTests.allTests),
     testCase(HeadersTests.allTests),
+    testCase(HeadersAccessorsTests.allTests),
     testCase(ResponseTests.allTests),
     testCase(ServerTests.allTests),
     testCase(ServerTestsEndToEnd.allTests),
