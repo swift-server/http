@@ -326,7 +326,8 @@ class ServerTestsEndToEnd: XCTestCase {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
     }
-    
+  
+  #if false // don't have no PoCSocketSimpleServer
     func testRequestLargeEchoEndToEnd() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
         
@@ -383,7 +384,7 @@ class ServerTestsEndToEnd: XCTestCase {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
     }
-    
+  
     func testRequestLargePostHelloWorld() {
         let receivedExpectation = self.expectation(description: "Received web response \(#function)")
         
@@ -479,16 +480,19 @@ class ServerTestsEndToEnd: XCTestCase {
             XCTFail("Error listening on port \(0): \(error). Use server.failed(callback:) to handle")
         }
     }
-    
+  #endif
+
     static var allTests = [
         ("testOkEndToEnd", testOkEndToEnd),
         ("testHelloEndToEnd", testHelloEndToEnd),
         ("testSimpleHelloEndToEnd", testSimpleHelloEndToEnd),
         ("testRequestEchoEndToEnd", testRequestEchoEndToEnd),
         ("testRequestKeepAliveEchoEndToEnd", testRequestKeepAliveEchoEndToEnd),
+        /* not yet for PR 96
         ("testRequestLargeEchoEndToEnd", testRequestLargeEchoEndToEnd),
         ("testExplicitCloseConnections", testExplicitCloseConnections),
         ("testRequestLargePostHelloWorld", testRequestLargePostHelloWorld),
+       */
         ]
 }
 

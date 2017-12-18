@@ -7,11 +7,12 @@
 //
 
 import Foundation
+import Dispatch
 import HTTP
 
 /// Simple `HTTPRequestHandler` that prints "Hello, World" as per K&R
 class UnchunkedHelloWorldHandler: HTTPRequestHandling {
-    func handle(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {
+    func handle(request: HTTPRequest, response: HTTPResponseWriter, queue: DispatchQueue ) -> HTTPBodyProcessing {
         //Assume the router gave us the right request - at least for now
         let responseString = "Hello, World!"
         response.writeHeader(status: .ok, headers: [.contentLength: "\(responseString.lengthOfBytes(using: .utf8))"])

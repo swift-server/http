@@ -7,11 +7,12 @@
 //
 
 import Foundation
+import Dispatch
 import HTTP
 
 /// `HelloWorldRequestHandler` that sets the keep alive header for XCTest purposes
 class HelloWorldKeepAliveHandler: HTTPRequestHandling {
-    func handle(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {
+    func handle(request: HTTPRequest, response: HTTPResponseWriter, queue: DispatchQueue ) -> HTTPBodyProcessing {
         //Assume the router gave us the right request - at least for now
         response.writeHeader(status: .ok, headers: [
             "Transfer-Encoding": "chunked",

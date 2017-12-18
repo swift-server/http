@@ -7,11 +7,12 @@
 //
 
 import Foundation
+import Dispatch
 import HTTP
 
 /// Simple `HTTPRequestHandler` that just echoes back whatever input it gets
 class EchoHandler: HTTPRequestHandling {
-    func handle(request: HTTPRequest, response: HTTPResponseWriter ) -> HTTPBodyProcessing {
+    func handle(request: HTTPRequest, response: HTTPResponseWriter, queue: DispatchQueue ) -> HTTPBodyProcessing {
         //Assume the router gave us the right request - at least for now
         response.writeHeader(status: .ok, headers: ["Transfer-Encoding": "chunked", "X-foo": "bar"])
         return .processBody { (chunk, stop) in

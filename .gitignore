@@ -75,3 +75,5 @@ fastlane/test_output
 /Package.pins
 /Package.resolved
 docs
+.build-linux
+

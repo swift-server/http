@@ -19,33 +19,6 @@ public struct HTTPResponse {
     public var headers: HTTPHeaders
 }
 
-/// HTTPResponseWriter provides functions to create an HTTP response
-public protocol HTTPResponseWriter: class {
-    /// Writer function to create the headers for an HTTP response
-    /// - Parameter status: The status code to include in the HTTP response
-    /// - Parameter headers: The HTTP headers to include in the HTTP response
-    /// - Parameter completion: Closure that is called when the HTTP headers have been written to the HTTP respose
-    func writeHeader(status: HTTPResponseStatus, headers: HTTPHeaders, completion: @escaping (Result) -> Void)
-
-    /// Writer function to write a trailer header as part of the HTTP response
-    /// - Parameter trailers: The trailers to write as part of the HTTP response
-    /// - Parameter completion: Closure that is called when the trailers has been written to the HTTP response
-    /// This is not currently implemented
-    func writeTrailer(_ trailers: HTTPHeaders, completion: @escaping (Result) -> Void)
-
-    /// Writer function to write data to the body of the HTTP response
-    /// - Parameter data: The data to write as part of the HTTP response
-    /// - Parameter completion: Closure that is called when the data has been written to the HTTP response
-    func writeBody(_ data: UnsafeHTTPResponseBody, completion: @escaping (Result) -> Void)
-
-    /// Writer function to complete the HTTP response
-    /// - Parameter completion: Closure that is called when the HTTP response has been completed
-    func done(completion: @escaping (Result) -> Void)
-
-    /// abort: Abort the HTTP response
-    func abort()
-}
-
 /// Convenience methods for HTTP response writer.
 extension HTTPResponseWriter {
     /// Convenience function to write the headers for an HTTP response without a completion handler
