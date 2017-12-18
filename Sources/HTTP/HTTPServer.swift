@@ -197,7 +197,9 @@ public class HTTPServer {
     
     // Create connection, register and start it.
     let connection = HTTPConnection(fd: fd, queue: connectionQueue,
-                                    requestHandler: handler, server: self)
+                                    requestHandler: handler) {
+      self._connectionIsDone($0)
+    }
     connections.append(connection)
 
     #if os(Linux)
@@ -211,7 +213,7 @@ public class HTTPServer {
     connection.resume() // start reading from socket
   }
   
-  internal func _connectionIsDone(_ connection: HTTPConnection) {
+  private func _connectionIsDone(_ connection: HTTPConnection) {
     // Called from arbitrary queue (i.e. the connection queue)
     queue.async {
       guard let idx = self.connections.index(where: { $0 === connection }) else {

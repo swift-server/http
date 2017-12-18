@@ -27,9 +27,9 @@ import CHTTPParser
 ///
 internal class HTTPConnection : CustomStringConvertible {
 
-  /// The `HTTPServer` which created the connection. If the connection shuts
-  /// down, it will unregister from that server.
-  private  let server  : HTTPServer
+  /// A closure that gets called if the connection is finished and tears down.
+  /// The Server will add this to unregister the connection.
+  private  var doneCB  : (( HTTPConnection ) -> ())?
   
   /// Serialized access to the state of the connection. Everything needs to
   /// happen on this queue. It is the `DispatchQueue.main` for a handler.
@@ -60,9 +60,9 @@ internal class HTTPConnection : CustomStringConvertible {
   internal init(fd             : Int32,
                 queue          : DispatchQueue,
                 requestHandler : @escaping HTTPRequestHandler,
-                server         : HTTPServer)
+                done doneCB    : @escaping ( HTTPConnection ) -> ())
   {
-    self.server         = server
+    self.doneCB         = doneCB
     self.queue          = queue
     self.requestHandler = requestHandler
     
@@ -274,7 +274,8 @@ internal class HTTPConnection : CustomStringConvertible {
   private func _connectionHasFinished() {
     guard !didFinish else { return }
     didFinish = true
-    server._connectionIsDone(self)
+    doneCB?(self)
+    doneCB = nil // free retain cycle
   }
   
   
