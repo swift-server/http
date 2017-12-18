@@ -588,7 +588,6 @@ extension HTTPHeaders {
             self.storage[.contentRange] = ["\(unit.rawValue) */\(size ?? 0)"]
             return
         }
-        assert(!contentRange.contains(-1), "contentRange.loweBound can't be a negative value")
         let lower: UInt64
         let upper: UInt64?
         if contentRange.contains(T.max) {
