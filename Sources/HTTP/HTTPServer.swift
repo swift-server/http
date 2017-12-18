@@ -217,7 +217,7 @@ public class HTTPServer {
     // Called from arbitrary queue (i.e. the connection queue)
     queue.async {
       guard let idx = self.connections.index(where: { $0 === connection }) else {
-        assert(false, "did not find finished connection: \(connection)")
+        assertionFailure("did not find finished connection: \(connection)")
         return
       }
       

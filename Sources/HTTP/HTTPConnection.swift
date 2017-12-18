@@ -255,7 +255,7 @@ internal class HTTPConnection : CustomStringConvertible {
       writers.remove(at: idx)
     }
     else {
-      assert(false, "did not find writer which went done: \(self)")
+      assertionFailure("did not find writer which went done: \(self)")
     }
     
     // activate next writer in the pipeline
