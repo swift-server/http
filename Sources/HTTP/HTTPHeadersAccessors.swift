@@ -198,7 +198,7 @@ extension HTTPHeaders {
          for more info.
      
      - Important: A negative range means server must return last bytes/items of resource. Server should interpret
-        and send appropriate response fornegative ranges or respond with `416 Range Not Satisfiable`.
+        and send appropriate response for negative ranges or respond with `416 Range Not Satisfiable`.
     */
     public var range: [Range<Int64>] {
         // TODO: return PartialRangeFrom when possible
@@ -388,6 +388,7 @@ extension HTTPHeaders {
             return "iOS \(version)"
         }
         
+        // Linux, NetBSD, ...
         return deviceArray.first ?? (isX11 ? "X11" : nil)
     }
     
@@ -551,7 +552,8 @@ extension HTTPHeaders {
         return (lower ?? 0, upper, total)
     }
     
-    fileprivate func createRange(from: UInt64, to: UInt64? = nil, total: UInt64? = nil, unit: HTTPHeaders.RangeUnit = .bytes) -> String? {
+    fileprivate func createRange(from: UInt64, to: UInt64? = nil, total: UInt64? = nil,
+                                 unit: HTTPHeaders.RangeUnit = .bytes) -> String? {
         let toString = to.flatMap(String.init) ?? ""
         let totalString = total.flatMap({ "/\($0)" }) ?? "/*"
 
@@ -560,7 +562,6 @@ extension HTTPHeaders {
     
     /// Returns `Content-Range` header value.
     /// - Note: upperbound will be UInt64.max in case of open ended Range.
-    /// - Important: A negative range means server must return last bytes/items of file
     public var contentRange: Range<UInt64>? {
         // TODO: return PartialRangeFrom when possible
         get {
@@ -581,33 +582,45 @@ extension HTTPHeaders {
     }
     
     /// Set `Content-Range` header.
-    public mutating func set<R: RangeExpression>(contentRange: R, size: UInt64? = nil, unit: HTTPHeaders.RangeUnit = .bytes) where R.Bound == UInt64 {
-        // TOFIX: set(contentRange: ...UInt64.max) will cause crash.
+    public mutating func set<R: RangeExpression, T: FixedWidthInteger>(contentRange: R?, size: T? = nil, unit: HTTPHeaders.RangeUnit = .bytes) where R.Bound == T, T.Stride: SignedInteger {
         // TOCHECK: unit != .none
-        let r = CountableRange<UInt64>.init(uncheckedBounds: (lower: 0, upper: UInt64.max))
-        let contentRange: Range<UInt64> = contentRange.relative(to: r)
-        let upper: UInt64? = contentRange.upperBound == UInt64.max ? nil : (contentRange.upperBound - 1)
-        let rangeStr = createRange(from: contentRange.lowerBound, to: upper, total: size, unit: unit)
-        self.storage[.contentRange] = rangeStr.flatMap { [$0] }
-    }
-    
-    /// Set `Content-Range` header.
-    public mutating func set<R: RangeExpression>(contentRange: R, size: Int? = nil, unit: HTTPHeaders.RangeUnit = .bytes) where R.Bound == Int {
-        // TOFIX: set(contentRange: ...Int.max) will cause crash.
-        // TOCHECK: type != .none
-        let r = CountableRange<Int>.init(uncheckedBounds: (lower: 0, upper: Int.max))
-        let contentRange: Range<Int> = contentRange.relative(to: r)
-        let lower: UInt64 = UInt64(exactly: contentRange.lowerBound) ?? 0
-        let upper: UInt64? = contentRange.upperBound == Int.max ? nil : UInt64(exactly: contentRange.upperBound - 1)
+        guard let contentRange = contentRange else {
+            self.storage[.contentRange] = ["\(unit.rawValue) */\(size ?? 0)"]
+            return
+        }
+        assert(!contentRange.contains(-1), "contentRange.loweBound can't be a negative value")
+        let lower: UInt64
+        let upper: UInt64?
+        if contentRange.contains(T.max) {
+            /*
+             RangeExpression.relative(to:) will cause a crash if contentRange is a closed range
+             and upperbound is equal to T.max.
+             I believe this issue should be addressed in StdLib. To avoid server crash until it get
+             fixed, we check contentRange type in case it contains T.max (to avoid unnecessary
+             type-checking overhead), and handle the problematic scenarios manually.
+            */
+            switch contentRange {
+            case let range as ClosedRange<T>:
+                lower = UInt64(exactly: range.lowerBound) ?? 0
+            case let range as CountableClosedRange<T>:
+                lower = UInt64(exactly: range.lowerBound) ?? 0
+            case is PartialRangeThrough<T>:
+                lower = 0
+            default: // PartialRangeFrom
+                let r: CountableRange<T> = 0..<T.max
+                let range: Range<T> = contentRange.relative(to: r)
+                lower = UInt64(exactly: range.lowerBound) ?? 0
+            }
+            upper = nil
+        } else {
+            let r: CountableRange<T> = 0..<T.max
+            let range: Range<T> = contentRange.relative(to: r)
+            lower = UInt64(exactly: range.lowerBound) ?? 0
+            upper = range.upperBound == T.max ? nil : UInt64(exactly: range.upperBound - 1)
+        }
         let size = size.flatMap(UInt64.init(exactly:))
         let rangeStr = createRange(from: lower, to: upper, total: size, unit: unit)
         self.storage[.contentRange] = rangeStr.flatMap { [$0] }
-    }
-    
-    /// Set `Content-Range` header for `416 Range Not Satisfiable` status code.
-    public mutating func set(contentRangeSize: UInt64, unit: HTTPHeaders.RangeUnit = .bytes) {
-        // TOCHECK: unit != .none
-        self.storage[.contentRange] = ["\(unit.rawValue) */\(contentRangeSize)"]
     }
     
     /// `Content-Type` header value.
