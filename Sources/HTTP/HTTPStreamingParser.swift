@@ -45,28 +45,8 @@ public class StreamingParser: HTTPResponseWriter {
             _keepAliveUntil = newValue
         }
     }
-
-    /// Socket File Descriptor so we can log it for debugging
-    private let _socketDebuggingFDLock = DispatchSemaphore(value: 1)
-    private var _socketDebuggingFD: Int?
-    internal var socketDebuggingFD: Int? {
-        get {
-            _socketDebuggingFDLock.wait()
-            defer {
-                _socketDebuggingFDLock.signal()
-            }
-            return _socketDebuggingFD
-        }
-        set {
-            _socketDebuggingFDLock.wait()
-            defer {
-                _socketDebuggingFDLock.signal()
-            }
-            _socketDebuggingFD = newValue
-        }
-    }
     
-    /// Tracks when we've been told socket has been closed. Needs to have a lock, since if we get confused, bat things happen
+    /// Tracks when we've been told socket has been closed. Needs to have a lock, since if we get confused, bad things happen
     private let _abortCalledLock = DispatchSemaphore(value: 1)
     private var _abortCalled: Bool = false
     internal var abortCalled: Bool {
