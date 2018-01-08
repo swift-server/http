@@ -35,10 +35,13 @@ public class HTTPServer {
         /// Note: For Port=0, the kernel assigns a random port. This will cause HTTPServer.port value
         /// to diverge from HTTPServer.Options.port
         public let port: Int
+        
+        public let tlsConfig: TLSConfiguration?
 
         ///  Create an instance of HTTPServerOptions
-        public init(onPort: Int = 0) {
+        public init(onPort: Int = 0, tlsConf: TLSConfiguration? = nil) {
             port = onPort
+            tlsConfig = tlsConf
         }
     }
     public let options: Options
@@ -48,18 +51,15 @@ public class HTTPServer {
 
     private let server = PoCSocketSimpleServer()
     
-    private let tlsConfig: TLSConfiguration?
-
     /// Create an instance of the server. This needs to be followed with a call to `start(port:handler:)`
-    public init(with newOptions: Options, tls: TLSConfiguration? = nil, requestHandler: @escaping HTTPRequestHandler) {
+    public init(with newOptions: Options, requestHandler: @escaping HTTPRequestHandler) {
         options = newOptions
         handler = requestHandler
-        tlsConfig = tls
     }
 
     /// Start the HTTP server on the given `port` number, using a `HTTPRequestHandler` to process incoming requests.
     public func start() throws {
-        try server.start(port: options.port, tls: tlsConfig, handler: handler)
+        try server.start(port: options.port, tls: options.tlsConfig, handler: handler)
     }
 
     /// Stop the server

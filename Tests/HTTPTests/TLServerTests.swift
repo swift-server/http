@@ -29,7 +29,7 @@ class TLSServerTests: XCTestCase {
         let urlStr: String
         let session: URLSession
         
-        let server = HTTPServer(with: HTTPServer.Options(), tls: config, requestHandler: OkHandler().handle)
+        let server = HTTPServer(with: HTTPServer.Options(onPort: 0, tlsConf: config), requestHandler: OkHandler().handle)
         do {
             try server.start()
             
@@ -86,7 +86,7 @@ class TLSServerTests: XCTestCase {
         let urlStr: String
         let session: URLSession
         
-        let server = HTTPServer(with: HTTPServer.Options(), tls: config, requestHandler: HelloWorldHandler().handle)
+        let server = HTTPServer(with: HTTPServer.Options(onPort: 0, tlsConf: config), requestHandler: HelloWorldHandler().handle)
         do {
             try server.start()
             
@@ -140,7 +140,7 @@ class TLSServerTests: XCTestCase {
             )
         }
         
-        let server = HTTPServer(with: HTTPServer.Options(), tls: config, requestHandler: simpleHelloWebApp.handle)
+        let server = HTTPServer(with: HTTPServer.Options(onPort: 0, tlsConf: config), requestHandler: simpleHelloWebApp.handle)
         do {
             try server.start()
             session = URLSession(configuration: URLSessionConfiguration.default)
@@ -177,7 +177,7 @@ class TLSServerTests: XCTestCase {
         let session: URLSession
         let testString = "This is a test"
         
-        let server = HTTPServer(with: HTTPServer.Options(), tls: config, requestHandler: EchoHandler().handle)
+        let server = HTTPServer(with: HTTPServer.Options(onPort: 0, tlsConf: config), requestHandler: EchoHandler().handle)
         do {
             try server.start()
             session = URLSession(configuration: URLSessionConfiguration.default)
@@ -220,7 +220,7 @@ class TLSServerTests: XCTestCase {
         let testString3="This is also a test"
         let session: URLSession
         
-        let server = HTTPServer(with: HTTPServer.Options(), tls: config, requestHandler: EchoHandler().handle)
+        let server = HTTPServer(with: HTTPServer.Options(onPort: 0, tlsConf: config), requestHandler: EchoHandler().handle)
         do {
             try server.start()
             session = URLSession(configuration: URLSessionConfiguration.default)
@@ -304,7 +304,7 @@ class TLSServerTests: XCTestCase {
         let testString3="This is also a test"
         let session: URLSession
         
-        let server = HTTPServer(with: HTTPServer.Options(), tls: config, requestHandler: EchoHandler().handle)
+        let server = HTTPServer(with: HTTPServer.Options(onPort: 0, tlsConf: config), requestHandler: EchoHandler().handle)
         do {
             try server.start()
             session = URLSession(configuration: URLSessionConfiguration.default)
