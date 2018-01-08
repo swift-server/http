@@ -72,7 +72,7 @@ public class StreamingParser: HTTPResponseWriter {
     /// Holds the bytes that come from the CHTTPParser until we have enough of them to do something with it
     var parserBuffer: Data?
     
-    /// Lock for parser buffer. TODO: Figure out how to wrap this without copying it
+    /// Lock for parser buffer.
     private let _parserBufferLock = DispatchSemaphore(value: 1)
 
     /// HTTP Parser
