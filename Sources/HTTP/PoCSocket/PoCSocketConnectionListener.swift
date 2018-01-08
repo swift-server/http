@@ -20,7 +20,25 @@ public class PoCSocketConnectionListener: ParserConnecting {
 
     /// Save the socket file descriptor so we can loook at it for debugging purposes
     var socketFD: Int32
-    var shouldShutdown: Bool = false
+    ///Flag to track whether we've been told to shutdown or not (with lock)
+    private let _shouldShutdownLock = DispatchSemaphore(value: 1)
+    private var _shouldShutdown: Bool = false
+    var shouldShutdown: Bool {
+        get {
+            _shouldShutdownLock.wait()
+            defer {
+                _shouldShutdownLock.signal()
+            }
+            return _shouldShutdown
+        }
+        set {
+            _shouldShutdownLock.wait()
+            defer {
+                _shouldShutdownLock.signal()
+            }
+            _shouldShutdown = newValue
+        }
+    }
 
     /// Queues for managing access to the socket without blocking the world
     let socketReaderQueue: DispatchQueue
@@ -66,6 +84,26 @@ public class PoCSocketConnectionListener: ParserConnecting {
                 _errorOccurredLock.signal()
             }
             _errorOccurred = newValue
+        }
+    }
+    
+    ///Flag to track whether we've already called cleanup or not (with lock)
+    private let _cleanupCalledLock = DispatchSemaphore(value: 1)
+    private var _cleanupCalled: Bool = false
+    var cleanupCalled: Bool {
+        get {
+            _cleanupCalledLock.wait()
+            defer {
+                _cleanupCalledLock.signal()
+            }
+            return _cleanupCalled
+        }
+        set {
+            _cleanupCalledLock.wait()
+            defer {
+                _cleanupCalledLock.signal()
+            }
+            _cleanupCalled = newValue
         }
     }
 
@@ -160,13 +198,22 @@ public class PoCSocketConnectionListener: ParserConnecting {
     }
 
     func cleanup() {
-        self.readerSource?.setEventHandler(handler: nil)
-        self.readerSource?.setCancelHandler(handler: nil)
-
-        self.readerSource = nil
-        self.socket = nil
-        self.parser?.parserConnector = nil //allows for memory to be reclaimed
-        self.parser = nil
+        guard !cleanupCalled else {
+            // This prevents a rare crash (~1 in 300,000) where cleanup is called from both reader and writer
+            //  queues simultaneously
+            return
+        }
+        
+        //allow for memory to be reclaimed
+        if let strongReaderSource = self.readerSource {
+            strongReaderSource.setEventHandler(handler: nil)
+            strongReaderSource.setCancelHandler(handler: nil)
+        }
+        if let strongParser = self.parser {
+            strongParser.parserConnector = nil
+        }
+        
+        cleanupCalled = true
     }
 
     /// Called by the parser to let us know that a response has started being created
@@ -203,6 +250,7 @@ public class PoCSocketConnectionListener: ParserConnecting {
                 try strongSocket.setBlocking(mode: true)
                 tempReaderSource = DispatchSource.makeReadSource(fileDescriptor: strongSocket.socketfd,
                                                                      queue: socketReaderQueue)
+                self.readerSource = tempReaderSource
             } catch {
                 print("Socket cannot be set to Blocking in process(): \(error)")
                 return
@@ -226,55 +274,68 @@ public class PoCSocketConnectionListener: ParserConnecting {
                 strongSelf.cleanup()
                 return
             }
-
-            var length = 1 //initial value
-
-            do {
-                if strongSelf.socket?.socketfd ?? -1 > 0 {
-                    var maxLength: Int = Int(strongSelf.readerSource?.data ?? 0)
-                    if (maxLength > strongSelf.maxReadLength) || (maxLength <= 0) {
+            
+            if let strongSocket = strongSelf.socket {
+                var length = 1 //initial value
+                do {
+                    if strongSocket.socketfd > 0 {
+                        var maxLength: Int = Int(strongSelf.readerSource?.data ?? 0)
+                        if (maxLength > strongSelf.maxReadLength) || (maxLength <= 0) {
                             maxLength = strongSelf.maxReadLength
-                    }
-                    var readBuffer = UnsafeMutablePointer<Int8>.allocate(capacity: maxLength)
-                    length = try strongSelf.socket?.socketRead(into: &readBuffer, maxLength: maxLength) ?? -1
-                    defer {
-                        readBuffer.deallocate(capacity: maxLength)
-                    }
-                    if length > 0 {
-                        self?.responseCompleted = false
-
-                        let data = Data(bytes: readBuffer, count: length)
-                        let numberParsed = strongSelf.parser?.readStream(data: data) ?? 0
-
-                        if numberParsed != data.count {
-                            print("Error: wrong number of bytes consumed by parser (\(numberParsed) instead of \(data.count)")
                         }
-                    }
-                } else {
-                    print("bad socket FD while reading")
-                    length = -1
+                        var readBuffer: UnsafeMutablePointer<Int8> = UnsafeMutablePointer<Int8>.allocate(capacity: maxLength)
+                        length = try strongSocket.socketRead(into: &readBuffer, maxLength:maxLength)
+                        if length > 0 {
+                            strongSelf.responseCompleted = false
+                            
+                            let data = Data(bytes: readBuffer, count: length)
+                            let numberParsed = strongSelf.parser?.readStream(data:data) ?? 0
+                            
+                    defer {
+                     readBuffer.deallocate(capacity: maxLength)
                 }
-            } catch {
-                print("ReaderSource Event Error: \(error)")
-                self?.readerSource?.cancel()
-                self?.errorOccurred = true
-                self?.close()
-            }
-            if length == 0 {
-                self?.readerSource?.cancel()
-            }
-            if length < 0 {
-                self?.errorOccurred = true
-                self?.readerSource?.cancel()
-                self?.close()
+
+                            if numberParsed != data.count {
+                                print("Error: wrong number of bytes consumed by parser (\(numberParsed) instead of \(data.count)")
+                            }
+                        }
+                    } else {
+                        print("bad socket FD while reading")
+                        length = -1
+                    }
+                } catch {
+                    //print("ReaderSource Event Error: \(error)")
+                    strongSelf.readerSource?.cancel()
+
+                    strongSelf.errorOccurred = true
+                    strongSelf.close()
+                }
+
+                if length == 0 {
+                    //print("ReaderSource Read count zero. Cancelling.")
+                    strongSelf.readerSource?.cancel()
+                }
+                if length < 0 {
+                    //print("ReaderSource Read count negative. Closing.")
+                    strongSelf.errorOccurred = true
+                    strongSelf.readerSource?.cancel()
+                    strongSelf.close()
+                }
+            } else {
+                //print("ReaderSource Read found nil socket. Closing.")
+                strongSelf.errorOccurred = true
+                strongSelf.readerSource?.cancel()
+                strongSelf.close()
             }
         }
 
         tempReaderSource.setCancelHandler { [weak self] in
-            self?.close() //close if we can
+            if let strongSelf = self {
+                strongSelf.close() //close if we can
+            }
         }
 
-        self.readerSource = tempReaderSource
+        
         self.readerSource?.resume()
     }
 
@@ -298,13 +359,18 @@ public class PoCSocketConnectionListener: ParserConnecting {
 
             while written < data.count && !errorOccurred {
                 try data.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) in
-                    let result = try socket?.socketWrite(from: ptr + offset, bufSize:
-                        data.count - offset) ?? -1
-                    if result < 0 {
-                        print("Received broken write socket indication")
-                        errorOccurred = true
+                    if let strongSocket = socket {
+                        let result = try strongSocket.socketWrite(from: ptr + offset, bufSize:
+                            data.count - offset)
+                        if result < 0 {
+                            //print("Received broken write socket indication")
+                            errorOccurred = true
+                        } else {
+                            written += result
+                        }
                     } else {
-                        written += result
+                        //print("Socket unexpectedly nil during write")
+                        errorOccurred = true
                     }
                 }
                 offset = data.count - written
