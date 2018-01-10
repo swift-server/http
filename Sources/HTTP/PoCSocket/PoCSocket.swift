@@ -8,6 +8,7 @@
 
 import Foundation
 import Dispatch
+import ServerSecurity
 
 ///:nodoc:
 public enum PoCSocketError: Error {
@@ -19,11 +20,11 @@ public enum PoCSocketError: Error {
 }
 
 /// Simple Wrapper around the `socket(2)` functions we need for Proof of Concept testing
-/// Intentionally a thin layer over `recv(2)`/`send(2)` so uses the same argument types.
-/// Note that no method names here are the same as any system call names.
-/// This is because we expect the caller might need functionality we haven't implemented here.
-internal class PoCSocket {
-
+///  Intentionally a thin layer over `recv(2)`/`send(2)` so uses the same argument types.
+///  Note that no method names here are the same as any system call names.
+///  This is because we expect the caller might need functionality we haven't implemented here.
+internal class PoCSocket: ConnectionDelegate  {
+    
     /// hold the file descriptor for the socket supplied by the OS. `-1` is invalid socket
     internal var socketfd: Int32 = -1
 
@@ -90,6 +91,15 @@ internal class PoCSocket {
         }
     }
 
+    /// Delegate that provides the TLS implementation
+    public var TLSdelegate: TLSServiceDelegate? = nil
+    /// Return the file descriptor as a connection endpoint for ConnectionDelegate.
+    public var endpoint: ConnectionType {
+        get {
+            return ConnectionType.socket(self.socketfd)
+        }
+    }
+
     /// track whether a the socket has already been closed.
     private let _hasClosedLock = DispatchSemaphore(value: 1)
     private var _hasClosed: Bool = false
@@ -133,8 +143,15 @@ internal class PoCSocket {
 
         //Make sure data isn't re-used
         readBuffer.initialize(to: 0x0, count: maxLength)
-
-        let read = recv(self.socketfd, readBuffer, maxLength, Int32(0))
+        
+        let read: Int
+        if let tls = self.TLSdelegate {
+            // HTTPS
+            read = try tls.willReceive(into: readBuffer, bufSize: maxLength)
+        } else {
+            // HTTP
+            read = recv(self.socketfd, readBuffer, maxLength, Int32(0))
+        }
         //Leave this as a local variable to facilitate Setting a Watchpoint in lldb
         return read
     }
@@ -160,14 +177,24 @@ internal class PoCSocket {
             throw PoCSocketError.InvalidBufferError
         }
 
-        let sent = send(self.socketfd, buffer, Int(bufSize), Int32(0))
-        // Leave this as a local variable to facilitate Setting a Watchpoint in lldb
+        let sent: Int
+        if let tls = self.TLSdelegate {
+            // HTTPS
+            sent = try tls.willSend(buffer: buffer, bufSize: Int(bufSize))
+        } else {
+            // HTTP
+            sent = send(self.socketfd, buffer, Int(bufSize), Int32(0))
+        }
+        //Leave this as a local variable to facilitate Setting a Watchpoint in lldb
         return sent
     }
 
     /// Calls `shutdown(2)` and `close(2)` on a socket
     internal func shutdownAndClose() {
         self.isShuttingDown = true
+        if let tls = self.TLSdelegate {
+            tls.willDestroy()
+        }
         if socketfd < 1 {
             //Nothing to do. Maybe it was closed already
             return
@@ -223,7 +250,12 @@ internal class PoCSocket {
 
         retVal.isConnected = true
         retVal.socketfd = acceptFD
-
+        
+        // TLS delegate does post accept handling and verification
+        if let tls = self.TLSdelegate {
+            try tls.didAccept(connection: retVal)
+        }
+        
         return retVal
     }
 
@@ -242,6 +274,11 @@ internal class PoCSocket {
 
         if socketfd <= 0 {
             throw PoCSocketError.InvalidSocketError
+        
+        }
+        // Initialize delegate
+        if let tls = self.TLSdelegate {
+            try tls.didCreateServer()
         }
 
         var on: Int32 = 1
