@@ -533,15 +533,15 @@ class TLSServerTests: XCTestCase {
             let myCertPath = URL(fileURLWithPath: #file).appendingPathComponent("../../../Certs/letsEncryptCA/cert.pem").standardized
             let myKeyPath = URL(fileURLWithPath: #file).appendingPathComponent("../../../Certs/letsEncryptCA/key.pem").standardized
             let config = TLSConfiguration(withCACertificateFilePath: myCAPath.path, usingCertificateFile: myCertPath.path, withKeyFile: myKeyPath.path, usingSelfSignedCerts: false)
-            print("myCAPath is at: \(myCAPath.absoluteString) ")
-            print("myCertPath is at: \(myCertPath.absoluteString) ")
-            print("myKeyPath is at: \(myKeyPath.absoluteString) ")
+//            print("myCAPath is at: \(myCAPath.absoluteString) ")
+//            print("myCertPath is at: \(myCertPath.absoluteString) ")
+//            print("myKeyPath is at: \(myKeyPath.absoluteString) ")
             
         #else
             let myP12 = URL(fileURLWithPath: #file).appendingPathComponent("../../../Certs/letsEncryptCA/cert.pfx").standardized
             let myPassword = "password"
             let config = TLSConfiguration(withChainFilePath: myP12.path, withPassword: myPassword, usingSelfSignedCerts: false)
-            print("myCertPath is at: \(myP12.absoluteString) ")
+//            print("myCertPath is at: \(myP12.absoluteString) ")
             
         #endif
         
