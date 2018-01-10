@@ -328,8 +328,6 @@ internal class PoCSocket: ConnectionDelegate  {
                 return Int32(Int(OSHostByteOrder()) != OSLittleEndian ? addr_in.sin_port.littleEndian : addr_in.sin_port.bigEndian)
             #endif
         }
-        
-        //print("listeningPort is \(listeningPort)")
     }
 
     /// Check to see if socket is being used

@@ -8,22 +8,6 @@
 
 import ServerSecurity
 
-/// Definition of an HTTP server.
-public protocol HTTPServing: class {
-
-    /// Start the HTTP server on the given `port`, using `handler` to process incoming requests
-    func start(port: Int, tls: TLSConfiguration?, handler: @escaping HTTPRequestHandler) throws
-
-    /// Stop the server
-    func stop()
-
-    /// The port the server is listening on
-    var port: Int { get }
-
-    /// The number of current connections
-    var connectionCount: Int { get }
-}
-
 /// A basic HTTP server. Currently this is implemented using the PoCSocket
 /// abstraction, but the intention is to remove this dependency and reimplement
 /// the class using transport APIs provided by the Server APIs working group.
