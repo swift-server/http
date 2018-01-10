@@ -15,9 +15,9 @@ let package = Package(
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
         // ServerSecurity: common headers, definitions and protocols
-        .package(url: "https://github.com/gtaban/security.git", from: "0.0.0"),
+        .package(url: "https://github.com/swift-server/security.git", from: "0.0.0"),
         // TLSService: implementation of ServerSecurity using OpenSSL and SecureTransport
-        .package(url: "https://github.com/gtaban/TLSService.git", from: "0.20.0"),
+        .package(url: "https://github.com/swift-server/TLSService.git", from: "0.20.3"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
