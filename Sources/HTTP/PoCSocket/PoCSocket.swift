@@ -315,9 +315,9 @@ internal class PoCSocket: ConnectionDelegate  {
 
         isListening = true
 
-        var addr_in = sockaddr_in()
+        let addr_in = sockaddr_in()
 
-        listeningPort = try withUnsafePointer(to: &addr_in) { pointer in
+        listeningPort = try withUnsafePointer(to: addr_in) { pointer in
             var len = socklen_t(MemoryLayout<sockaddr_in>.size)
             if getsockname(socketfd, UnsafeMutablePointer(OpaquePointer(pointer)), &len) != 0 {
                 throw PoCSocketError.SocketOSError(errno: errno)
