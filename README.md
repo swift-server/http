@@ -1,6 +1,8 @@
 # Swift Server Project HTTP APIs
 
-This is an early implementation of the Swift Server Project's HTTP APIs. This provides simple HTTP server on which rich web application frameworks can be built.
+:warning: This project is unmaintained experimental legacy code. It has been obsoleted by [SwiftNIO](https://github.com/apple/swift-nio) which contains the recommended HTTP API of the [Swift Server Work Group](https://swift.org/server/).
+
+It remains here for historical interest only.
 
 ## Getting Started
 
